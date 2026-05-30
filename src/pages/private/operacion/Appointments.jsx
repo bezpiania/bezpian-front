@@ -269,6 +269,7 @@ const Appointments = () => {
       </div>
     </div>
   </AppLayout>
-);
+  );
+};
 
 export default Appointments;
