@@ -1,17 +1,79 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
+import { useParams } from 'react-router-dom';
 import AppLayout from '../../../components/AppLayout.jsx';
+import { useGetAppointments } from '../../../hooks/useAppointment.js';
 
-const DAYS = [
-  { label: 'Lun', num: 11, today: false, off: false },
-  { label: 'Hoy', num: 12, today: true, off: false },
-  { label: 'Mié', num: 13, today: false, off: false },
-  { label: 'Jue', num: 14, today: false, off: false },
-  { label: 'Vie', num: 15, today: false, off: false },
-  { label: 'Sáb', num: 16, today: false, off: true },
-  { label: 'Dom', num: 17, today: false, off: true },
-];
+const DAYS_OF_WEEK = ['lun', 'mar', 'mié', 'jue', 'vie', 'sáb', 'dom'];
+const HOURS = ['09:00', '10:00', '11:00', '12:00', '13:00', '14:00'];
+const COLORS_APPOINTMENT = ['var(--carbon)', 'var(--voltage)', '#1B2C5C', '#EC4899', '#8B5CF6', '#FF6B6B'];
 
-const Appointments = () => (
+const getDaysOfWeek = () => {
+  const days = [];
+  const today = new Date();
+  today.setDate(today.getDate() - today.getDay() + 1);
+
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(today);
+    d.setDate(d.getDate() + i);
+    const isToday = d.toDateString() === new Date().toDateString();
+    const label = isToday ? 'Hoy' : DAYS_OF_WEEK[i];
+    const isOff = i === 5 || i === 6;
+
+    days.push({
+      label,
+      num: d.getDate(),
+      date: d,
+      today: isToday,
+      off: isOff,
+      weekday: i,
+    });
+  }
+
+  return days;
+};
+
+const Appointments = () => {
+  const { workspaceId } = useParams();
+  const { data: appointmentsResponse, isLoading } = useGetAppointments(workspaceId, workspaceId);
+  const appointments = appointmentsResponse?.data || [];
+
+  const DAYS = getDaysOfWeek();
+
+  const appointmentsByDay = useMemo(() => {
+    const map = {};
+    DAYS.forEach(d => {
+      map[d.date.toDateString()] = [];
+    });
+
+    appointments.forEach(apt => {
+      const aptDate = new Date(apt.date || apt.startTime);
+      const dateStr = aptDate.toDateString();
+      if (map[dateStr]) {
+        map[dateStr].push(apt);
+      }
+    });
+
+    return map;
+  }, [appointments, DAYS]);
+
+  const upcomingAppointments = useMemo(() => {
+    return appointments
+      .sort((a, b) => new Date(a.startTime) - new Date(b.startTime))
+      .slice(0, 5);
+  }, [appointments]);
+
+  const formatTime = (date) => {
+    if (!date) return '—';
+    const d = new Date(date);
+    return `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
+  };
+
+  const getTimePosition = (timeStr) => {
+    const [hour] = timeStr.split(':').map(Number);
+    return (hour - 9) * 60;
+  };
+
+  return (
   <AppLayout>
     <div className="page-head with-halo">
       <div>
@@ -84,55 +146,64 @@ const Appointments = () => (
           {/* Cuerpo del calendario */}
           <div style={{ display: 'grid', gridTemplateColumns: '48px repeat(7, 1fr)', minHeight: 380 }}>
             <div style={{ borderRight: '1px solid var(--rule)' }}>
-              {['09:00', '10:00', '11:00', '12:00', '13:00', '14:00'].map((h) => (
+              {HOURS.map((h) => (
                 <div key={h} style={{ height: 60, padding: '4px 6px', fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '0.05em', opacity: 0.5, textAlign: 'right' }}>
                   {h}
                 </div>
               ))}
             </div>
 
-            {/* Lunes */}
-            <div style={{ borderLeft: '1px solid var(--rule)', position: 'relative' }}>
-              <div style={{ position: 'absolute', top: 30, left: 4, right: 4, height: 50, background: 'var(--carbon)', color: 'var(--bone)', borderRadius: 6, padding: '6px 8px', borderLeft: '3px solid var(--voltage)' }}>
-                <div style={{ fontFamily: 'var(--font-mono)', fontSize: 8, opacity: 0.7, letterSpacing: '0.05em' }}>09:30</div>
-                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, lineHeight: 1.1, marginTop: 2 }}>Demo SEO</div>
-              </div>
-            </div>
+            {DAYS.map((day, dayIdx) => (
+              <div
+                key={day.date.toDateString()}
+                style={{
+                  borderLeft: '1px solid var(--rule)',
+                  position: 'relative',
+                  background: day.today ? 'rgba(220,255,30,0.04)' : 'transparent',
+                  opacity: day.off ? 0.5 : 1,
+                }}
+              >
+                {day.off ? (
+                  <div style={{ background: 'repeating-linear-gradient(45deg, transparent, transparent 6px, var(--rule) 6px, var(--rule) 7px)', height: 360 }} />
+                ) : (
+                  (appointmentsByDay[day.date.toDateString()] || []).map((apt, aptIdx) => {
+                    const startTime = new Date(apt.startTime);
+                    const endTime = new Date(apt.endTime);
+                    const startHour = startTime.getHours() + startTime.getMinutes() / 60;
+                    const duration = (endTime - startTime) / (1000 * 60 * 60);
+                    const top = (startHour - 9) * 60;
+                    const height = Math.max(50, duration * 60);
+                    const bgColor = COLORS_APPOINTMENT[aptIdx % COLORS_APPOINTMENT.length];
+                    const textColor = bgColor === 'var(--voltage)' ? 'var(--carbon)' : 'var(--bone)';
 
-            {/* Hoy */}
-            <div style={{ borderLeft: '1px solid var(--rule)', position: 'relative', background: 'rgba(220,255,30,0.04)' }}>
-              <div style={{ position: 'absolute', top: 60, left: 4, right: 4, height: 50, background: 'var(--voltage)', color: 'var(--carbon)', borderRadius: 6, padding: '6px 8px', borderLeft: '3px solid var(--carbon)' }}>
-                <div style={{ fontFamily: 'var(--font-mono)', fontSize: 8, opacity: 0.8, letterSpacing: '0.05em' }}>10:00</div>
-                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 11, lineHeight: 1.1, marginTop: 2 }}>Andrés P.</div>
+                    return (
+                      <div
+                        key={apt._id}
+                        style={{
+                          position: 'absolute',
+                          top,
+                          left: 4,
+                          right: 4,
+                          height,
+                          background: bgColor,
+                          color: textColor,
+                          borderRadius: 6,
+                          padding: '6px 8px',
+                          borderLeft: `3px solid ${day.today && bgColor === 'var(--voltage)' ? 'var(--carbon)' : 'var(--voltage)'}`,
+                        }}
+                      >
+                        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 8, opacity: 0.8, letterSpacing: '0.05em' }}>
+                          {formatTime(apt.startTime)}
+                        </div>
+                        <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, lineHeight: 1.1, marginTop: 2 }}>
+                          {apt.clientName || apt.title || '—'}
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
               </div>
-              <div style={{ position: 'absolute', top: 180, left: 4, right: 4, height: 50, background: 'var(--carbon)', color: 'var(--bone)', borderRadius: 6, padding: '6px 8px', borderLeft: '3px solid var(--voltage)' }}>
-                <div style={{ fontFamily: 'var(--font-mono)', fontSize: 8, opacity: 0.7, letterSpacing: '0.05em' }}>12:00</div>
-                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, lineHeight: 1.1, marginTop: 2 }}>Demo curso</div>
-              </div>
-            </div>
-
-            {/* Mié */}
-            <div style={{ borderLeft: '1px solid var(--rule)', position: 'relative' }}>
-              <div style={{ position: 'absolute', top: 120, left: 4, right: 4, height: 50, background: 'var(--carbon)', color: 'var(--bone)', borderRadius: 6, padding: '6px 8px', borderLeft: '3px solid var(--voltage)' }}>
-                <div style={{ fontFamily: 'var(--font-mono)', fontSize: 8, opacity: 0.7, letterSpacing: '0.05em' }}>11:00</div>
-                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, lineHeight: 1.1, marginTop: 2 }}>M. González</div>
-              </div>
-            </div>
-
-            {/* Jue */}
-            <div style={{ borderLeft: '1px solid var(--rule)', position: 'relative' }}></div>
-
-            {/* Vie */}
-            <div style={{ borderLeft: '1px solid var(--rule)', position: 'relative' }}>
-              <div style={{ position: 'absolute', top: 0, left: 4, right: 4, height: 80, background: 'var(--carbon)', color: 'var(--bone)', borderRadius: 6, padding: '6px 8px', borderLeft: '3px solid var(--voltage)' }}>
-                <div style={{ fontFamily: 'var(--font-mono)', fontSize: 8, opacity: 0.7, letterSpacing: '0.05em' }}>09:00 — 10:30</div>
-                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, lineHeight: 1.1, marginTop: 2 }}>Carla L.</div>
-              </div>
-            </div>
-
-            {/* Sáb / Dom — rayados */}
-            <div style={{ borderLeft: '1px solid var(--rule)', background: 'repeating-linear-gradient(45deg, transparent, transparent 6px, var(--rule) 6px, var(--rule) 7px)', opacity: 0.4 }}></div>
-            <div style={{ borderLeft: '1px solid var(--rule)', background: 'repeating-linear-gradient(45deg, transparent, transparent 6px, var(--rule) 6px, var(--rule) 7px)', opacity: 0.4 }}></div>
+            ))}
           </div>
         </div>
 
@@ -140,46 +211,59 @@ const Appointments = () => (
         <div>
           <div className="section-head">
             <div>
-              <div className="section-num">Próximas · 5</div>
+              <div className="section-num">Próximas · {upcomingAppointments.length}</div>
               <div className="section-title">Tu <em>agenda</em></div>
             </div>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <div style={{ background: 'var(--voltage)', border: '1px solid var(--carbon)', borderRadius: 12, padding: '16px 18px', position: 'relative' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
-                <div>
-                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9.5, letterSpacing: '0.18em', textTransform: 'uppercase', opacity: 0.7 }}>Hoy · en 42 min</div>
-                  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, letterSpacing: '-0.02em', marginTop: 2 }}>Andrés Pérez</div>
-                </div>
-                <span className="pill dark">Demo</span>
-              </div>
-              <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, lineHeight: 1.45, opacity: 0.85, marginBottom: 8 }}>
-                <em>"Quiero conocer el curso de SEO antes de inscribirme. ¿Pueden mostrarme una clase?"</em>
-              </div>
-              <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.1em', opacity: 0.7 }}>
-                10:00 — 10:30 · Google Meet · 📚 Edu
-              </div>
-              <div style={{ marginTop: 12, display: 'flex', gap: 6 }}>
-                <button className="btn btn-primary btn-sm" style={{ fontSize: 12, padding: '7px 12px' }}>Unirse al Meet</button>
-                <button className="btn btn-ghost btn-sm" style={{ fontSize: 12, padding: '7px 12px', background: 'rgba(255,255,255,0.4)' }}>Reagendar</button>
-              </div>
-            </div>
+            {isLoading ? (
+              <div style={{ textAlign: 'center', padding: 20, opacity: 0.6 }}>Cargando citas...</div>
+            ) : upcomingAppointments.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: 20, opacity: 0.6 }}>No hay citas próximas</div>
+            ) : (
+              upcomingAppointments.map((apt, idx) => {
+                const isNextImmediate = idx === 0;
+                const startTime = new Date(apt.startTime);
+                const endTime = new Date(apt.endTime);
+                const now = new Date();
+                const diffMs = startTime - now;
+                const diffMins = Math.round(diffMs / (1000 * 60));
+                const dayStr = startTime.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric' });
 
-            {[
-              { when: 'Hoy · 12:00', who: 'Demo curso · Camila R.', meta: '30 min · Meet · 📚 Edu' },
-              { when: 'Miércoles 14 · 11:00', who: 'María González', meta: '45 min · Presencial · 🌶️ Pikante' },
-              { when: 'Viernes 16 · 09:00', who: 'Carla Lagos · Recogida', meta: '90 min · Tienda · 🛍️ Zapi' },
-            ].map((a, i) => (
-              <div key={i} style={{ background: 'var(--bone-2)', border: '1px solid var(--rule)', borderRadius: 12, padding: '14px 18px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
-                  <div>
-                    <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9.5, letterSpacing: '0.18em', textTransform: 'uppercase', opacity: 0.55 }}>{a.when}</div>
-                    <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 15, marginTop: 2 }}>{a.who}</div>
+                return (
+                  <div
+                    key={apt._id}
+                    style={{
+                      background: isNextImmediate ? 'var(--voltage)' : 'var(--bone-2)',
+                      border: isNextImmediate ? '1px solid var(--carbon)' : '1px solid var(--rule)',
+                      borderRadius: 12,
+                      padding: '14px 18px',
+                      position: 'relative',
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
+                      <div>
+                        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9.5, letterSpacing: '0.18em', textTransform: 'uppercase', opacity: isNextImmediate ? 0.7 : 0.55 }}>
+                          {diffMins >= 0 && diffMins < 60 ? `En ${diffMins} min` : `${dayStr.charAt(0).toUpperCase() + dayStr.slice(1)} · ${formatTime(apt.startTime)}`}
+                        </div>
+                        <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: isNextImmediate ? 18 : 15, letterSpacing: isNextImmediate ? '-0.02em' : 0, marginTop: 2 }}>
+                          {apt.clientName || apt.title || '—'}
+                        </div>
+                      </div>
+                      {isNextImmediate && <span className="pill dark">{apt.type || 'Cita'}</span>}
+                    </div>
+                    {isNextImmediate && apt.notes && (
+                      <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, lineHeight: 1.45, opacity: 0.85, marginBottom: 8 }}>
+                        <em>"{apt.notes}"</em>
+                      </div>
+                    )}
+                    <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.06em', opacity: isNextImmediate ? 0.7 : 0.55 }}>
+                      {formatTime(apt.startTime)} — {formatTime(apt.endTime)} · {apt.location || 'Virtual'}
+                    </div>
                   </div>
-                </div>
-                <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.06em', opacity: 0.55 }}>{a.meta}</div>
-              </div>
-            ))}
+                );
+              })
+            )}
           </div>
         </div>
       </div>
