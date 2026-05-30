@@ -1,0 +1,339 @@
+.zapien-widget {
+  --primary-color: #2d3748;
+  --secondary-color: #4299e1;
+  --tertiary-color: #f6ad55;
+  --border-radius: 12px;
+  --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+}
+
+.zapien-widget {
+  position: fixed;
+  font-family: var(--font-family);
+  z-index: 9999;
+  bottom: 20px;
+  right: 20px;
+}
+
+.zapien-widget.position-bottom-left {
+  right: auto;
+  left: 20px;
+}
+
+.zapien-widget.position-top-right {
+  bottom: auto;
+  top: 20px;
+}
+
+.zapien-widget.position-top-left {
+  bottom: auto;
+  top: 20px;
+  right: auto;
+  left: 20px;
+}
+
+/* Chat Window */
+.zapien-chat-window {
+  position: absolute;
+  bottom: 70px;
+  right: 0;
+  width: 400px;
+  height: 600px;
+  background: white;
+  border-radius: var(--border-radius);
+  box-shadow: 0 5px 40px rgba(0, 0, 0, 0.16);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: slideUp 0.3s ease-out;
+}
+
+.zapien-widget.position-bottom-left .zapien-chat-window {
+  right: auto;
+  left: 0;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Header */
+.zapien-header {
+  background: var(--primary-color);
+  color: white;
+  padding: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.zapien-header-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.zapien-bot-name {
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.zapien-bot-status {
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+.zapien-close-btn {
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.8;
+  transition: opacity 0.2s;
+}
+
+.zapien-close-btn:hover {
+  opacity: 1;
+}
+
+/* Messages */
+.zapien-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: #f7fafc;
+}
+
+.zapien-message {
+  display: flex;
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.zapien-message-user {
+  justify-content: flex-end;
+}
+
+.zapien-message-assistant {
+  justify-content: flex-start;
+}
+
+.zapien-message-content {
+  padding: 10px 14px;
+  border-radius: 12px;
+  max-width: 70%;
+  word-wrap: break-word;
+  line-height: 1.4;
+  font-size: 13px;
+}
+
+.zapien-message-user .zapien-message-content {
+  background: var(--secondary-color);
+  color: white;
+  border-radius: 12px 2px 12px 12px;
+}
+
+.zapien-message-assistant .zapien-message-content {
+  background: white;
+  color: var(--primary-color);
+  border: 1px solid #e2e8f0;
+  border-radius: 2px 12px 12px 12px;
+}
+
+.zapien-message-system {
+  justify-content: center;
+  width: 100%;
+}
+
+.zapien-message-system .zapien-message-content {
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fde68a;
+  border-radius: 8px;
+  max-width: 90%;
+  text-align: center;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+/* Typing Indicator */
+.zapien-typing {
+  display: flex;
+  gap: 4px;
+  padding: 10px 14px;
+}
+
+.zapien-typing span {
+  width: 8px;
+  height: 8px;
+  background: #cbd5e0;
+  border-radius: 50%;
+  animation: typing 1.4s infinite;
+}
+
+.zapien-typing span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.zapien-typing span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes typing {
+  0%, 60%, 100% {
+    opacity: 0.5;
+    transform: translateY(0);
+  }
+  30% {
+    opacity: 1;
+    transform: translateY(-10px);
+  }
+}
+
+/* Input Area */
+.zapien-input-area {
+  padding: 12px;
+  background: white;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+.zapien-input {
+  flex: 1;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 10px 12px;
+  font-family: var(--font-family);
+  font-size: 13px;
+  resize: none;
+  max-height: 100px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.zapien-input:focus {
+  border-color: var(--secondary-color);
+}
+
+.zapien-input:disabled {
+  background: #f7fafc;
+}
+
+.zapien-send-btn {
+  background: var(--secondary-color);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s, opacity 0.2s;
+  width: 36px;
+  height: 36px;
+}
+
+.zapien-send-btn:hover:not(:disabled) {
+  background: #3182ce;
+}
+
+.zapien-send-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Toggle Button */
+.zapien-toggle-btn {
+  background: var(--secondary-color);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 56px;
+  height: 56px;
+  font-size: 24px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: all 0.2s;
+}
+
+.zapien-toggle-btn:hover {
+  background: #3182ce;
+  transform: scale(1.1);
+}
+
+.zapien-toggle-btn:active {
+  transform: scale(0.95);
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .zapien-chat-window {
+    width: 100vw;
+    height: 100vh;
+    max-width: 100%;
+    max-height: 100%;
+    bottom: 0;
+    right: 0;
+    border-radius: 0;
+    position: fixed;
+  }
+
+  .zapien-widget.position-bottom-left .zapien-chat-window {
+    left: 0;
+  }
+
+  .zapien-message-content {
+    max-width: 85%;
+  }
+}
+
+/* Scrollbar Styling */
+.zapien-messages::-webkit-scrollbar {
+  width: 6px;
+}
+
+.zapien-messages::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.zapien-messages::-webkit-scrollbar-thumb {
+  background: #cbd5e0;
+  border-radius: 3px;
+}
+
+.zapien-messages::-webkit-scrollbar-thumb:hover {
+  background: #a0aec0;
+}
