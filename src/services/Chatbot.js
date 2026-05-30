@@ -34,6 +34,12 @@ class ChatbotService {
   getOpenaiConfig = (workspaceId, id) =>
     instance.get(`/api/workspaces/${workspaceId}/chatbots/${id}/openai-config`);
 
+  getConfig = (workspaceId, chatbotId) =>
+    instance.get(`/api/workspaces/${workspaceId}/chatbots/${chatbotId}/config`);
+
+  saveConfig = (workspaceId, chatbotId, configData) =>
+    instance.post(`/api/workspaces/${workspaceId}/chatbots/${chatbotId}/config`, configData);
+
   uploadDocument = (workspaceId, chatbotId, file) => {
     const formData = new FormData();
     formData.append('file', file);
