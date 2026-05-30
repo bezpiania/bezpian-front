@@ -65,11 +65,13 @@ const ChatbotInstructionsForm = ({ workspaceId, botId }) => {
     try {
       setSaving(true);
       const response = await Chatbot.saveConfig(workspaceId, botId, { instructions: form });
-      if (response.data?.success) {
+      if (response?.success) {
         message.success('Instrucciones guardadas');
+      } else {
+        message.error(response?.message || 'Error al guardar instrucciones');
       }
     } catch (error) {
-      message.error('Error al guardar instrucciones');
+      message.error('Error al guardar: ' + (error?.message || ''));
     } finally {
       setSaving(false);
     }
