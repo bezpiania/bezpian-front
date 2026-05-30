@@ -67,6 +67,8 @@ const ChatbotInstructionsForm = ({ workspaceId, botId }) => {
       const response = await Chatbot.saveConfig(workspaceId, botId, { instructions: form });
       if (response?.success) {
         message.success('Instrucciones guardadas');
+        // Refrescar los datos después de guardar
+        await fetchConfig();
       } else {
         message.error(response?.message || 'Error al guardar instrucciones');
       }

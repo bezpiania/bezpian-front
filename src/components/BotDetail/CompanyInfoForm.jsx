@@ -56,6 +56,8 @@ const CompanyInfoForm = ({ workspaceId, botId }) => {
       const response = await Chatbot.saveConfig(workspaceId, botId, { company: form });
       if (response?.success) {
         message.success('Información de empresa guardada');
+        // Refrescar los datos después de guardar
+        await fetchConfig();
       } else {
         message.error(response?.message || 'Error al guardar');
       }
