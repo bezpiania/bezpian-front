@@ -1,17 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { message, Spin } from 'antd';
+import { useQueryClient } from '@tanstack/react-query';
 import Chatbot from '../../services/Chatbot.js';
 
 const AppointmentsPanel = ({ workspaceId, botId, bot }) => {
+  const queryClient = useQueryClient();
   const [config, setConfig] = useState({
+    enabled: bot?.integrations?.calendar?.enabled || false,
     timezone: bot?.integrations?.calendar?.timezone || 'America/Santiago',
     bufferMinutes: bot?.integrations?.calendar?.bufferMinutes || 0,
     maxDaysInAdvance: bot?.integrations?.calendar?.maxDaysInAdvance || 30,
-    businessHours: {
-      start: bot?.integrations?.calendar?.businessHoursStart || '09:00',
-      end: bot?.integrations?.calendar?.businessHoursEnd || '18:00',
+    bookingHours: {
+      start: bot?.integrations?.calendar?.bookingHoursStart || '09:00',
+      end: bot?.integrations?.calendar?.bookingHoursEnd || '18:00',
     },
-    workingDays: bot?.integrations?.calendar?.workingDays || [1, 2, 3, 4, 5],
+    bookingDays: bot?.integrations?.calendar?.bookingDays || [1, 2, 3, 4, 5],
   });
 
   const [loading, setLoading] = useState(false);
@@ -24,26 +27,41 @@ const AppointmentsPanel = ({ workspaceId, botId, bot }) => {
   const isGoogleConnected = !!bot?.integrations?.calendar?.accessToken;
 
   useEffect(() => {
-    console.log('AppointmentsPanel received:', { workspaceId, botId, bot });
-  }, [workspaceId, botId, bot]);
+    if (bot?.integrations?.calendar) {
+      const cal = bot.integrations.calendar;
+      setConfig({
+        enabled: cal.enabled || false,
+        timezone: cal.timezone || 'America/Santiago',
+        bufferMinutes: cal.bufferMinutes || 0,
+        maxDaysInAdvance: cal.maxDaysInAdvance || 30,
+        bookingHours: {
+          start: cal.bookingHoursStart || '09:00',
+          end: cal.bookingHoursEnd || '18:00',
+        },
+        bookingDays: cal.bookingDays || [1, 2, 3, 4, 5],
+      });
+    }
+  }, [bot]);
 
   const handleSave = async () => {
     try {
       setLoading(true);
-      await Chatbot.patch(`/api/workspaces/${workspaceId}/chatbots/${botId}`, {
+      await Chatbot.update(workspaceId, botId, {
         integrations: {
           ...bot.integrations,
           calendar: {
             ...bot.integrations?.calendar,
+            enabled: config.enabled,
             timezone: config.timezone,
             bufferMinutes: config.bufferMinutes,
             maxDaysInAdvance: config.maxDaysInAdvance,
-            businessHoursStart: config.businessHours.start,
-            businessHoursEnd: config.businessHours.end,
-            workingDays: config.workingDays,
+            bookingHoursStart: config.bookingHours.start,
+            bookingHoursEnd: config.bookingHours.end,
+            bookingDays: config.bookingDays,
           }
         }
       });
+      queryClient.invalidateQueries({ queryKey: ['chatbot', workspaceId, botId] });
       message.success('Configuración de Citas guardada');
     } catch (error) {
       message.error('Error al guardar configuración');
@@ -138,9 +156,9 @@ const AppointmentsPanel = ({ workspaceId, botId, bot }) => {
   const toggleDay = (dayIndex) => {
     setConfig(prev => ({
       ...prev,
-      workingDays: prev.workingDays.includes(dayIndex)
-        ? prev.workingDays.filter(d => d !== dayIndex)
-        : [...prev.workingDays, dayIndex].sort()
+      bookingDays: prev.bookingDays.includes(dayIndex)
+        ? prev.bookingDays.filter(d => d !== dayIndex)
+        : [...prev.bookingDays, dayIndex].sort()
     }));
   };
 
@@ -155,9 +173,31 @@ const AppointmentsPanel = ({ workspaceId, botId, bot }) => {
       </div>
 
       <div className="section-head" style={{ marginTop: 32 }}>
-            <div>
-              <div className="section-num">Configuración de Citas</div>
+        <div>
+          <div className="section-num">Configuración de Citas</div>
           <div className="section-title">Define horarios y disponibilidad de <em>agendar citas</em></div>
+        </div>
+      </div>
+
+      <div className="card" style={{ marginBottom: 24 }}>
+        <div className="section-num">Estado del Agendamiento</div>
+        <div style={{ marginTop: 12, display: 'flex', alignItems: 'center', gap: 16 }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
+            <input
+              type="checkbox"
+              checked={config.enabled}
+              onChange={() => setConfig(prev => ({ ...prev, enabled: !prev.enabled }))}
+              style={{ width: 18, height: 18 }}
+            />
+            <span style={{ fontWeight: 600, fontSize: 14 }}>
+              {config.enabled ? '✅ Agendamiento activado' : '❌ Agendamiento desactivado'}
+            </span>
+          </label>
+          <small style={{ opacity: 0.6 }}>
+            {config.enabled
+              ? 'El chatbot puede agendar citas con clientes.'
+              : 'El chatbot indicará que no se realizan citas ni reservas.'}
+          </small>
         </div>
       </div>
 
@@ -186,10 +226,10 @@ const AppointmentsPanel = ({ workspaceId, botId, bot }) => {
                 <input
                   type="time"
                   className="input"
-                  value={config.businessHours.start}
+                  value={config.bookingHours.start}
                   onChange={(e) => setConfig(prev => ({
                     ...prev,
-                    businessHours: { ...prev.businessHours, start: e.target.value }
+                    bookingHours: { ...prev.bookingHours, start: e.target.value }
                   }))}
                 />
               </div>
@@ -198,10 +238,10 @@ const AppointmentsPanel = ({ workspaceId, botId, bot }) => {
                 <input
                   type="time"
                   className="input"
-                  value={config.businessHours.end}
+                  value={config.bookingHours.end}
                   onChange={(e) => setConfig(prev => ({
                     ...prev,
-                    businessHours: { ...prev.businessHours, end: e.target.value }
+                    bookingHours: { ...prev.bookingHours, end: e.target.value }
                   }))}
                 />
               </div>
@@ -216,7 +256,7 @@ const AppointmentsPanel = ({ workspaceId, botId, bot }) => {
               <label key={index} style={{ display: 'flex', gap: 10, alignItems: 'center', cursor: 'pointer' }}>
                 <input
                   type="checkbox"
-                  checked={config.workingDays.includes(index)}
+                  checked={config.bookingDays.includes(index)}
                   onChange={() => toggleDay(index)}
                 />
                 <span>{day}</span>

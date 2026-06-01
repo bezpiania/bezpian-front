@@ -11,11 +11,12 @@ const CompanyInfoForm = ({ workspaceId, botId }) => {
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
     company: { name: '', address: '', city: '', country: '', phone: '', email: '', website: '' },
-    hours: dayNames.map(day => ({ day, open: '09:00', close: '18:00', isClosed: ['saturday', 'sunday'].includes(day) })),
-    hoursDisplay: dayNames,
+    operationHours: dayNames.map(day => ({ day, open: '09:00', close: '18:00', isClosed: ['saturday', 'sunday'].includes(day) })),
+    operationHoursDisplay: dayNames,
     dispatches: { available: true, specialCases: '' },
     payments: { creditCard: true, transfer: true, paypal: true, cash: true, webpay: false, flow: false, mercadopago: false, maquinaPos: false },
-    social: { instagram: '', whatsapp: '', facebook: '', tiktok: '', linkedin: '', youtube: '', twitter: '', telegram: '', wechat: '', viber: '', line: '', messenger: '' }
+    social: { instagram: '', whatsapp: '', facebook: '', tiktok: '', linkedin: '', youtube: '', twitter: '', telegram: '', wechat: '', viber: '', line: '', messenger: '' },
+    additionalInfo: [] // Información adicional: pares pregunta-respuesta
   });
 
   useEffect(() => {
@@ -26,8 +27,17 @@ const CompanyInfoForm = ({ workspaceId, botId }) => {
     try {
       setLoading(true);
       const response = await Chatbot.getConfig(workspaceId, botId);
-      if (response.data?.data?.company) {
-        setForm(prev => ({ ...prev, ...response.data.data.company }));
+      if (response?.data?.company) {
+        const companyData = response.data.company;
+        setForm({
+          company: companyData.company || {},
+          operationHours: (companyData.operationHours && companyData.operationHours.length > 0) ? companyData.operationHours : dayNames.map(day => ({ day, open: '09:00', close: '18:00', isClosed: ['saturday', 'sunday'].includes(day) })),
+          operationHoursDisplay: (companyData.operationHoursDisplay && companyData.operationHoursDisplay.length > 0) ? companyData.operationHoursDisplay : dayNames,
+          dispatches: companyData.dispatches || {},
+          payments: companyData.payments || {},
+          social: companyData.social || {},
+          additionalInfo: companyData.additionalInfo || []
+        });
       }
     } catch (error) {
       console.error('Error fetching config:', error);
@@ -50,10 +60,38 @@ const CompanyInfoForm = ({ workspaceId, botId }) => {
     }));
   };
 
+  const addAdditionalInfo = () => {
+    setForm(prev => ({
+      ...prev,
+      additionalInfo: [...prev.additionalInfo, { question: '', answer: '' }]
+    }));
+  };
+
+  const updateAdditionalInfo = (index, field, value) => {
+    setForm(prev => ({
+      ...prev,
+      additionalInfo: prev.additionalInfo.map((item, i) =>
+        i === index ? { ...item, [field]: value } : item
+      )
+    }));
+  };
+
+  const removeAdditionalInfo = (index) => {
+    setForm(prev => ({
+      ...prev,
+      additionalInfo: prev.additionalInfo.filter((_, i) => i !== index)
+    }));
+  };
+
   const handleSave = async () => {
     try {
       setSaving(true);
-      const response = await Chatbot.saveConfig(workspaceId, botId, { company: form });
+      const response = await Chatbot.saveConfig(workspaceId, botId, {
+        company: {
+          ...form,
+          additionalInfo: form.additionalInfo.filter(item => item.question && item.answer) // Solo guardar pares completos
+        }
+      });
       if (response?.success) {
         message.success('Información de empresa guardada');
         // Refrescar los datos después de guardar
@@ -157,12 +195,15 @@ const CompanyInfoForm = ({ workspaceId, botId }) => {
         </div>
       </div>
 
-      {/* HORARIOS */}
+      {/* HORARIOS DE OPERACIÓN */}
       <div className="card">
-        <div className="form-card-title">Horarios de Atención</div>
+        <div className="form-card-title">Horarios de Operación</div>
+        <p style={{ fontSize: 12, opacity: 0.6, marginBottom: 12 }}>
+          Cuándo está abierto tu negocio. Nota: Los horarios para agendar citas se configuran en la pestaña "Agendamiento"
+        </p>
         <div className="form-card-section">
-          {form.hoursDisplay.map((dayName) => {
-            const dayData = form.hours.find(h => h.day === dayName);
+          {form.operationHoursDisplay.map((dayName) => {
+            const dayData = form.operationHours.find(h => h.day === dayName);
             if (!dayData) return null;
             return (
               <div key={dayName} style={{ display: 'grid', gridTemplateColumns: '120px 100px 100px 1fr', gap: '12px', alignItems: 'end', paddingBottom: '12px', borderBottom: '1px solid #eee' }}>
@@ -176,8 +217,8 @@ const CompanyInfoForm = ({ workspaceId, botId }) => {
                     value={dayData.open}
                     disabled={dayData.isClosed}
                     onChange={(e) => {
-                      const newHours = form.hours.map(h => h.day === dayName ? { ...h, open: e.target.value } : h);
-                      setForm(prev => ({ ...prev, hours: newHours }));
+                      const newHours = form.operationHours.map(h => h.day === dayName ? { ...h, open: e.target.value } : h);
+                      setForm(prev => ({ ...prev, operationHours: newHours }));
                     }}
                     className="input"
                   />
@@ -189,8 +230,8 @@ const CompanyInfoForm = ({ workspaceId, botId }) => {
                     value={dayData.close}
                     disabled={dayData.isClosed}
                     onChange={(e) => {
-                      const newHours = form.hours.map(h => h.day === dayName ? { ...h, close: e.target.value } : h);
-                      setForm(prev => ({ ...prev, hours: newHours }));
+                      const newHours = form.operationHours.map(h => h.day === dayName ? { ...h, close: e.target.value } : h);
+                      setForm(prev => ({ ...prev, operationHours: newHours }));
                     }}
                     className="input"
                   />
@@ -201,19 +242,19 @@ const CompanyInfoForm = ({ workspaceId, botId }) => {
                       type="checkbox"
                       checked={dayData.isClosed}
                       onChange={() => {
-                        const newHours = form.hours.map(h => h.day === dayName ? { ...h, isClosed: !h.isClosed } : h);
-                        setForm(prev => ({ ...prev, hours: newHours }));
+                        const newHours = form.operationHours.map(h => h.day === dayName ? { ...h, isClosed: !h.isClosed } : h);
+                        setForm(prev => ({ ...prev, operationHours: newHours }));
                       }}
                     />
                     <span className="form-checkbox-label">Cerrado</span>
                   </label>
-                  {form.hoursDisplay.length > 1 && (
+                  {form.operationHoursDisplay.length > 1 && (
                     <button
                       type="button"
                       onClick={() => {
                         setForm(prev => ({
                           ...prev,
-                          hoursDisplay: prev.hoursDisplay.filter(d => d !== dayName)
+                          operationHoursDisplay: prev.operationHoursDisplay.filter(d => d !== dayName)
                         }));
                       }}
                       className="btn btn-ghost"
@@ -227,23 +268,30 @@ const CompanyInfoForm = ({ workspaceId, botId }) => {
             );
           })}
         </div>
-        {form.hoursDisplay.length < dayNames.length && (
-          <div style={{ marginTop: '12px' }}>
+        {form.operationHoursDisplay.length < dayNames.length && (
+          <div style={{ marginTop: '16px', display: 'flex', gap: '8px' }}>
             <select
               onChange={(e) => {
-                if (e.target.value && !form.hoursDisplay.includes(e.target.value)) {
+                const selectedDay = e.target.value;
+                if (selectedDay && !form.operationHoursDisplay.includes(selectedDay)) {
                   setForm(prev => ({
                     ...prev,
-                    hoursDisplay: [...prev.hoursDisplay, e.target.value]
+                    operationHoursDisplay: [...prev.operationHoursDisplay, selectedDay],
+                    operationHours: [...prev.operationHours, {
+                      day: selectedDay,
+                      open: '09:00',
+                      close: '18:00',
+                      isClosed: false
+                    }]
                   }));
                 }
                 e.target.value = '';
               }}
               className="input input--select"
-              style={{ width: '100%' }}
+              style={{ flex: 1 }}
             >
               <option value="">Agregar día...</option>
-              {dayNames.map(d => !form.hoursDisplay.includes(d) && <option key={d} value={d}>{dayLabels[d]}</option>)}
+              {dayNames.map(d => !form.operationHoursDisplay.includes(d) && <option key={d} value={d}>{dayLabels[d]}</option>)}
             </select>
           </div>
         )}
@@ -344,6 +392,83 @@ const CompanyInfoForm = ({ workspaceId, botId }) => {
             </div>
           ))}
         </div>
+      </div>
+
+      {/* INFORMACIÓN ADICIONAL */}
+      <div className="card">
+        <div className="form-card-title">Información Adicional para el Chat</div>
+        <p style={{ fontSize: 13, opacity: 0.7, marginBottom: 16 }}>
+          Agrega pares de pregunta-respuesta que el chatbot usará para mejorar sus respuestas
+        </p>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 16 }}>
+          {form.additionalInfo.map((item, index) => (
+            <div
+              key={index}
+              style={{
+                display: 'flex',
+                gap: 12,
+                padding: 12,
+                background: '#f9f9f9',
+                border: '1px solid #e0e0e0',
+                borderRadius: 8,
+                alignItems: 'flex-start'
+              }}
+            >
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <input
+                  type="text"
+                  placeholder="Pregunta (ej: ¿Envían a todo Chile?)"
+                  value={item.question}
+                  onChange={(e) => updateAdditionalInfo(index, 'question', e.target.value)}
+                  className="input"
+                  style={{ fontSize: 13 }}
+                />
+                <input
+                  type="text"
+                  placeholder="Respuesta (ej: Sí, enviamos a todo el país excepto zonas remotas)"
+                  value={item.answer}
+                  onChange={(e) => updateAdditionalInfo(index, 'answer', e.target.value)}
+                  className="input"
+                  style={{ fontSize: 13 }}
+                />
+              </div>
+              <button
+                onClick={() => removeAdditionalInfo(index)}
+                style={{
+                  padding: '8px 12px',
+                  background: '#ff4444',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: 6,
+                  cursor: 'pointer',
+                  fontSize: 13,
+                  fontWeight: 600,
+                  marginTop: 2
+                }}
+              >
+                Eliminar
+              </button>
+            </div>
+          ))}
+        </div>
+
+        <button
+          onClick={addAdditionalInfo}
+          style={{
+            padding: '10px 16px',
+            background: '#f0f0f0',
+            color: '#333',
+            border: '1px solid #ddd',
+            borderRadius: 8,
+            cursor: 'pointer',
+            fontSize: 13,
+            fontWeight: 600,
+            transition: 'all 0.2s'
+          }}
+        >
+          + Agregar Información
+        </button>
       </div>
 
       <button
