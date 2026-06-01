@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { message } from 'antd';
-import { useQueryClient, useQuery, useMutation, useQueryClient as useQC } from '@tanstack/react-query';
+import { useQueryClient, useQuery } from '@tanstack/react-query';
 import Chatbot from '../../services/Chatbot.js';
-import api from '../../apis/api.js';
+import api from '../../apis/app.js';
 
 const DAY_KEYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
 const DAY_LABELS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
