@@ -91,7 +91,7 @@ const Billing = () => {
 
   const { data, isLoading } = useQuery({
     queryKey: ['billing-usage', workspaceId],
-    queryFn: () => api.get(`/api/billing/usage/${workspaceId}`),
+    queryFn: () => api.get(`/api/billing/usage?workspaceId=${workspaceId}`),
     enabled: !!workspaceId,
   });
 
