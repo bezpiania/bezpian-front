@@ -1,5 +1,6 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
+import { useSidebarCounts } from '../hooks/useSidebarCounts.js';
 
 const Sidebar = () => {
   const navigate = useNavigate();
@@ -7,8 +8,15 @@ const Sidebar = () => {
   let user = null;
   try { user = JSON.parse(localStorage.getItem('user') || 'null'); } catch {}
 
-  const role = localStorage.getItem('workspaceRole') || user?.workspaceRole || 'admin';
-  const isAdmin = !role || role === 'admin' || role === 'owner';
+  const role      = localStorage.getItem('workspaceRole') || user?.workspaceRole || 'admin';
+  const isAdmin   = !role || role === 'admin' || role === 'owner';
+  const wsId      = localStorage.getItem('workspaceId');
+
+  const { data: counts } = useSidebarCounts(wsId);
+  const chatbots      = counts?.chatbots      ?? null;
+  const conversations = counts?.conversations ?? null;
+  const leads         = counts?.leads         ?? null;
+  const quotes        = counts?.quotes        ?? null;
 
   const userName    = user?.name  || 'Usuario';
   const userEmail   = user?.email || '';
@@ -21,6 +29,11 @@ const Sidebar = () => {
 
   const navClass = ({ isActive }) => 'app-nav-item' + (isActive ? ' active' : '');
 
+  const Badge = ({ count }) => {
+    if (count === null || count === undefined) return null;
+    return <span className="badge">{count > 99 ? '99+' : count}</span>;
+  };
+
   return (
     <aside className="app-sidebar">
       <div className="app-brand">
@@ -32,8 +45,10 @@ const Sidebar = () => {
       <div className="app-store">
         <div className="app-store-status"></div>
         <div className="app-store-info">
-          <div className="app-store-name">Tienda Acme</div>
-          <div className="app-store-meta">En vivo · 3 chats</div>
+          <div className="app-store-name">Workspace</div>
+          <div className="app-store-meta">
+            {chatbots !== null ? `${chatbots} chatbot${chatbots !== 1 ? 's' : ''}` : 'Cargando...'}
+          </div>
         </div>
       </div>
 
@@ -44,17 +59,21 @@ const Sidebar = () => {
         </NavLink>
         {isAdmin && (
           <NavLink to="/chatbots" className={navClass}>
-            <svg><use href="#i-bot" /></svg>Chatbots<span className="badge">3</span>
+            <svg><use href="#i-bot" /></svg>Chatbots
+            <Badge count={chatbots} />
           </NavLink>
         )}
         <NavLink to="/conversaciones" className={navClass}>
-          <svg><use href="#i-chat" /></svg>Conversaciones<span className="badge">12</span>
+          <svg><use href="#i-chat" /></svg>Conversaciones
+          <Badge count={conversations} />
         </NavLink>
         <NavLink to="/leads" className={navClass}>
-          <svg><use href="#i-lead" /></svg>Leads<span className="badge">8</span>
+          <svg><use href="#i-lead" /></svg>Leads
+          <Badge count={leads} />
         </NavLink>
         <NavLink to="/cotizaciones" className={navClass}>
-          <svg><use href="#i-quote" /></svg>Cotizaciones<span className="badge">3</span>
+          <svg><use href="#i-quote" /></svg>Cotizaciones
+          <Badge count={quotes} />
         </NavLink>
         <NavLink to="/citas" className={navClass}>
           <svg><use href="#i-cal" /></svg>Agenda
