@@ -16,6 +16,7 @@ import AddProductModal from '../../../components/BotDetail/AddProductModal.jsx';
 import ImportCSVModal from '../../../components/BotDetail/ImportCSVModal.jsx';
 import CompanyInfoForm from '../../../components/BotDetail/CompanyInfoForm.jsx';
 import ChatbotInstructionsForm from '../../../components/BotDetail/ChatbotInstructionsForm.jsx';
+import { getBusinessType } from '../../../config/businessTypes.js';
 
 /**
  * Detalle de bot · 05
@@ -113,6 +114,7 @@ const BotDetail = () => {
 
   const { data: response, isLoading, error } = useGetChatbot(workspaceId, id);
   const bot = response?.data?.data || response?.data || null;
+  const bizConfig = getBusinessType(bot?.businessType);
 
   const { data: docsResponse, isLoading: docsLoading } = useGetDocuments(workspaceId, id);
   const documents = docsResponse?.data?.data || docsResponse?.data || [];
@@ -463,31 +465,34 @@ const BotDetail = () => {
           </div>
         </div>
 
-        {/* Tabs */}
+        {/* Tabs — dinámicas según businessType */}
         <div style={{ borderBottom: '1px solid var(--rule)', marginBottom: 24, display: 'flex', gap: 4, overflowX: 'auto' }}>
-          <TabBtn active={tab === 'empresa'} onClick={() => setTab('empresa')}>Empresa</TabBtn>
+          {/* Pestañas siempre visibles */}
+          <TabBtn active={tab === 'empresa'}       onClick={() => setTab('empresa')}>Empresa</TabBtn>
           <TabBtn active={tab === 'instrucciones'} onClick={() => setTab('instrucciones')}>Instrucciones</TabBtn>
-          <TabBtn active={tab === 'config'} onClick={() => setTab('config')}>Configuración</TabBtn>
-          <TabBtn active={tab === 'openai'} onClick={() => setTab('openai')}>OpenAI</TabBtn>
-          {/* <TabBtn active={tab === 'kb'} onClick={() => setTab('kb')}>Conocimiento</TabBtn> */}
-          <TabBtn active={tab === 'appearance'} onClick={() => setTab('appearance')}>Apariencia</TabBtn>
-          <TabBtn active={tab === 'embed'} onClick={() => setTab('embed')}>Código embed</TabBtn>
+          <TabBtn active={tab === 'config'}        onClick={() => setTab('config')}>Configuración</TabBtn>
+          <TabBtn active={tab === 'openai'}        onClick={() => setTab('openai')}>OpenAI</TabBtn>
+          <TabBtn active={tab === 'appearance'}    onClick={() => setTab('appearance')}>Apariencia</TabBtn>
+          <TabBtn active={tab === 'embed'}         onClick={() => setTab('embed')}>Código embed</TabBtn>
 
-          {/* Pestañas condicionales */}
-          {bot?.features?.quotes && (
-            <TabBtn active={tab === 'catalog'} onClick={() => setTab('catalog')}>Catálogo</TabBtn>
+          {/* Pestañas por módulo según businessType */}
+          {bizConfig.modules.catalog && (
+            <TabBtn active={tab === 'catalog'} onClick={() => setTab('catalog')}>
+              {bizConfig.catalog.label}
+            </TabBtn>
           )}
-          {bot?.features?.quotes && (
-            <TabBtn active={tab === 'quotes'} onClick={() => setTab('quotes')}>Cotizaciones</TabBtn>
-          )}
-          {bot?.features?.leadCapture && (
+          {bizConfig.modules.leads && (
             <TabBtn active={tab === 'leads'} onClick={() => setTab('leads')}>Leads</TabBtn>
           )}
-          {bot?.features?.appointments && (
+          {bizConfig.modules.quotes && (
+            <TabBtn active={tab === 'quotes'} onClick={() => setTab('quotes')}>Cotizaciones</TabBtn>
+          )}
+          {bizConfig.modules.appointments && (
             <TabBtn active={tab === 'appointments'} onClick={() => setTab('appointments')}>Agendamiento</TabBtn>
           )}
-          <TabBtn active={tab === 'sales'} onClick={() => setTab('sales')}>Ventas</TabBtn>
-
+          {bizConfig.modules.sales && (
+            <TabBtn active={tab === 'sales'} onClick={() => setTab('sales')}>Ventas</TabBtn>
+          )}
           <TabBtn active={tab === 'integrations'} onClick={() => setTab('integrations')}>Canales</TabBtn>
         </div>
 

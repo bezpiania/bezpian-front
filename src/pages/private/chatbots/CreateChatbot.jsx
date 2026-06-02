@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { message } from 'antd';
 import { useCreateChatbot } from '../../../hooks/useChatbot.js';
 import Chatbot from '../../../services/Chatbot.js';
+import { BUSINESS_TYPE_OPTIONS } from '../../../config/businessTypes.js';
 import '../../../styles/create-chatbot.css';
 
 const steps = [
@@ -30,7 +31,7 @@ export default function CreateChatbot() {
 
   const [formData, setFormData] = useState({
     botName: 'Zapi',
-    businessType: 'retail',
+    businessType: 'generic',
     botDescription: '',
     tone: 'neutral',
     welcomeMessage: '¡Hola! Soy Zapi. ¿En qué te puedo ayudar?',
@@ -204,6 +205,7 @@ export default function CreateChatbot() {
         workspaceId,
         chatbotData: {
           ...formData,
+          businessType: formData.businessType || 'generic',
           files: files.map(f => ({ name: f.name, size: f.size, type: f.type })),
           products,
           googleConnected,
@@ -327,28 +329,21 @@ export default function CreateChatbot() {
             </div>
 
             <div className="field">
-              <div className="field-label">¿De qué se trata tu negocio?</div>
+              <div className="field-label">Tipo de negocio <span className="req">Importante</span></div>
               <div className="chip-grid">
-                {[
-                  { value: 'retail', emoji: '🛍️', label: 'Retail / tienda' },
-                  { value: 'services', emoji: '💼', label: 'Servicios' },
-                  { value: 'food', emoji: '🍕', label: 'Comida / delivery' },
-                  { value: 'health', emoji: '🩺', label: 'Salud' },
-                  { value: 'edu', emoji: '📚', label: 'Educación' },
-                  { value: 'other', emoji: '✨', label: 'Otro' },
-                ].map((chip) => (
+                {BUSINESS_TYPE_OPTIONS.map((opt) => (
                   <button
-                    key={chip.value}
-                    className={`chip ${formData.businessType === chip.value ? 'selected' : ''}`}
-                    onClick={() => handleChipClick('businessType', chip.value)}
+                    key={opt.value}
+                    className={`chip ${formData.businessType === opt.value ? 'selected' : ''}`}
+                    onClick={() => handleChipClick('businessType', opt.value)}
                   >
-                    <span className="chip-emoji">{chip.emoji}</span>
-                    {chip.label}
+                    <span className="chip-emoji">{opt.icon}</span>
+                    {opt.label}
                   </button>
                 ))}
               </div>
               <div className="field-hint">
-                Nos sirve para sugerirte plantillas — no afecta lo que el bot puede hacer.
+                Esto define qué módulos, campos y flujos estarán disponibles en tu chatbot.
               </div>
             </div>
 
