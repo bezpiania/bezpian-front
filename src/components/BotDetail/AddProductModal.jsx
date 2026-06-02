@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { Spin, message } from 'antd';
 import Product from '../../services/Product.js';
+import ProductFormDynamic from './ProductFormDynamic.jsx';
 
-const AddProductModal = ({ visible, onClose, workspaceId, chatbotId, onSuccess, editingProduct }) => {
+const AddProductModal = ({ visible, onClose, workspaceId, chatbotId, onSuccess, editingProduct, businessType }) => {
   const [form, setForm] = useState({
     name: '',
     sku: '',
@@ -66,8 +67,8 @@ const AddProductModal = ({ visible, onClose, workspaceId, chatbotId, onSuccess, 
   };
 
   const handleSubmit = async () => {
-    if (!form.name || !form.sku || !form.price) {
-      message.error('Nombre, SKU y precio son requeridos');
+    if (!form.name || !form.price) {
+      message.error('Nombre y precio son requeridos');
       return;
     }
 
@@ -75,29 +76,45 @@ const AddProductModal = ({ visible, onClose, workspaceId, chatbotId, onSuccess, 
       setLoading(true);
       const productData = {
         ...form,
-        price: parseFloat(form.price),
+        price: parseFloat(form.price) || 0,
         stock: form.stock ? parseInt(form.stock) : 0,
         tags: form.tags ? form.tags.split(',').map(t => t.trim()).filter(Boolean) : [],
-        giftOccasion: (form.giftOccasion || []).map(occasion => ({
-          occasion,
-          reason: ''
-        })),
+        giftOccasion: (form.giftOccasion || []).map(occasion => ({ occasion, reason: '' })),
       };
 
       if (editingProduct) {
-        // Editar producto existente
         await Product.update(workspaceId, chatbotId, editingProduct._id, productData);
-        message.success('Producto actualizado exitosamente');
+        message.success('Actualizado exitosamente');
       } else {
-        // Crear nuevo producto
         await Product.create(workspaceId, chatbotId, productData);
-        message.success('Producto creado exitosamente');
+        message.success('Creado exitosamente');
       }
 
       onSuccess?.();
       handleClose();
     } catch (error) {
-      message.error(error?.response?.data?.message || `Error al ${editingProduct ? 'actualizar' : 'crear'} producto`);
+      message.error(error?.response?.data?.message || `Error al ${editingProduct ? 'actualizar' : 'crear'}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Dynamic save handler for ProductFormDynamic
+  const handleDynamicSave = async (formData) => {
+    try {
+      setLoading(true);
+      const productData = { ...formData, price: parseFloat(formData.price) || 0 };
+      if (editingProduct) {
+        await Product.update(workspaceId, chatbotId, editingProduct._id, productData);
+        message.success('Actualizado exitosamente');
+      } else {
+        await Product.create(workspaceId, chatbotId, productData);
+        message.success('Creado exitosamente');
+      }
+      onSuccess?.();
+      handleClose();
+    } catch (error) {
+      message.error(error?.response?.data?.message || 'Error al guardar');
     } finally {
       setLoading(false);
     }
@@ -138,8 +155,19 @@ const AddProductModal = ({ visible, onClose, workspaceId, chatbotId, onSuccess, 
         onClick={(e) => e.stopPropagation()}
       >
         <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 18, marginBottom: 20 }}>
-          {editingProduct ? 'Editar Producto' : 'Agregar Producto'}
+          {editingProduct ? 'Editar' : 'Agregar'} {businessType && businessType !== 'generic' ? '' : 'Producto'}
         </div>
+
+        {/* Dynamic form for typed business — replaces legacy form */}
+        {businessType && businessType !== 'generic' ? (
+          <ProductFormDynamic
+            businessType={businessType}
+            initial={editingProduct || {}}
+            onSave={handleDynamicSave}
+            onCancel={handleClose}
+            saving={loading}
+          />
+        ) : (
 
         <Spin spinning={loading}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -295,6 +323,7 @@ const AddProductModal = ({ visible, onClose, workspaceId, chatbotId, onSuccess, 
             </div>
           </div>
         </Spin>
+        )} {/* end legacy form conditional */}
       </div>
     </div>
   );

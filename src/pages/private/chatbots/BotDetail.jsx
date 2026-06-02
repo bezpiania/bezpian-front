@@ -1064,6 +1064,7 @@ const BotDetail = () => {
               workspaceId={workspaceId}
               chatbotId={id}
               editingProduct={editingProduct}
+              businessType={bot?.businessType}
               onSuccess={() => {
                 setShowAddProductModal(false);
                 setEditingProduct(null);
