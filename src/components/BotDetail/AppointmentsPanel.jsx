@@ -3,6 +3,7 @@ import { message } from 'antd';
 import { useQueryClient, useQuery } from '@tanstack/react-query';
 import Chatbot from '../../services/Chatbot.js';
 import api from '../../apis/app.js';
+import { getBusinessType } from '../../config/businessTypes.js';
 
 const DAY_KEYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
 const DAY_LABELS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
@@ -28,7 +29,7 @@ const EMPTY_RESOURCE = {
 
 // ─── Resource Form ──────────────────────────────────────────────────────────
 
-const ResourceForm = ({ initial, onSave, onCancel, saving }) => {
+const ResourceForm = ({ initial, onSave, onCancel, saving, businessType }) => {
   const [form, setForm] = useState(initial || EMPTY_RESOURCE);
   const [newSlot, setNewSlot] = useState({});
 
@@ -125,6 +126,36 @@ const ResourceForm = ({ initial, onSave, onCancel, saving }) => {
           value={form.description} onChange={e => set('description', e.target.value)} />
       </div>
 
+      {/* RESTAURANT — zone type */}
+      {businessType === 'restaurant' && (
+        <div className="field">
+          <label className="field-label">Zona</label>
+          <select className="select" value={form.zoneType || 'any'} onChange={e => set('zoneType', e.target.value)}>
+            <option value="any">Sin zona específica</option>
+            <option value="interior">Interior</option>
+            <option value="terraza">Terraza</option>
+            <option value="barra">Barra</option>
+            <option value="privado">Salón privado</option>
+          </select>
+          <small style={{ opacity: 0.55, marginTop: 4, display: 'block' }}>
+            El cliente podrá indicar preferencia de zona al reservar.
+          </small>
+        </div>
+      )}
+
+      {/* CLINIC — specialties */}
+      {businessType === 'clinic' && (
+        <div className="field">
+          <label className="field-label">Especialidades</label>
+          <input className="input" placeholder="Ej: Cardiología, Medicina general (separar con comas)"
+            value={(form.specialties || []).join(', ')}
+            onChange={e => set('specialties', e.target.value.split(',').map(s => s.trim()).filter(Boolean))} />
+          <small style={{ opacity: 0.55, marginTop: 4, display: 'block' }}>
+            El cliente podrá filtrar por especialidad al elegir doctor.
+          </small>
+        </div>
+      )}
+
       {/* Schedule by day */}
       <div>
         <div className="section-num" style={{ marginBottom: 12 }}>Horario y slots disponibles</div>
@@ -196,7 +227,11 @@ const ResourceForm = ({ initial, onSave, onCancel, saving }) => {
 
 // ─── Main Panel ──────────────────────────────────────────────────────────────
 
-const AppointmentsPanel = ({ workspaceId, botId, bot }) => {
+const AppointmentsPanel = ({ workspaceId, botId, bot, businessType }) => {
+  const bizConfig = getBusinessType(businessType || bot?.businessType);
+  const apptConfig = bizConfig.appointments;
+  const resourceLabel  = apptConfig?.resourceLabel  || 'Recurso';
+  const resourcesLabel = apptConfig?.resourcesLabel || 'Recursos';
   const queryClient = useQueryClient();
   const [config, setConfig] = useState({
     enabled: bot?.integrations?.calendar?.enabled || false,
@@ -216,11 +251,11 @@ const AppointmentsPanel = ({ workspaceId, botId, bot }) => {
   const [editingResource, setEditingResource] = useState(null);
   const [savingResource, setSavingResource] = useState(false);
 
-  // Appointment fields state
-  const DEFAULT_FIELDS = [
-    { fieldId: 'name', label: 'Nombre', fieldType: 'text', required: true, placeholder: 'Ej: Juan Pérez', order: 0 },
-    { fieldId: 'phone', label: 'Teléfono', fieldType: 'phone', required: true, placeholder: 'Ej: +56 9 1234 5678', order: 1 },
-    { fieldId: 'email', label: 'Email', fieldType: 'email', required: false, placeholder: 'Ej: juan@email.com', order: 2 },
+  // Default fields come from businessTypes config
+  const DEFAULT_FIELDS = apptConfig?.clientDataFields || [
+    { fieldId: 'name',  label: 'Nombre',    fieldType: 'text',  required: true,  order: 0 },
+    { fieldId: 'phone', label: 'Teléfono',  fieldType: 'phone', required: true,  order: 1 },
+    { fieldId: 'email', label: 'Email',     fieldType: 'email', required: false, order: 2 },
   ];
   const [apptFields, setApptFields] = useState(bot?.appointmentFields?.length ? bot.appointmentFields : DEFAULT_FIELDS);
   const [savingFields, setSavingFields] = useState(false);
@@ -398,8 +433,8 @@ const AppointmentsPanel = ({ workspaceId, botId, bot }) => {
       <div style={{ marginTop: 32 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
           <div>
-            <div className="section-num">Recursos</div>
-            <small style={{ opacity: 0.6 }}>Mesas, especialistas, salas — cada uno con su propio horario y slots.</small>
+            <div className="section-num">{resourcesLabel}</div>
+            <small style={{ opacity: 0.6 }}>Cada {resourceLabel.toLowerCase()} tiene su propio horario y slots disponibles.</small>
           </div>
           {!showResourceForm && (
             <button className="btn btn-primary btn-sm" onClick={() => { setEditingResource(null); setShowResourceForm(true); }}>
@@ -418,6 +453,7 @@ const AppointmentsPanel = ({ workspaceId, botId, bot }) => {
               onSave={handleSaveResource}
               onCancel={() => { setShowResourceForm(false); setEditingResource(null); }}
               saving={savingResource}
+              businessType={bot?.businessType}
             />
           </div>
         )}

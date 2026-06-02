@@ -1242,7 +1242,7 @@ const BotDetail = () => {
         )}
 
         {tab === 'appointments' && (
-          <AppointmentsPanel workspaceId={workspaceId} botId={id} bot={bot} />
+          <AppointmentsPanel workspaceId={workspaceId} botId={id} bot={bot} businessType={bot?.businessType} />
         )}
 
         {tab === 'sales' && bot && (

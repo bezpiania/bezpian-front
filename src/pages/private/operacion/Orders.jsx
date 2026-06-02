@@ -3,33 +3,47 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { message } from 'antd';
 import AppLayout from '../../../components/AppLayout.jsx';
 import api from '../../../apis/app.js';
+import { getBusinessType } from '../../../config/businessTypes.js';
 
 const workspaceId = localStorage.getItem('workspaceId');
 
-const STATUS_CONFIG = {
-  new:         { label: 'Nuevo',           dot: '#F59E0B', bg: '#FEF3C7', color: '#92400E' },
-  preparing:   { label: 'En preparación',  dot: '#3B82F6', bg: '#EFF6FF', color: '#1E40AF' },
-  on_the_way:  { label: 'En camino',       dot: '#8B5CF6', bg: '#F5F3FF', color: '#5B21B6' },
-  delivered:   { label: 'Entregado',       dot: 'var(--green)', bg: '#F0FDF4', color: '#166534' },
-  cancelled:   { label: 'Cancelado',       dot: 'var(--magma)', bg: '#FFF1F0', color: '#B91C1C' },
+const ALL_STATUS_CONFIG = {
+  new:        { label: 'Nuevo',           dot: '#F59E0B', bg: '#FEF3C7', color: '#92400E' },
+  processing: { label: 'Procesando',      dot: '#3B82F6', bg: '#EFF6FF', color: '#1E40AF' },
+  preparing:  { label: 'En preparación',  dot: '#0891B2', bg: '#ECFEFF', color: '#155E75' },
+  on_the_way: { label: 'En camino',       dot: '#8B5CF6', bg: '#F5F3FF', color: '#5B21B6' },
+  shipped:    { label: 'Enviado',         dot: '#8B5CF6', bg: '#F5F3FF', color: '#5B21B6' },
+  delivered:  { label: 'Entregado',       dot: 'var(--green)', bg: '#F0FDF4', color: '#166534' },
+  returned:   { label: 'Devuelto',        dot: '#F97316', bg: '#FFF7ED', color: '#9A3412' },
+  cancelled:  { label: 'Cancelado',       dot: 'var(--magma)', bg: '#FFF1F0', color: '#B91C1C' },
 };
 
-const STATUS_FLOW = {
-  new:        'preparing',
-  preparing:  'on_the_way',
-  on_the_way: 'delivered',
+// Status flow and labels per business type
+const getStatusConfig = (businessType) => {
+  const biz = getBusinessType(businessType);
+  const flow = biz.sales?.statusFlow || ['new', 'preparing', 'delivered', 'cancelled'];
+  const labels = biz.sales?.statusLabels || {};
+  const config = {};
+  flow.forEach(s => {
+    config[s] = { ...ALL_STATUS_CONFIG[s], label: labels[s] || ALL_STATUS_CONFIG[s]?.label || s };
+  });
+  return config;
 };
 
-const STATUS_NEXT_LABEL = {
-  new:        'Iniciar preparación →',
-  preparing:  'Marcar en camino →',
-  on_the_way: 'Marcar entregado →',
+const getStatusFlow = (businessType) => {
+  const biz = getBusinessType(businessType);
+  const flow = biz.sales?.statusFlow || ['new', 'preparing', 'delivered', 'cancelled'];
+  const flowMap = {};
+  for (let i = 0; i < flow.length - 2; i++) {
+    if (flow[i] !== 'cancelled') flowMap[flow[i]] = flow[i + 1];
+  }
+  return flowMap;
 };
 
 const fmt = (date) => new Date(date).toLocaleString('es-CL', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
 
-const StatusPill = ({ status }) => {
-  const s = STATUS_CONFIG[status] || STATUS_CONFIG.new;
+const StatusPill = ({ status, statusConfig }) => {
+  const s = (statusConfig || ALL_STATUS_CONFIG)[status] || ALL_STATUS_CONFIG.new;
   return (
     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: s.bg, color: s.color, border: `1px solid ${s.dot}33`, borderRadius: 20, padding: '3px 10px', fontSize: 11, fontFamily: 'var(--font-mono)', fontWeight: 600, letterSpacing: '0.04em' }}>
       <span style={{ width: 6, height: 6, borderRadius: '50%', background: s.dot, flexShrink: 0 }} />
@@ -50,13 +64,21 @@ const Orders = () => {
     refetchInterval: 30000,
   });
 
+  // Detect businessType from first order's chatbot (or from workspace default)
+  const ordersRaw = data?.data?.orders || [];
+  const orders = ordersRaw;
+  const detectedBusinessType = orders[0]?.businessType || 'restaurant';
+  const STATUS_CONFIG = getStatusConfig(detectedBusinessType);
+  const STATUS_FLOW   = getStatusFlow(detectedBusinessType);
+  const bizConfig     = getBusinessType(detectedBusinessType);
+  const features      = bizConfig.sales?.features || {};
+
   const { mutate: updateStatus } = useMutation({
     mutationFn: ({ id, status }) => api.patch(`/api/workspaces/${workspaceId}/orders/${id}/status`, { status }),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['orders', workspaceId] }); message.success('Estado actualizado'); },
     onError: () => message.error('Error al actualizar estado'),
   });
 
-  const orders = data?.data?.orders || [];
   const counts = Object.fromEntries(
     Object.keys(STATUS_CONFIG).map(s => [s, orders.filter(o => o.status === s).length])
   );
@@ -123,7 +145,7 @@ const Orders = () => {
                     <div style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: 14 }}>
                       Bs. {order.total?.toLocaleString()}
                     </div>
-                    <StatusPill status={order.status} />
+                    <StatusPill status={order.status} statusConfig={STATUS_CONFIG} />
                     <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, opacity: 0.45 }}>{fmt(order.createdAt)}</div>
                   </div>
 
@@ -134,9 +156,17 @@ const Orders = () => {
                         <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', opacity: 0.45, marginBottom: 10 }}>Productos</div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                           {order.items?.map((item, i) => (
-                            <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
-                              <span><strong>{item.quantity}×</strong> {item.name}</span>
-                              <span style={{ fontFamily: 'var(--font-mono)' }}>Bs. {item.totalPrice?.toLocaleString()}</span>
+                            <div key={i} style={{ marginBottom: 4 }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
+                                <span>
+                                  <strong>{item.quantity}×</strong> {item.name}
+                                  {item.variant && <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, opacity: 0.6 }}> ({item.variant})</span>}
+                                </span>
+                                <span style={{ fontFamily: 'var(--font-mono)' }}>Bs. {item.totalPrice?.toLocaleString()}</span>
+                              </div>
+                              {item.notes && features.itemNotes && (
+                                <div style={{ fontSize: 11, opacity: 0.55, fontStyle: 'italic', paddingLeft: 20 }}>📝 {item.notes}</div>
+                              )}
                             </div>
                           ))}
                           <div style={{ borderTop: '1px solid var(--rule)', marginTop: 6, paddingTop: 6, display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -182,6 +212,14 @@ const Orders = () => {
                         {order.estimatedMinutes && order.status !== 'delivered' && order.status !== 'cancelled' && (
                           <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, opacity: 0.5, textAlign: 'center' }}>
                             ⏱ ~{order.estimatedMinutes} min estimados
+                          </div>
+                        )}
+                        {/* Tracking code for store */}
+                        {features.trackingCode && order.status === 'shipped' && (
+                          <div style={{ marginTop: 4 }}>
+                            <input placeholder="Nº de guía de envío" defaultValue={order.trackingCode || ''}
+                              style={{ width: '100%', padding: '7px 10px', border: '1px solid var(--rule)', borderRadius: 6, fontSize: 12, fontFamily: 'var(--font-mono)', boxSizing: 'border-box' }}
+                              onBlur={e => e.target.value && updateStatus({ id: order._id, status: 'shipped', trackingCode: e.target.value })} />
                           </div>
                         )}
                       </div>

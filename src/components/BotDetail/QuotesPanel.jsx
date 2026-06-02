@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { message, Spin } from 'antd';
 import Chatbot from '../../services/Chatbot.js';
+import api from '../../apis/app.js';
+import { getBusinessType } from '../../config/businessTypes.js';
 
 const FIELD_TYPES = [
   { value: 'text', label: 'Texto' },
@@ -12,7 +14,116 @@ const FIELD_TYPES = [
   { value: 'select', label: 'Selección' },
 ];
 
+// ── Quote config by business type ───────────────────────────────────────────
+const QuoteBusinessConfig = ({ workspaceId, botId, bot, qFeatures }) => {
+  const [saving, setSaving] = useState(false);
+  const [cfg, setCfg] = useState({
+    validDays:       bot?.quoteConfig?.validDays       ?? 30,
+    paymentTerms:    bot?.quoteConfig?.paymentTerms    ?? '',
+    taxIncluded:     bot?.quoteConfig?.taxIncluded     ?? true,
+    taxRate:         bot?.quoteConfig?.taxRate         ?? 0,
+    termsText:       bot?.quoteConfig?.termsText       ?? '',
+    sessionCount:    bot?.quoteConfig?.sessionCount    ?? 1,
+    insuranceCoverage: bot?.quoteConfig?.insuranceCoverage ?? '',
+  });
+
+  const handleSave = async () => {
+    try {
+      setSaving(true);
+      await api.patch(`/api/workspaces/${workspaceId}/chatbots/${botId}`, { $set: { quoteConfig: cfg } });
+      message.success('Configuración de cotizaciones guardada');
+    } catch { message.error('Error al guardar'); }
+    finally { setSaving(false); }
+  };
+
+  const inStyle = { width: '100%', padding: '9px 12px', border: '1px solid var(--rule)', borderRadius: 8, fontFamily: 'var(--font-body)', fontSize: 13, background: 'var(--bone)', boxSizing: 'border-box' };
+
+  return (
+    <div style={{ marginTop: 32 }}>
+      <div className="section-head">
+        <div>
+          <div className="section-num">Opciones de cotización</div>
+          <div className="section-title">Configura <em>condiciones comerciales</em></div>
+        </div>
+      </div>
+      <div className="grid-2-eq" style={{ marginTop: 16 }}>
+        {qFeatures.expiry && (
+          <div className="card">
+            <div className="section-num" style={{ marginBottom: 12 }}>Validez y condiciones</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <div className="field">
+                <label className="field-label">Validez (días)</label>
+                <input style={inStyle} type="number" min={1} value={cfg.validDays} onChange={e => setCfg(p => ({ ...p, validDays: parseInt(e.target.value) || 30 }))} />
+              </div>
+              {qFeatures.paymentTerms && (
+                <div className="field">
+                  <label className="field-label">Términos de pago</label>
+                  <select style={inStyle} value={cfg.paymentTerms} onChange={e => setCfg(p => ({ ...p, paymentTerms: e.target.value }))}>
+                    <option value="">Sin especificar</option>
+                    <option value="Contado">Contado</option>
+                    <option value="30 días">30 días</option>
+                    <option value="60 días">60 días</option>
+                    <option value="50% adelanto">50% adelanto + saldo entrega</option>
+                    <option value="Personalizado">Personalizado</option>
+                  </select>
+                </div>
+              )}
+              {qFeatures.termsText && (
+                <div className="field">
+                  <label className="field-label">Términos y condiciones</label>
+                  <textarea style={{ ...inStyle, resize: 'vertical', minHeight: 60 }} value={cfg.termsText} onChange={e => setCfg(p => ({ ...p, termsText: e.target.value }))} placeholder="Precios sujetos a variación, tiempo de entrega 5-7 días hábiles..." />
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+        {qFeatures.taxConfig && (
+          <div className="card">
+            <div className="section-num" style={{ marginBottom: 12 }}>Impuestos</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 13 }}>
+                <input type="checkbox" checked={cfg.taxIncluded} onChange={() => setCfg(p => ({ ...p, taxIncluded: !p.taxIncluded }))} />
+                Precio incluye impuesto (IVA)
+              </label>
+              {!cfg.taxIncluded && (
+                <div className="field">
+                  <label className="field-label">Tasa de impuesto (%)</label>
+                  <input style={inStyle} type="number" min={0} max={100} value={cfg.taxRate} onChange={e => setCfg(p => ({ ...p, taxRate: parseFloat(e.target.value) || 0 }))} placeholder="19" />
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+        {qFeatures.sessionBreakdown && (
+          <div className="card">
+            <div className="section-num" style={{ marginBottom: 12 }}>Configuración clínica</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <div className="field">
+                <label className="field-label">Nº de sesiones por defecto</label>
+                <input style={inStyle} type="number" min={1} value={cfg.sessionCount} onChange={e => setCfg(p => ({ ...p, sessionCount: parseInt(e.target.value) || 1 }))} />
+              </div>
+              {qFeatures.insuranceCoverage && (
+                <div className="field">
+                  <label className="field-label">Cobertura de seguro</label>
+                  <input style={inStyle} value={cfg.insuranceCoverage} onChange={e => setCfg(p => ({ ...p, insuranceCoverage: e.target.value }))} placeholder="Fonasa, Isapre, Particular" />
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 16 }}>
+        <button className="btn btn-primary" onClick={handleSave} disabled={saving}>
+          {saving ? 'Guardando...' : 'Guardar opciones'}
+        </button>
+      </div>
+    </div>
+  );
+};
+
 const QuotesPanel = ({ workspaceId, botId, bot }) => {
+  const bizConfig  = getBusinessType(bot?.businessType);
+  const qFeatures  = bizConfig.quotes?.features || {};
   const [saving, setSaving] = useState(false);
   const [quoteFields, setQuoteFields] = useState(bot?.quoteFields || []);
   const [editingField, setEditingField] = useState(null);
@@ -302,6 +413,11 @@ const QuotesPanel = ({ workspaceId, botId, bot }) => {
             )}
           </div>
         </div>
+      )}
+
+      {/* Business-type specific quote config */}
+      {(qFeatures.expiry || qFeatures.paymentTerms || qFeatures.taxConfig || qFeatures.sessionBreakdown) && (
+        <QuoteBusinessConfig workspaceId={workspaceId} botId={botId} bot={bot} qFeatures={qFeatures} />
       )}
 
     </>
