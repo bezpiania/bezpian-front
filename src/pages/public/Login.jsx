@@ -29,6 +29,7 @@ const Login = () => {
             localStorage.setItem('accessToken', response.data.accessToken);
             localStorage.setItem('refreshToken', response.data.refreshToken);
             localStorage.setItem('workspaceId', response.data.user.defaultWorkspaceId);
+            localStorage.setItem('workspaceRole', response.data.user.workspaceRole || 'member');
             navigate('/dashboard');
           } else {
             message.warning(response?.message || 'No se pudo iniciar sesión');

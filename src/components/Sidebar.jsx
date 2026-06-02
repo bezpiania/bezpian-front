@@ -1,30 +1,25 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 
-/**
- * Sidebar de la app Zapien — réplica del .app-sidebar del mockup.
- * Usa NavLink de React Router para resaltar la ruta activa.
- */
 const Sidebar = () => {
   const navigate = useNavigate();
 
   let user = null;
-  try {
-    user = JSON.parse(localStorage.getItem('user') || 'null');
-  } catch {
-    user = null;
-  }
-  const userName = user?.name || 'Sebastián R.';
-  const userEmail = user?.email || 'hola@acme.cl';
-  const userInitial = (userName[0] || 'S').toUpperCase();
+  try { user = JSON.parse(localStorage.getItem('user') || 'null'); } catch {}
+
+  const role = localStorage.getItem('workspaceRole') || user?.workspaceRole || 'member';
+  const isAdmin = role === 'admin' || role === 'owner';
+
+  const userName    = user?.name  || 'Usuario';
+  const userEmail   = user?.email || '';
+  const userInitial = (userName[0] || 'U').toUpperCase();
 
   const handleLogout = () => {
-    localStorage.removeItem('user');
+    ['user', 'accessToken', 'refreshToken', 'workspaceId', 'workspaceRole'].forEach(k => localStorage.removeItem(k));
     navigate('/login');
   };
 
-  const navClass = ({ isActive }) =>
-    'app-nav-item' + (isActive ? ' active' : '');
+  const navClass = ({ isActive }) => 'app-nav-item' + (isActive ? ' active' : '');
 
   return (
     <aside className="app-sidebar">
@@ -47,9 +42,11 @@ const Sidebar = () => {
         <NavLink to="/dashboard" className={navClass} end>
           <svg><use href="#i-home" /></svg>Inicio
         </NavLink>
-        <NavLink to="/chatbots" className={navClass}>
-          <svg><use href="#i-bot" /></svg>Chatbots<span className="badge">3</span>
-        </NavLink>
+        {isAdmin && (
+          <NavLink to="/chatbots" className={navClass}>
+            <svg><use href="#i-bot" /></svg>Chatbots<span className="badge">3</span>
+          </NavLink>
+        )}
         <NavLink to="/conversaciones" className={navClass}>
           <svg><use href="#i-chat" /></svg>Conversaciones<span className="badge">12</span>
         </NavLink>
@@ -66,15 +63,16 @@ const Sidebar = () => {
 
       <div className="app-nav-section">
         <div className="app-nav-label">Cuenta</div>
-        {/* <NavLink to="/integraciones" className={navClass}>
-          <svg><use href="#i-plug" /></svg>Integraciones
-        </NavLink> */}
-        <NavLink to="/equipo" className={navClass}>
-          <svg><use href="#i-team" /></svg>Equipo
-        </NavLink>
-        <NavLink to="/plan" className={navClass}>
-          <svg><use href="#i-card" /></svg>Plan
-        </NavLink>
+        {isAdmin && (
+          <>
+            <NavLink to="/equipo" className={navClass}>
+              <svg><use href="#i-team" /></svg>Equipo
+            </NavLink>
+            <NavLink to="/plan" className={navClass}>
+              <svg><use href="#i-card" /></svg>Plan
+            </NavLink>
+          </>
+        )}
         <NavLink to="/perfil" className={navClass}>
           <svg><use href="#i-settings" /></svg>Configuración
         </NavLink>
@@ -84,14 +82,11 @@ const Sidebar = () => {
         <div className="app-user-avatar">{userInitial}</div>
         <div className="app-user-info">
           <div className="app-user-name">{userName}</div>
-          <div className="app-user-email">{userEmail}</div>
+          <div className="app-user-email" style={{ fontSize: 10, opacity: 0.55 }}>
+            {role === 'owner' ? 'Owner' : role === 'admin' ? 'Admin' : 'Operador'} · {userEmail}
+          </div>
         </div>
-        <button
-          type="button"
-          className="app-user-logout"
-          onClick={handleLogout}
-          title="Cerrar sesión"
-        >
+        <button type="button" className="app-user-logout" onClick={handleLogout} title="Cerrar sesión">
           <svg><use href="#i-logout" /></svg>
         </button>
       </div>

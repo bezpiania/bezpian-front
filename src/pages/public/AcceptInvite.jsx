@@ -59,6 +59,7 @@ const AcceptInvite = () => {
       const acceptRes = await api.post(`/api/invitations/${token}/accept`);
       if (acceptRes.success) {
         localStorage.setItem('workspaceId', acceptRes.workspaceId);
+        localStorage.setItem('workspaceRole', acceptRes.role || 'member');
         message.success(`¡Bienvenido a ${invitation.workspaceName}!`);
         navigate('/dashboard');
       } else {
