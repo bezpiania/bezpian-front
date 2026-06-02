@@ -10,7 +10,7 @@ const ROLES = [
   { value: 'member', label: 'Operador', desc: 'Ve conversaciones, leads y citas' },
 ];
 const ROLE_LABELS = { owner: 'Owner', admin: 'Admin', member: 'Operador' };
-const ROLE_TONES  = { owner: 'dark', admin: 'muted', member: 'muted' };
+const ROLE_TONES  = { owner: 'dark', admin: 'green', member: 'amber' };
 const AVATAR_COLORS = ['var(--voltage)', '#EC4899', '#8B5CF6', '#0891B2', '#059669', 'var(--ink)'];
 const AVATAR_TEXTS  = ['var(--carbon)', 'var(--bone)', 'var(--bone)', 'var(--bone)', 'var(--bone)', 'var(--bone)'];
 
