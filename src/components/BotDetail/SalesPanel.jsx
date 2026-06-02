@@ -11,6 +11,8 @@ const SalesPanel = ({ workspaceId, botId, bot }) => {
 
   const [config, setConfig] = useState({
     enabled:          bot?.deliveryConfig?.enabled          ?? false,
+    allowDelivery:    bot?.deliveryConfig?.allowDelivery    ?? true,
+    allowPickup:      bot?.deliveryConfig?.allowPickup      ?? true,
     zones:            bot?.deliveryConfig?.zones            ?? [],
     deliveryCost:     bot?.deliveryConfig?.deliveryCost     ?? 0,
     estimatedMinutes: bot?.deliveryConfig?.estimatedMinutes ?? 45,
@@ -21,6 +23,8 @@ const SalesPanel = ({ workspaceId, botId, bot }) => {
     if (bot?.deliveryConfig) {
       setConfig({
         enabled:          bot.deliveryConfig.enabled          ?? false,
+        allowDelivery:    bot.deliveryConfig.allowDelivery    ?? true,
+        allowPickup:      bot.deliveryConfig.allowPickup      ?? true,
         zones:            bot.deliveryConfig.zones            ?? [],
         deliveryCost:     bot.deliveryConfig.deliveryCost     ?? 0,
         estimatedMinutes: bot.deliveryConfig.estimatedMinutes ?? 45,
@@ -83,8 +87,39 @@ const SalesPanel = ({ workspaceId, botId, bot }) => {
         </div>
       </div>
 
+      {/* Tipo de pedido */}
+      <div className="card" style={{ marginTop: 16 }}>
+        <div className="section-num" style={{ marginBottom: 14 }}>Tipo de pedido</div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}>
+            <div>
+              <div style={{ fontWeight: 600, fontSize: 14 }}>Delivery a domicilio</div>
+              <small style={{ opacity: 0.55 }}>El chatbot puede tomar pedidos con despacho a domicilio</small>
+            </div>
+            <input type="checkbox" checked={config.allowDelivery}
+              onChange={() => set('allowDelivery', !config.allowDelivery)}
+              style={{ width: 18, height: 18 }} />
+          </label>
+          <div style={{ height: 1, background: 'var(--rule)' }} />
+          <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}>
+            <div>
+              <div style={{ fontWeight: 600, fontSize: 14 }}>Retiro en local</div>
+              <small style={{ opacity: 0.55 }}>El cliente puede retirar su pedido en el local</small>
+            </div>
+            <input type="checkbox" checked={config.allowPickup}
+              onChange={() => set('allowPickup', !config.allowPickup)}
+              style={{ width: 18, height: 18 }} />
+          </label>
+        </div>
+        {!config.allowDelivery && !config.allowPickup && (
+          <div style={{ marginTop: 12, padding: '8px 12px', background: '#FFF1F0', border: '1px solid #FFCCC7', borderRadius: 6, fontSize: 12, color: '#B91C1C' }}>
+            ⚠️ Debes habilitar al menos una opción.
+          </div>
+        )}
+      </div>
+
       {/* Config */}
-      <div className="grid-2-eq" style={{ marginTop: 20 }}>
+      <div className="grid-2-eq" style={{ marginTop: 16 }}>
         <div className="card">
           <div className="section-num" style={{ marginBottom: 14 }}>Costos y tiempos</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>

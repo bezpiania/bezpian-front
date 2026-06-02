@@ -90,7 +90,7 @@ const Sidebar = () => {
           <svg><use href="#i-cal" /></svg>Agenda
         </NavLink>
         <NavLink to="/ventas" className={navClass}>
-          <svg><use href="#i-bag" /></svg>Ventas
+          <svg><use href="#i-money" /></svg>Ventas
           {newOrders > 0 && <Badge count={newOrders} />}
         </NavLink>
       </div>
