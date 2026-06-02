@@ -135,6 +135,16 @@ const DEMO_BOTS = [
               <span className={'pill ' + (b.status === 'active' ? 'green' : b.status === 'paused' ? 'amber' : 'muted')}>
                 {b.status === 'active' ? 'Activo' : b.status === 'paused' ? 'Pausado' : 'Borrador'}
               </span>
+              {b.openaiError?.code === 'OPENAI_QUOTA_EXCEEDED' && (
+                <span className="pill red" title="Los créditos de OpenAI se agotaron. Recarga tu cuenta en platform.openai.com">
+                  ⚠️ Sin créditos IA
+                </span>
+              )}
+              {b.openaiError?.code === 'OPENAI_INVALID_KEY' && (
+                <span className="pill red" title="La API key de OpenAI no es válida. Revisa la configuración del bot">
+                  ⚠️ API key inválida
+                </span>
+              )}
             </div>
             <div>
               <div className="bot-card-name">

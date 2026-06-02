@@ -411,6 +411,16 @@ const BotDetail = () => {
                 <span className={`pill ${statusColor}`}>
                   {bot.status === 'active' ? 'Activo' : bot.status === 'paused' ? 'Pausado' : 'Borrador'}
                 </span>
+                {bot.openaiError?.code === 'OPENAI_QUOTA_EXCEEDED' && (
+                  <span className="pill red" style={{ marginLeft: 6 }}>
+                    ⚠️ Sin créditos OpenAI — recarga tu cuenta en platform.openai.com
+                  </span>
+                )}
+                {bot.openaiError?.code === 'OPENAI_INVALID_KEY' && (
+                  <span className="pill red" style={{ marginLeft: 6 }}>
+                    ⚠️ API key de OpenAI inválida — revisa la configuración
+                  </span>
+                )}
               </div>
               <p style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 14, opacity: 0.7, marginTop: 2 }}>
                 {bot.workspaceId} · creado el {new Date(bot.createdAt).toLocaleDateString('es-CL', { year: 'numeric', month: 'short', day: 'numeric' })}

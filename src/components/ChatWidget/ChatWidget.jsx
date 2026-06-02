@@ -112,7 +112,14 @@ const ChatWidget = ({ embedKey, position = 'bottom-right' }) => {
           }, 500);
         }
       } else {
-        setMessages(prev => [...prev, { role: 'assistant', content: '❌ ' + (response.data?.message || 'Error procesando tu mensaje'), _id: 'error-' + Date.now() }]);
+        const errorCode = response.data?.errorCode;
+        const errorMsg =
+          errorCode === 'OPENAI_QUOTA_EXCEEDED'
+            ? '⚠️ Este asistente no puede responder en este momento porque los créditos de IA se han agotado. Por favor, contacta al negocio para más información.'
+            : errorCode === 'OPENAI_INVALID_KEY'
+            ? '⚠️ Este asistente tiene un problema de configuración. Por favor, contacta al negocio directamente.'
+            : '❌ ' + (response.data?.message || 'Error procesando tu mensaje');
+        setMessages(prev => [...prev, { role: 'assistant', content: errorMsg, _id: 'error-' + Date.now() }]);
       }
     } catch {
       setMessages(prev => [...prev, { role: 'assistant', content: '❌ Error enviando tu mensaje. Por favor, intenta de nuevo.', _id: 'error-' + Date.now() }]);
