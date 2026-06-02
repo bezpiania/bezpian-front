@@ -148,6 +148,39 @@ const Billing = () => {
             </div>
 
             <div className="page-body">
+                {/* Alert banner when near or at limit */}
+                {!isLoading && (() => {
+                    const convPct = limits.conversations > 0 ? Math.round((usage.conversations / limits.conversations) * 100) : 0;
+                    if (convPct >= 100) return (
+                        <div style={{ background: 'var(--magma)', color: 'var(--bone)', borderRadius: 10, padding: '14px 20px', marginBottom: 20, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
+                            <div>
+                                <strong style={{ fontFamily: 'var(--font-display)', fontSize: 15 }}>⛔ Límite alcanzado</strong>
+                                <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, marginTop: 2, opacity: 0.9 }}>
+                                    Tu chatbot está bloqueado — los usuarios ven un mensaje de límite. Actualiza tu plan para restaurar el servicio.
+                                </div>
+                            </div>
+                            <button onClick={() => document.getElementById('planes-section')?.scrollIntoView({ behavior: 'smooth' })}
+                                style={{ background: 'var(--bone)', color: 'var(--magma)', border: 'none', borderRadius: 8, padding: '8px 16px', fontWeight: 700, fontSize: 13, cursor: 'pointer', whiteSpace: 'nowrap', fontFamily: 'var(--font-body)' }}>
+                                Ver planes →
+                            </button>
+                        </div>
+                    );
+                    if (convPct >= 80) return (
+                        <div style={{ background: '#FEF3C7', border: '1px solid #F59E0B', borderRadius: 10, padding: '14px 20px', marginBottom: 20, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
+                            <div>
+                                <strong style={{ fontFamily: 'var(--font-display)', fontSize: 15, color: '#92400E' }}>⚠️ Vas en {convPct}% de tu límite</strong>
+                                <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, marginTop: 2, color: '#92400E', opacity: 0.8 }}>
+                                    Te quedan {limits.conversations - usage.conversations} conversaciones este mes. Considera actualizar tu plan.
+                                </div>
+                            </div>
+                            <button onClick={() => document.getElementById('planes-section')?.scrollIntoView({ behavior: 'smooth' })}
+                                style={{ background: '#92400E', color: '#FEF3C7', border: 'none', borderRadius: 8, padding: '8px 16px', fontWeight: 700, fontSize: 13, cursor: 'pointer', whiteSpace: 'nowrap', fontFamily: 'var(--font-body)' }}>
+                                Ver planes →
+                            </button>
+                        </div>
+                    );
+                    return null;
+                })()}
 
                 {/* Usage */}
                 <div className="card" style={{ marginBottom: 24 }}>
@@ -174,7 +207,7 @@ const Billing = () => {
                 </div>
 
                 {/* Plans */}
-                <div className="section-head">
+                <div id="planes-section" className="section-head">
                     <div>
                         <div className="section-num">Planes disponibles</div>
                         <div className="section-title">¿Cambiar de <em>tier?</em></div>

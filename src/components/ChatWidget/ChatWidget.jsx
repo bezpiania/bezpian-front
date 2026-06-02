@@ -40,6 +40,12 @@ const ChatWidget = ({ embedKey, position = 'bottom-right' }) => {
         setMessages([{ role: 'assistant', content: welcomeMessage, _id: '0' }]);
         setAppointmentEnabled(features?.appointmentsEnabled || false);
         if (features?.quotesEnabled) await fetchQuoteFields();
+      } else if (response.data?.limitReached) {
+        setMessages([{
+          role: 'assistant',
+          content: '🚫 Este servicio ha alcanzado su límite de conversaciones del mes. Por favor intenta nuevamente el próximo mes o contacta al negocio directamente.',
+          _id: 'limit-0'
+        }]);
       } else {
         setMessages([{ role: 'assistant', content: '❌ ' + (response.data?.message || 'Error iniciando la conversación'), _id: 'error-0' }]);
       }
