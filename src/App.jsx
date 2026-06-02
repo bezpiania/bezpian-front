@@ -23,6 +23,7 @@ import Conversations from './pages/private/operacion/Conversations.jsx';
 import ConversationDetail from './pages/private/operacion/ConversationDetail.jsx';
 import Leads from './pages/private/operacion/Leads.jsx';
 import Appointments from './pages/private/operacion/Appointments.jsx';
+import Orders from './pages/private/operacion/Orders.jsx';
 import Quotes from './pages/private/operacion/Quotes.jsx';
 import QuoteDetail from './pages/private/operacion/QuoteDetail.jsx';
 import Team from './pages/private/cuenta/Team.jsx';
@@ -61,6 +62,7 @@ function App() {
             <Route path="/conversaciones/:id" element={<ConversationDetail />} />
             <Route path="/leads" element={<Leads />} />
             <Route path="/citas" element={<Appointments />} />
+            <Route path="/ventas" element={<Orders />} />
             <Route path="/cotizaciones" element={<Quotes />} />
             <Route path="/cotizaciones/:id" element={<QuoteDetail />} />
 

@@ -1,6 +1,8 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useSidebarCounts } from '../hooks/useSidebarCounts.js';
+import { useQuery } from '@tanstack/react-query';
+import api from '../apis/app.js';
 
 const Sidebar = () => {
   const navigate = useNavigate();
@@ -13,6 +15,15 @@ const Sidebar = () => {
   const wsId      = localStorage.getItem('workspaceId');
 
   const { data: counts } = useSidebarCounts(wsId);
+
+  const { data: ordersData } = useQuery({
+    queryKey: ['orders-new', wsId],
+    queryFn: () => api.get(`/api/workspaces/${wsId}/orders?status=new`),
+    enabled: !!wsId,
+    refetchInterval: 30000,
+    select: d => d?.data?.orders?.length ?? 0,
+  });
+  const newOrders = ordersData ?? null;
   const chatbots      = counts?.chatbots      ?? null;
   const conversations = counts?.conversations ?? null;
   const leads         = counts?.leads         ?? null;
@@ -77,6 +88,10 @@ const Sidebar = () => {
         </NavLink>
         <NavLink to="/citas" className={navClass}>
           <svg><use href="#i-cal" /></svg>Agenda
+        </NavLink>
+        <NavLink to="/ventas" className={navClass}>
+          <svg><use href="#i-bag" /></svg>Ventas
+          {newOrders > 0 && <Badge count={newOrders} />}
         </NavLink>
       </div>
 

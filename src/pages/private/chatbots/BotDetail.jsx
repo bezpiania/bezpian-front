@@ -10,6 +10,7 @@ import Chatbot from '../../../services/Chatbot.js';
 import LeadsPanel from '../../../components/BotDetail/LeadsPanel.jsx';
 import QuotesPanel from '../../../components/BotDetail/QuotesPanel.jsx';
 import AppointmentsPanel from '../../../components/BotDetail/AppointmentsPanel.jsx';
+import SalesPanel from '../../../components/BotDetail/SalesPanel.jsx';
 import IntegrationsPanel from '../../../components/BotDetail/IntegrationsPanel.jsx';
 import AddProductModal from '../../../components/BotDetail/AddProductModal.jsx';
 import ImportCSVModal from '../../../components/BotDetail/ImportCSVModal.jsx';
@@ -485,6 +486,7 @@ const BotDetail = () => {
           {bot?.features?.appointments && (
             <TabBtn active={tab === 'appointments'} onClick={() => setTab('appointments')}>Agendamiento</TabBtn>
           )}
+          <TabBtn active={tab === 'sales'} onClick={() => setTab('sales')}>Ventas</TabBtn>
 
           <TabBtn active={tab === 'integrations'} onClick={() => setTab('integrations')}>Canales</TabBtn>
         </div>
@@ -1235,6 +1237,10 @@ const BotDetail = () => {
 
         {tab === 'appointments' && (
           <AppointmentsPanel workspaceId={workspaceId} botId={id} bot={bot} />
+        )}
+
+        {tab === 'sales' && bot && (
+          <SalesPanel workspaceId={workspaceId} botId={id} bot={bot} />
         )}
 
         {tab === 'integrations' && bot && (
