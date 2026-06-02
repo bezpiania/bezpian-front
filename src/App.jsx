@@ -10,6 +10,7 @@ import Signup from './pages/public/Signup.jsx';
 import VerifyEmail from './pages/public/VerifyEmail.jsx';
 import ForgotPassword from './pages/public/ForgotPassword.jsx';
 import Widget from './pages/public/Widget.jsx';
+import AcceptInvite from './pages/public/AcceptInvite.jsx';
 import PublicQuote from './pages/public/PublicQuote.jsx';
 
 // Privadas
@@ -39,6 +40,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/verificar-email" element={<VerifyEmail />} />
+          <Route path="/invitar" element={<AcceptInvite />} />
           <Route path="/recuperar" element={<ForgotPassword />} />
 
           {/* Cliente final (públicas, simulan vistas embebidas) */}
