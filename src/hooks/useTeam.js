@@ -8,10 +8,18 @@ export const useTeam = (workspaceId) =>
     enabled: !!workspaceId,
   });
 
-export const useInviteMember = (workspaceId) => {
+export const useCreateMember = (workspaceId) => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ email, role }) => Team.invite(workspaceId, email, role),
+    mutationFn: (data) => Team.create(workspaceId, data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['team', workspaceId] }),
+  });
+};
+
+export const useUpdateMemberInfo = (workspaceId) => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ memberId, ...data }) => Team.updateInfo(workspaceId, memberId, data),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['team', workspaceId] }),
   });
 };
@@ -19,7 +27,7 @@ export const useInviteMember = (workspaceId) => {
 export const useUpdateMemberRole = (workspaceId) => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ memberId, role }) => Team.update(workspaceId, memberId, role),
+    mutationFn: ({ memberId, role }) => Team.updateRole(workspaceId, memberId, role),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['team', workspaceId] }),
   });
 };

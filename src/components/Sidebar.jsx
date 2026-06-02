@@ -7,8 +7,8 @@ const Sidebar = () => {
   let user = null;
   try { user = JSON.parse(localStorage.getItem('user') || 'null'); } catch {}
 
-  const role = localStorage.getItem('workspaceRole') || user?.workspaceRole || 'member';
-  const isAdmin = role === 'admin' || role === 'owner';
+  const role = localStorage.getItem('workspaceRole') || user?.workspaceRole || 'admin';
+  const isAdmin = !role || role === 'admin' || role === 'owner';
 
   const userName    = user?.name  || 'Usuario';
   const userEmail   = user?.email || '';
