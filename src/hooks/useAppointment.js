@@ -1,34 +1,52 @@
-import { useQuery, useMutation } from '@tanstack/react-query';
-import Chatbot from '../services/Chatbot.js';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import Appointment from '../services/Appointment.js';
 
 export const useGetAppointments = (workspaceId, chatbotId) => {
   return useQuery({
     queryKey: ['appointments', workspaceId, chatbotId],
-    queryFn: async () => {
-      if (!workspaceId || !chatbotId) return null;
-      return await Chatbot.get(`/api/workspaces/${workspaceId}/chatbots/${chatbotId}/appointments`);
+    queryFn: () => {
+      if (!workspaceId) return { data: [] };
+      return Appointment.list(workspaceId, chatbotId);
     },
-    enabled: !!workspaceId && !!chatbotId,
+    enabled: !!workspaceId,
   });
 };
 
-export const useDeleteAppointment = (workspaceId, chatbotId) => {
+export const useCreateAppointment = (workspaceId, chatbotId) => {
+  const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (appointmentId) => {
-      return await Chatbot.delete(
-        `/api/workspaces/${workspaceId}/chatbots/${chatbotId}/appointments/${appointmentId}`
-      );
+    mutationFn: async (appointmentData) => {
+      const response = await Appointment.create(workspaceId, chatbotId, appointmentData);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['appointments', workspaceId, chatbotId] });
     },
   });
 };
 
 export const useUpdateAppointmentStatus = (workspaceId, chatbotId) => {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ appointmentId, status }) => {
-      return await Chatbot.patch(
-        `/api/workspaces/${workspaceId}/chatbots/${chatbotId}/appointments/${appointmentId}`,
-        { status }
-      );
+      const response = await Appointment.updateStatus(workspaceId, chatbotId, appointmentId, status);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['appointments', workspaceId, chatbotId] });
+    },
+  });
+};
+
+export const useDeleteAppointment = (workspaceId, chatbotId) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (appointmentId) => {
+      const response = await Appointment.delete(workspaceId, chatbotId, appointmentId);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['appointments', workspaceId, chatbotId] });
     },
   });
 };

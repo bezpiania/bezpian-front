@@ -1,34 +1,42 @@
-import { useQuery, useMutation } from '@tanstack/react-query';
-import Chatbot from '../services/Chatbot.js';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import Quote from '../services/Quote.js';
 
 export const useGetQuotes = (workspaceId, chatbotId) => {
   return useQuery({
     queryKey: ['quotes', workspaceId, chatbotId],
     queryFn: async () => {
-      if (!workspaceId || !chatbotId) return null;
-      return await Chatbot.get(`/api/workspaces/${workspaceId}/chatbots/${chatbotId}/quotes`);
+      if (!workspaceId) return null;
+      const response = chatbotId
+        ? await Quote.list(workspaceId, chatbotId)
+        : await Quote.listByWorkspace(workspaceId);
+      return response.data;
     },
-    enabled: !!workspaceId && !!chatbotId,
+    enabled: !!workspaceId,
   });
 };
 
 export const useDeleteQuote = (workspaceId, chatbotId) => {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (quoteId) => {
-      return await Chatbot.delete(
-        `/api/workspaces/${workspaceId}/chatbots/${chatbotId}/quotes/${quoteId}`
-      );
+      const response = await Quote.delete(workspaceId, chatbotId, quoteId);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['quotes'] });
     },
   });
 };
 
 export const useUpdateQuoteStatus = (workspaceId, chatbotId) => {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ quoteId, status }) => {
-      return await Chatbot.patch(
-        `/api/workspaces/${workspaceId}/chatbots/${chatbotId}/quotes/${quoteId}`,
-        { status }
-      );
+      const response = await Quote.update(workspaceId, chatbotId, quoteId, { status });
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['quotes'] });
     },
   });
 };

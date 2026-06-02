@@ -1,7 +1,7 @@
-import React, { useState, useMemo } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import React, { useState, useMemo, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import AppLayout from '../../../components/AppLayout.jsx';
-import { useGetQuotes } from '../../../hooks/useQuote.js';
+import Quote from '../../../services/Quote.js';
 
 const STATUS_CONFIG = {
   draft: { label: 'Borrador', tone: 'muted' },
@@ -27,7 +27,7 @@ const formatDate = (date) => {
   const d = new Date(date);
   const now = new Date();
   const diffTime = Math.abs(now - d);
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
   if (diffDays === 0) return `Hoy ${d.getHours()}:${d.getMinutes().toString().padStart(2, '0')}`;
   if (diffDays === 1) return `Ayer ${d.getHours()}:${d.getMinutes().toString().padStart(2, '0')}`;
@@ -35,11 +35,29 @@ const formatDate = (date) => {
 };
 
 const Quotes = () => {
-  const { workspaceId } = useParams();
+  const workspaceId = localStorage.getItem('workspaceId');
   const [search, setSearch] = useState('');
+  const [quotes, setQuotes] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const { data: quotesResponse, isLoading } = useGetQuotes(workspaceId, workspaceId);
-  const quotes = quotesResponse?.data || [];
+  useEffect(() => {
+    if (!workspaceId) return;
+
+    const fetchQuotes = async () => {
+      try {
+        setIsLoading(true);
+        const response = await Quote.listByWorkspace(workspaceId);
+        setQuotes(response.data || []);
+      } catch (error) {
+        console.error('Error fetching quotes:', error);
+        setQuotes([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchQuotes();
+  }, [workspaceId]);
 
   const filteredQuotes = useMemo(() => {
     if (!search) return quotes;
@@ -62,10 +80,10 @@ const Quotes = () => {
     quotes.forEach(q => {
       if (q.status === 'accepted') {
         stats.accepted++;
-        stats.acceptedAmount += q.totalAmount || 0;
+        stats.acceptedAmount += q.total || 0;
       } else if (['draft', 'sent', 'viewed'].includes(q.status)) {
         stats.pending++;
-        stats.pendingAmount += q.totalAmount || 0;
+        stats.pendingAmount += q.total || 0;
       }
     });
 
@@ -82,7 +100,7 @@ const Quotes = () => {
           <div className="page-eyebrow">
             <span>Cotizaciones</span>
             <span className="dot"></span>
-            <span>{quotes.length} totales · {formatCurrency(quotes.reduce((sum, q) => sum + (q.totalAmount || 0), 0))} en pipeline</span>
+            <span>{quotes.length} totales · {formatCurrency(quotes.reduce((sum, q) => sum + (q.total || 0), 0))} en pipeline</span>
           </div>
           <h1 className="page-title">
             Lo que tus bots <span className="hl">cotizaron.</span>
@@ -148,7 +166,7 @@ const Quotes = () => {
             ) : (
               filteredQuotes.map((q) => {
                 const statusConfig = STATUS_CONFIG[q.status] || { label: q.status, tone: 'muted' };
-                const items = q.items?.length ? q.items.map(i => `${i.quantity} ${i.description}`).join(', ') : '—';
+                const items = q.items?.length ? q.items.map(i => `${i.quantity} ${i.name || i.description || 'Producto'}`).join(', ') : '—';
 
                 return (
                   <tr key={q._id}>
@@ -164,7 +182,7 @@ const Quotes = () => {
                     <td>
                       <div className="td-strong">{items}</div>
                     </td>
-                    <td className="td-mono" style={{ fontWeight: 600 }}>{formatCurrency(q.totalAmount)}</td>
+                    <td className="td-mono" style={{ fontWeight: 600 }}>{formatCurrency(q.total)}</td>
                     <td><span className={'pill ' + statusConfig.tone}>{statusConfig.label}</span></td>
                     <td className="td-mono">{formatDate(q.createdAt)}</td>
                     <td>

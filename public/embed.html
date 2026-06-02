@@ -17,15 +17,21 @@
             height: 100vh;
             display: flex;
             flex-direction: column;
+            align-items: center;
+            justify-content: center;
             overflow: hidden;
+            position: relative;
         }
 
         .chat-widget {
             display: flex;
             flex-direction: column;
             height: 100vh;
+            max-height: 600px;
+            width: 100%;
             background: white;
             border-radius: 0;
+            box-shadow: none;
         }
 
         .chat-header {
@@ -136,7 +142,7 @@
 
         .message.user .message-content {
             background: var(--primary-color, #667eea);
-            color: white;
+            color: var(--text-color, white);
         }
 
         .chat-input-area {
@@ -247,9 +253,24 @@
     </div>
 
     <!-- Minimized floating button (for iframe internal toggle) -->
-    <button id="minimizedButton" aria-label="Abrir chat" style="position:fixed;bottom:16px;right:16px;width:56px;height:56px;border-radius:50%;border:none;background:var(--primary-color,#667eea);color:white;display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 6px 18px rgba(0,0,0,0.16);z-index:1000;">💬</button>
+    <button id="minimizedButton" aria-label="Abrir chat" style="position:absolute;bottom:0;right:0;width:100%;height:100%;border-radius:50%;border:none;background:var(--primary-color,#667eea);color:var(--text-color,white);display:flex;align-items:center;justify-content:center;font-size:28px;box-shadow:0 6px 18px rgba(0,0,0,0.16);z-index:1000;line-height:0.8;padding:0;text-align:center;font-weight:normal;">💬</button>
 
     <script>
+        // Función para calcular contraste de color
+        function getContrastColor(hexColor) {
+            // Convertir hex a RGB
+            const hex = hexColor.replace('#', '');
+            const r = parseInt(hex.substr(0, 2), 16);
+            const g = parseInt(hex.substr(2, 2), 16);
+            const b = parseInt(hex.substr(4, 2), 16);
+
+            // Calcular luminancia relativa (fórmula WCAG)
+            const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+
+            // Si es claro (luminancia > 0.5), usar texto negro; si es oscuro, usar blanco
+            return luminance > 0.5 ? '#000000' : '#ffffff';
+        }
+
         // Get URL parameters
         const params = new URLSearchParams(window.location.search);
         const botId = params.get('botId');
@@ -263,19 +284,43 @@
         let conversationId = Date.now().toString();
         let visitorId = 'visitor-' + Math.random().toString(36).substr(2, 9);
         let primaryColor = urlColor || '#667eea';
+        let textColor = getContrastColor(primaryColor);
         let avatar = urlAvatar || '🤖';
         let chatbotName = urlName || 'Zapien Chat';
+        let additionalInfo = []; // Almacenar información adicional del usuario
 
         // Apply theme
         function applyTheme() {
-            // Set CSS variable for primary color (used in header, button, and user messages)
+            // Recalcular color de texto basado en el color principal
+            textColor = getContrastColor(primaryColor);
+
+            // Set CSS variables for primary color and text color
             document.documentElement.style.setProperty('--primary-color', primaryColor);
+            document.documentElement.style.setProperty('--text-color', textColor);
+
+            // Actualizar header con contraste correcto
+            const header = document.getElementById('chatHeader');
+            header.style.background = primaryColor;
+            header.style.color = textColor;
+
+            // Actualizar estado dot color si es necesario
+            const statusSpan = document.querySelector('.header-status');
+            if (statusSpan) {
+                statusSpan.style.color = textColor;
+            }
 
             // Set avatar emoji
             document.getElementById('avatarContainer').textContent = avatar;
 
             // Set bot name
             document.getElementById('headerName').textContent = chatbotName;
+            document.getElementById('headerName').style.color = textColor;
+
+            // Actualizar botón de cerrar
+            const closeBtn = document.getElementById('headerCloseBtn');
+            if (closeBtn) {
+                closeBtn.style.color = textColor;
+            }
         }
 
         // Apply theme on load
@@ -340,6 +385,7 @@
                 // Update theme from parent if provided
                 if (event.data.color) {
                     primaryColor = event.data.color;
+                    textColor = getContrastColor(primaryColor);
                     applyTheme();
                 }
                 if (event.data.avatar) {
@@ -349,6 +395,11 @@
                 if (event.data.chatbotName) {
                     chatbotName = event.data.chatbotName;
                     applyTheme();
+                }
+
+                // Guardar información adicional si viene desde el parent
+                if (event.data.additionalInfo && Array.isArray(event.data.additionalInfo)) {
+                    additionalInfo = event.data.additionalInfo;
                 }
 
                 // If embed provided a conversationId use it, otherwise start one
@@ -394,7 +445,7 @@
             // Add user message with primary color
             const userMsg = document.createElement('div');
             userMsg.className = 'message user';
-            userMsg.innerHTML = `<div class="message-content" style="background: ${primaryColor}; color: white;">${escapeHtml(message)}</div>`;
+            userMsg.innerHTML = `<div class="message-content" style="background: ${primaryColor}; color: ${textColor};">${escapeHtml(message)}</div>`;
             messagesDiv.appendChild(userMsg);
 
             input.value = '';
@@ -414,7 +465,8 @@
                         botId,
                         content: message,
                         visitorId,
-                        embedKey
+                        embedKey,
+                        additionalInfo: additionalInfo.filter(p => p.question && p.answer) // Enviar solo pares completos
                     })
                 });
 

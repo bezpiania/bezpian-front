@@ -33,13 +33,13 @@ const ChatWidget = ({ embedKey, position = 'bottom-right' }) => {
       const response = await Chatbot.post('/api/embed/conversations', { embedKey, visitorId });
 
       if (response.data?.success) {
-        const { conversationId: convId, botId: bid, welcomeMessage, bot } = response.data.data;
+        const { conversationId: convId, botId: bid, welcomeMessage, bot, features } = response.data.data;
         setConversationId(convId);
         setBotId(bid);
         setBotInfo(bot);
         setMessages([{ role: 'assistant', content: welcomeMessage, _id: '0' }]);
-        setAppointmentEnabled(bot?.integrations?.calendar?.enabled || false);
-        await fetchQuoteFields();
+        setAppointmentEnabled(features?.appointmentsEnabled || false);
+        if (features?.quotesEnabled) await fetchQuoteFields();
       } else {
         setMessages([{ role: 'assistant', content: '❌ ' + (response.data?.message || 'Error iniciando la conversación'), _id: 'error-0' }]);
       }

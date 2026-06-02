@@ -103,6 +103,7 @@ const BotDetail = () => {
   const [productMethod, setProductMethod] = useState('manual');
   const [showAddProductModal, setShowAddProductModal] = useState(false);
   const [showImportCSVModal, setShowImportCSVModal] = useState(false);
+  const [editingProduct, setEditingProduct] = useState(null);
   const fileInputRef = useRef(null);
 
   const refetchProducts = () => {
@@ -124,6 +125,13 @@ const BotDetail = () => {
   const { mutate: syncProducts, isPending: isSyncing } = useSyncProducts(workspaceId, id);
 
   const { mutate: updateChatbot, isPending: isUpdating } = useUpdateChatbot();
+
+  const [configForm, setConfigForm] = useState({
+    name: bot?.name || '',
+    customPrompt: bot?.personality?.customPrompt || '',
+    tone: bot?.personality?.tone || 'Neutral',
+    welcomeMessage: bot?.personality?.welcomeMessage || ''
+  });
 
   const [appearanceForm, setAppearanceForm] = useState({
     color: bot?.widget?.color || '#DCFF1E',
@@ -150,6 +158,12 @@ const BotDetail = () => {
 
   useEffect(() => {
     if (bot) {
+      setConfigForm({
+        name: bot.name || '',
+        customPrompt: bot.personality?.customPrompt || '',
+        tone: bot.personality?.tone || 'Neutral',
+        welcomeMessage: bot.personality?.welcomeMessage || ''
+      });
       setAppearanceForm({
         color: bot.widget?.color || '#DCFF1E',
         position: bot.widget?.position || 'bottom-right',
@@ -188,6 +202,35 @@ const BotDetail = () => {
       fetchOpenaiConfig();
     }
   }, [id, workspaceId]);
+
+  const handleConfigChange = (field, value) => {
+    setConfigForm(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleSaveConfig = () => {
+    updateChatbot(
+      {
+        workspaceId,
+        id,
+        data: {
+          name: configForm.name,
+          personality: {
+            customPrompt: configForm.customPrompt,
+            tone: configForm.tone,
+            welcomeMessage: configForm.welcomeMessage
+          }
+        }
+      },
+      {
+        onSuccess: () => {
+          message.success('Configuración guardada');
+        },
+        onError: (error) => {
+          message.error(error?.response?.data?.message || 'Error al guardar');
+        }
+      }
+    );
+  };
 
   const handleAppearanceChange = (field, value) => {
     setAppearanceForm(prev => ({ ...prev, [field]: value }));
@@ -415,7 +458,7 @@ const BotDetail = () => {
           <TabBtn active={tab === 'instrucciones'} onClick={() => setTab('instrucciones')}>Instrucciones</TabBtn>
           <TabBtn active={tab === 'config'} onClick={() => setTab('config')}>Configuración</TabBtn>
           <TabBtn active={tab === 'openai'} onClick={() => setTab('openai')}>OpenAI</TabBtn>
-          <TabBtn active={tab === 'kb'} onClick={() => setTab('kb')}>Conocimiento</TabBtn>
+          {/* <TabBtn active={tab === 'kb'} onClick={() => setTab('kb')}>Conocimiento</TabBtn> */}
           <TabBtn active={tab === 'appearance'} onClick={() => setTab('appearance')}>Apariencia</TabBtn>
           <TabBtn active={tab === 'embed'} onClick={() => setTab('embed')}>Código embed</TabBtn>
 
@@ -458,11 +501,20 @@ const BotDetail = () => {
                 <div className="section-num">Nombre y descripción</div>
                 <div className="field" style={{ marginTop: 12 }}>
                   <div className="field-label">Nombre del bot</div>
-                  <input type="text" className="input" defaultValue={bot.name} />
+                  <input
+                    type="text"
+                    className="input"
+                    value={configForm.name}
+                    onChange={(e) => handleConfigChange('name', e.target.value)}
+                  />
                 </div>
                 <div className="field" style={{ marginBottom: 0 }}>
                   <div className="field-label">Descripción</div>
-                  <textarea className="textarea" defaultValue={bot.personality?.customPrompt || ''} />
+                  <textarea
+                    className="textarea"
+                    value={configForm.customPrompt}
+                    onChange={(e) => handleConfigChange('customPrompt', e.target.value)}
+                  />
                 </div>
               </div>
 
@@ -470,7 +522,11 @@ const BotDetail = () => {
                 <div className="section-num">Personalidad</div>
                 <div className="field" style={{ marginTop: 12 }}>
                   <div className="field-label">Tono de voz</div>
-                  <select className="select" defaultValue={bot.personality?.tone || 'Neutral'}>
+                  <select
+                    className="select"
+                    value={configForm.tone}
+                    onChange={(e) => handleConfigChange('tone', e.target.value)}
+                  >
                     <option>Casual</option>
                     <option>Neutral</option>
                     <option>Formal</option>
@@ -478,10 +534,24 @@ const BotDetail = () => {
                 </div>
                 <div className="field" style={{ marginBottom: 0 }}>
                   <div className="field-label">Mensaje de bienvenida</div>
-                  <input type="text" className="input" defaultValue={bot.personality?.welcomeMessage || ''} />
+                  <input
+                    type="text"
+                    className="input"
+                    value={configForm.welcomeMessage}
+                    onChange={(e) => handleConfigChange('welcomeMessage', e.target.value)}
+                  />
                 </div>
               </div>
             </div>
+
+            <button
+              className="btn btn-primary"
+              onClick={handleSaveConfig}
+              disabled={isUpdating}
+              style={{ marginTop: 16 }}
+            >
+              {isUpdating ? 'Guardando...' : 'Guardar configuración'}
+            </button>
 
             <div className="section-head" style={{ marginTop: 8 }}>
               <div>
@@ -615,6 +685,7 @@ const BotDetail = () => {
           </>
         )}
 
+        {/* KB (Conocimiento) ya no se usa - la info viene de los campos de Empresa
         {tab === 'kb' && (
           <>
             <div className="section-head">
@@ -733,6 +804,7 @@ const BotDetail = () => {
             )}
           </>
         )}
+        */}
 
         {tab === 'catalog' && (
           <>
@@ -924,7 +996,7 @@ const BotDetail = () => {
                       <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, opacity: 0.6, marginBottom: 8, lineHeight: 1.3 }}>
                         {product.description || 'Sin descripción'}
                       </div>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
                         <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 14 }}>
                           ${product.price?.toLocaleString('es-CL') || '0'}
                         </div>
@@ -942,20 +1014,42 @@ const BotDetail = () => {
                           {product.stock > 0 ? `${product.stock} en stock` : 'Sin stock'}
                         </div>
                       </div>
+                      <button
+                        onClick={() => setEditingProduct(product)}
+                        style={{
+                          width: '100%',
+                          padding: '8px 12px',
+                          background: 'var(--carbon)',
+                          color: 'var(--bone)',
+                          border: 'none',
+                          borderRadius: 6,
+                          fontFamily: 'var(--font-display)',
+                          fontWeight: 600,
+                          fontSize: 12,
+                          cursor: 'pointer',
+                        }}
+                      >
+                        Editar
+                      </button>
                     </div>
                   </div>
                 ))}
               </div>
             )}
 
-            {/* Modales para agregar productos */}
+            {/* Modales para agregar/editar productos */}
             <AddProductModal
-              visible={showAddProductModal}
-              onClose={() => setShowAddProductModal(false)}
+              visible={showAddProductModal || !!editingProduct}
+              onClose={() => {
+                setShowAddProductModal(false);
+                setEditingProduct(null);
+              }}
               workspaceId={workspaceId}
               chatbotId={id}
+              editingProduct={editingProduct}
               onSuccess={() => {
                 setShowAddProductModal(false);
+                setEditingProduct(null);
                 refetchProducts();
               }}
             />
@@ -1137,8 +1231,8 @@ const BotDetail = () => {
           <IntegrationsPanel workspaceId={workspaceId} botId={id} bot={bot} />
         )}
 
-        {tab !== 'config' && tab !== 'kb' && tab !== 'catalog' && tab !== 'appearance' && tab !== 'embed' &&
-         tab !== 'leads' && tab !== 'quotes' && tab !== 'appointments' && tab !== 'conversations' && tab !== 'integrations' && tab !== 'openai' && (
+        {tab !== 'config' && tab !== 'catalog' && tab !== 'appearance' && tab !== 'embed' &&
+         tab !== 'leads' && tab !== 'quotes' && tab !== 'appointments' && tab !== 'conversations' && tab !== 'integrations' && tab !== 'openai' && tab !== 'empresa' && tab !== 'instrucciones' && (
           <div className="card" style={{ textAlign: 'center', padding: '48px 24px' }}>
             <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 18, marginBottom: 6 }}>
               Pestaña <em style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic' }}>{tab}</em>

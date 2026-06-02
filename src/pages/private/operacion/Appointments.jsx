@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { message } from 'antd';
 import AppLayout from '../../../components/AppLayout.jsx';
@@ -10,11 +10,13 @@ import { useGetAppointments, useCreateAppointment, useUpdateAppointmentStatus } 
 import { useResources } from '../../../hooks/useResources.js';
 
 const Appointments = () => {
-  const { workspaceId, id: chatbotId } = useParams();
+  const params = useParams();
+  const workspaceId = params.workspaceId || localStorage.getItem('workspaceId');
+  const chatbotId = params.id || null;
 
   // Data
   const { data: appointmentsResponse, isLoading } = useGetAppointments(workspaceId, chatbotId);
-  const rawAppointments = appointmentsResponse?.appointments || appointmentsResponse?.data || [];
+  const rawAppointments = appointmentsResponse?.data || [];
   const { data: resources = [] } = useResources(workspaceId, chatbotId);
   const { mutate: createAppointment, isPending: isCreating } = useCreateAppointment(workspaceId, chatbotId);
   const { mutate: updateStatus, isPending: updating } = useUpdateAppointmentStatus(workspaceId, chatbotId);
@@ -25,6 +27,24 @@ const Appointments = () => {
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [form, setForm] = useState({ scheduledAt: '', customerName: '', customerPhone: '', reason: '', durationMinutes: 60 });
+
+  // Auto-navigate to the week with the most recent appointment if current week is empty
+  useEffect(() => {
+    if (!rawAppointments.length) return;
+    const weekStart = getWeekDays(new Date())[0].date;
+    const weekEnd = new Date(getWeekDays(new Date())[6].date);
+    weekEnd.setHours(23, 59, 59, 999);
+    const hasThisWeek = rawAppointments.some(a => {
+      const d = new Date(a.scheduledAt || a.startTime);
+      return d >= weekStart && d <= weekEnd;
+    });
+    if (!hasThisWeek) {
+      const nearest = [...rawAppointments].sort((a, b) =>
+        Math.abs(new Date(a.scheduledAt) - new Date()) - Math.abs(new Date(b.scheduledAt) - new Date())
+      )[0];
+      if (nearest) setCurrentDate(new Date(nearest.scheduledAt));
+    }
+  }, [rawAppointments]);
 
   // Computed
   const days = useMemo(() => getWeekDays(currentDate), [currentDate]);
@@ -49,11 +69,10 @@ const Appointments = () => {
   }, [rawAppointments, days, selectedResourceId]);
 
   const upcomingAppointments = useMemo(() => {
-    const now = new Date();
     return [...rawAppointments]
-      .filter(a => new Date(a.scheduledAt || a.startTime) >= now && a.status !== 'cancelled')
-      .sort((a, b) => new Date(a.scheduledAt || a.startTime) - new Date(b.scheduledAt || b.startTime))
-      .slice(0, 6);
+      .filter(a => a.status !== 'cancelled')
+      .sort((a, b) => new Date(b.scheduledAt || b.startTime) - new Date(a.scheduledAt || a.startTime))
+      .slice(0, 8);
   }, [rawAppointments]);
 
   const handleUpdateStatus = (appointmentId, status) => {

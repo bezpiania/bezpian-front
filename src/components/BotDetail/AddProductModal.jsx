@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Spin, message } from 'antd';
 import Product from '../../services/Product.js';
 
-const AddProductModal = ({ visible, onClose, workspaceId, chatbotId, onSuccess }) => {
+const AddProductModal = ({ visible, onClose, workspaceId, chatbotId, onSuccess, editingProduct }) => {
   const [form, setForm] = useState({
     name: '',
     sku: '',
@@ -12,8 +12,54 @@ const AddProductModal = ({ visible, onClose, workspaceId, chatbotId, onSuccess }
     category: '',
     tags: '',
     stock: '',
+    giftOccasion: [],
   });
   const [loading, setLoading] = useState(false);
+
+  // Cargar datos del producto a editar
+  React.useEffect(() => {
+    if (editingProduct) {
+      setForm({
+        name: editingProduct.name || '',
+        sku: editingProduct.sku || '',
+        price: editingProduct.price || '',
+        description: editingProduct.description || '',
+        imageUrl: editingProduct.imageUrl || '',
+        category: editingProduct.category || '',
+        tags: editingProduct.tags ? editingProduct.tags.join(', ') : '',
+        stock: editingProduct.stock || '',
+        giftOccasion: (editingProduct.giftOccasion || []).map(g => g.occasion),
+      });
+    } else {
+      handleClose();
+    }
+  }, [editingProduct]);
+
+  const giftOccasions = [
+    { value: 'mothers_day', label: 'Día de mamá' },
+    { value: 'fathers_day', label: 'Día de papá' },
+    { value: 'birthday', label: 'Cumpleaños' },
+    { value: 'anniversary', label: 'Aniversario' },
+    { value: 'christmas', label: 'Navidad' },
+    { value: 'valentines', label: 'San Valentín' },
+    { value: 'graduation', label: 'Graduación' },
+    { value: 'newborn', label: 'Bienvenida bebé' },
+    { value: 'get_well', label: 'Recuperación' },
+    { value: 'thank_you', label: 'Agradecimiento' },
+  ];
+
+  const toggleGiftOccasion = (occasion) => {
+    setForm(prev => {
+      const current = prev.giftOccasion || [];
+      const isSelected = current.includes(occasion);
+      return {
+        ...prev,
+        giftOccasion: isSelected
+          ? current.filter(o => o !== occasion)
+          : [...current, occasion]
+      };
+    });
+  };
 
   const handleChange = (field, value) => {
     setForm(prev => ({ ...prev, [field]: value }));
@@ -27,25 +73,38 @@ const AddProductModal = ({ visible, onClose, workspaceId, chatbotId, onSuccess }
 
     try {
       setLoading(true);
-      await Product.create(workspaceId, chatbotId, {
+      const productData = {
         ...form,
         price: parseFloat(form.price),
         stock: form.stock ? parseInt(form.stock) : 0,
         tags: form.tags ? form.tags.split(',').map(t => t.trim()).filter(Boolean) : [],
-      });
+        giftOccasion: (form.giftOccasion || []).map(occasion => ({
+          occasion,
+          reason: ''
+        })),
+      };
 
-      message.success('Producto creado exitosamente');
+      if (editingProduct) {
+        // Editar producto existente
+        await Product.update(workspaceId, chatbotId, editingProduct._id, productData);
+        message.success('Producto actualizado exitosamente');
+      } else {
+        // Crear nuevo producto
+        await Product.create(workspaceId, chatbotId, productData);
+        message.success('Producto creado exitosamente');
+      }
+
       onSuccess?.();
       handleClose();
     } catch (error) {
-      message.error(error?.response?.data?.message || 'Error al crear producto');
+      message.error(error?.response?.data?.message || `Error al ${editingProduct ? 'actualizar' : 'crear'} producto`);
     } finally {
       setLoading(false);
     }
   };
 
   const handleClose = () => {
-    setForm({ name: '', sku: '', price: '', description: '', imageUrl: '', category: '', tags: '', stock: '' });
+    setForm({ name: '', sku: '', price: '', description: '', imageUrl: '', category: '', tags: '', stock: '', giftOccasion: [] });
     onClose();
   };
 
@@ -79,7 +138,7 @@ const AddProductModal = ({ visible, onClose, workspaceId, chatbotId, onSuccess }
         onClick={(e) => e.stopPropagation()}
       >
         <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 18, marginBottom: 20 }}>
-          Agregar Producto
+          {editingProduct ? 'Editar Producto' : 'Agregar Producto'}
         </div>
 
         <Spin spinning={loading}>
@@ -191,9 +250,31 @@ const AddProductModal = ({ visible, onClose, workspaceId, chatbotId, onSuccess }
               />
             </div>
 
+            <div>
+              <label style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 13, display: 'block', marginBottom: 10 }}>
+                🎁 Ocasiones de Regalo
+              </label>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                {giftOccasions.map(occasion => (
+                  <label key={occasion.value} style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 13 }}>
+                    <input
+                      type="checkbox"
+                      checked={(form.giftOccasion || []).includes(occasion.value)}
+                      onChange={() => toggleGiftOccasion(occasion.value)}
+                      style={{ cursor: 'pointer', width: 16, height: 16 }}
+                    />
+                    <span style={{ fontFamily: 'var(--font-body)' }}>{occasion.label}</span>
+                  </label>
+                ))}
+              </div>
+              <p style={{ fontSize: 11, opacity: 0.6, marginTop: 8, fontStyle: 'italic' }}>
+                Marca las ocasiones para las que este producto es un buen regalo
+              </p>
+            </div>
+
             <div style={{ display: 'flex', gap: 10, marginTop: 20 }}>
               <button className="btn btn-primary" onClick={handleSubmit} disabled={loading} style={{ flex: 1 }}>
-                Crear Producto
+                {editingProduct ? 'Actualizar Producto' : 'Crear Producto'}
               </button>
               <button
                 onClick={handleClose}

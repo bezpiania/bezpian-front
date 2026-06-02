@@ -4,19 +4,13 @@ import { Spin, message } from 'antd';
 import AppLayout from '../../../components/AppLayout.jsx';
 import Conversations from '../../../services/Conversations.js';
 
-const BotPill = ({ botId }) => {
-  const botColors = {
-    'zapi': { label: '🛍️ Zapi', tone: 'voltage' },
-    'edu': { label: '📚 Edu', tone: 'dark' },
-    'pikante': { label: '🌶️ Pikante', tone: 'magma' },
-  };
+const BotPill = ({ botId, emoji = '🤖', color = 'voltage' }) => {
+  const label = `${emoji} ${botId || 'Bot'}`;
 
-  const bot = botColors[botId?.toLowerCase()] || { label: botId || 'Bot', tone: 'muted' };
-
-  if (bot.tone === 'magma') {
-    return <span className="pill" style={{ background: '#FF4D1F', color: 'var(--bone)' }}>{bot.label}</span>;
+  if (color === 'magma') {
+    return <span className="pill" style={{ background: '#FF4D1F', color: 'var(--bone)' }}>{label}</span>;
   }
-  return <span className={'pill ' + bot.tone}>{bot.label}</span>;
+  return <span className={'pill ' + color}>{label}</span>;
 };
 
 const OutcomePill = ({ outcome }) => {
@@ -223,11 +217,13 @@ const ConversationsPage = () => {
                           {conv.visitorMetadata?.name || conv.visitorId || 'Visitante'}
                         </div>
                         <div style={{ fontStyle: 'italic', fontSize: 13, opacity: 0.65, marginTop: 2 }}>
-                          (Sin preview de mensaje)
+                          {conv.lastMessagePreview?.length > 50
+                            ? conv.lastMessagePreview.substring(0, 50) + '...'
+                            : conv.lastMessagePreview || '(Sin mensajes)'}
                         </div>
                       </Link>
                     </td>
-                    <td><BotPill botId={conv.botId} /></td>
+                    <td><BotPill botId={conv.botName} emoji={conv.botEmoji} color={conv.botColor} /></td>
                     <td><OutcomePill outcome={conv.outcome} /></td>
                     <td><StatusPill status={conv.status} /></td>
                     <td className="td-mono">{getTimeAgo(conv.lastMessageAt || conv.createdAt)}</td>

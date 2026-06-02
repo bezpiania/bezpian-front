@@ -19,8 +19,12 @@ const ChatbotInstructionsForm = ({ workspaceId, botId }) => {
     try {
       setLoading(true);
       const response = await Chatbot.getConfig(workspaceId, botId);
-      if (response.data?.data?.instructions) {
-        setForm(prev => ({ ...prev, ...response.data.data.instructions }));
+      if (response?.data?.instructions) {
+        const instr = response.data.instructions;
+        setForm({
+          mustDo: Array.isArray(instr.mustDo) ? instr.mustDo : [],
+          mustNotDo: Array.isArray(instr.mustNotDo) ? instr.mustNotDo : []
+        });
       }
     } catch (error) {
       console.error('Error fetching config:', error);

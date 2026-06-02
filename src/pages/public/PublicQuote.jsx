@@ -1,21 +1,93 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
+import { message } from 'antd';
+import Quote from '../../services/Quote.js';
 
 /**
  * Cotización pública · vista del cliente final.
  * Es una pantalla sin sidebar — el cliente accede por un link tipo zapien.cl/q/XXX.
  */
-const PublicQuote = () => (
+const PublicQuote = () => {
+  const { id: shareToken } = useParams();
+  const [quote, setQuote] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchQuote = async () => {
+      try {
+        setLoading(true);
+        // Get by shareToken (no workspace auth needed for public link)
+        const response = await Quote.getByShareToken(shareToken);
+        if (response.data && response.data._id) {
+          setQuote(response.data);
+        } else {
+          message.error('Cotización no encontrada');
+        }
+      } catch (error) {
+        console.error('Error fetching quote:', error);
+        message.error('No se pudo cargar la cotización');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (shareToken) {
+      fetchQuote();
+    }
+  }, [shareToken]);
+
+  if (loading) {
+    return (
+      <div style={{ minHeight: '100vh', background: 'var(--bone-2)', padding: '48px 24px', display: 'grid', placeItems: 'center' }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontFamily: 'var(--font-display)', fontSize: 18, marginBottom: 12 }}>Cargando cotización...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!quote) {
+    return (
+      <div style={{ minHeight: '100vh', background: 'var(--bone-2)', padding: '48px 24px', display: 'grid', placeItems: 'center' }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontFamily: 'var(--font-display)', fontSize: 18, color: 'var(--red)' }}>Cotización no encontrada</div>
+        </div>
+      </div>
+    );
+  }
+
+  const formatCurrency = (amount) => {
+    if (!amount) return '$0';
+    return new Intl.NumberFormat('es-CL', {
+      style: 'currency',
+      currency: 'CLP',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(amount);
+  };
+
+  const getInitial = (name) => {
+    return (name || '?').charAt(0).toUpperCase();
+  };
+
+  const expiryDate = quote.expiresAt ? new Date(quote.expiresAt).toLocaleDateString('es-CL', { day: 'numeric', month: 'short' }) : '—';
+
+  return (
   <div style={{ minHeight: '100vh', background: 'var(--bone-2)', padding: '48px 24px' }}>
     <div style={{ maxWidth: 760, margin: '0 auto' }}>
       {/* Topbar */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 36 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{ width: 34, height: 34, background: 'var(--voltage)', borderRadius: 9, display: 'grid', placeItems: 'center', fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 18, letterSpacing: '-0.05em' }}>A</div>
-          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 19, letterSpacing: '-0.025em' }}>Tienda Acme</div>
+          <div style={{ width: 34, height: 34, background: 'var(--voltage)', borderRadius: 9, display: 'grid', placeItems: 'center', fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 18, letterSpacing: '-0.05em' }}>
+            {getInitial(quote.companySummary?.name)}
+          </div>
+          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 19, letterSpacing: '-0.025em' }}>
+            {quote.companySummary?.name || 'Mi Empresa'}
+          </div>
         </div>
         <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', opacity: 0.5, display: 'flex', alignItems: 'center', gap: 6 }}>
           <svg style={{ width: 12, height: 12, color: 'var(--green)' }}><use href="#i-lock" /></svg>
-          Link seguro · zapien.cl/q/aBc123XyZ
+          Link seguro · {shareToken?.slice(0, 8)}
         </div>
       </div>
 
@@ -27,21 +99,23 @@ const PublicQuote = () => (
           <div style={{ position: 'relative', zIndex: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
             <div>
               <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--voltage)', opacity: 0.8, marginBottom: 10 }}>
-                Cotización · COT-0142
+                Cotización · {quote.quoteNumber || 'SIN N°'}
               </div>
-              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 36, letterSpacing: '-0.035em', lineHeight: 1.05 }}>Hola, Carla 👋</div>
+              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 36, letterSpacing: '-0.035em', lineHeight: 1.05 }}>
+                Hola, {quote.customerData?.name || 'Cliente'} 👋
+              </div>
               <div style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 16, opacity: 0.8, lineHeight: 1.45, marginTop: 6, maxWidth: '44ch' }}>
                 Acá está la cotización que te armó{' '}
-                <strong style={{ fontStyle: 'normal', fontFamily: 'var(--font-display)', fontWeight: 600, color: 'var(--voltage)' }}>Zapi</strong>.
+                <strong style={{ fontStyle: 'normal', fontFamily: 'var(--font-display)', fontWeight: 600, color: 'var(--voltage)' }}>Zapien</strong>.
                 Revísala con calma y avísanos cuando quieras avanzar.
               </div>
             </div>
             <div style={{ textAlign: 'right' }}>
               <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9.5, letterSpacing: '0.15em', textTransform: 'uppercase', opacity: 0.55, marginBottom: 4 }}>Total</div>
               <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 42, letterSpacing: '-0.035em', background: 'var(--voltage)', color: 'var(--carbon)', padding: '6px 14px', borderRadius: 8, display: 'inline-block' }}>
-                $106.743
+                {formatCurrency(quote.total)}
               </div>
-              <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.06em', opacity: 0.6, marginTop: 6 }}>Válida hasta el 18 may</div>
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.06em', opacity: 0.6, marginTop: 6 }}>Válida hasta {expiryDate}</div>
             </div>
           </div>
         </div>
@@ -51,41 +125,43 @@ const PublicQuote = () => (
           <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', opacity: 0.55, marginBottom: 14 }}>Detalle</div>
 
           <div style={{ background: 'var(--bone-2)', border: '1px solid var(--rule)', borderRadius: 12, overflow: 'hidden', marginBottom: 24 }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '60px 1fr auto', gap: 14, padding: '16px 18px', alignItems: 'center' }}>
-              <div style={{ width: 60, height: 60, background: 'var(--carbon)', borderRadius: 8, display: 'grid', placeItems: 'center', color: 'var(--voltage)', fontSize: 24 }}>🖤</div>
-              <div>
-                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 15, letterSpacing: '-0.005em' }}>Polerón oversize negro · M</div>
-                <div style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 13, opacity: 0.7, marginTop: 2 }}>Algodón orgánico · 3 unidades</div>
+            {quote.items && quote.items.map((item, idx) => (
+              <div key={idx} style={{ display: 'grid', gridTemplateColumns: '60px 1fr auto', gap: 14, padding: '16px 18px', alignItems: 'center', borderTop: idx > 0 ? '1px solid var(--rule)' : 'none' }}>
+                <div style={{ width: 60, height: 60, background: 'var(--carbon)', borderRadius: 8, display: 'grid', placeItems: 'center', color: 'var(--voltage)', fontSize: 24 }}>
+                  {item.emoji || '📦'}
+                </div>
+                <div>
+                  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 15, letterSpacing: '-0.005em' }}>
+                    {item.name || item.description}
+                  </div>
+                  <div style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 13, opacity: 0.7, marginTop: 2 }}>
+                    {item.quantity} unidad{item.quantity !== 1 ? 'es' : ''}
+                  </div>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, opacity: 0.55 }}>
+                    {item.quantity} × {formatCurrency(item.unitPrice)}
+                  </div>
+                  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, letterSpacing: '-0.02em', marginTop: 2 }}>
+                    {formatCurrency((item.unitPrice || 0) * (item.quantity || 0))}
+                  </div>
+                </div>
               </div>
-              <div style={{ textAlign: 'right' }}>
-                <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, opacity: 0.55 }}>3 × $29.900</div>
-                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, letterSpacing: '-0.02em', marginTop: 2 }}>$89.700</div>
-              </div>
-            </div>
-            <div style={{ borderTop: '1px solid var(--rule)', display: 'grid', gridTemplateColumns: '60px 1fr auto', gap: 14, padding: '16px 18px', alignItems: 'center' }}>
-              <div style={{ width: 60, height: 60, background: 'var(--bone)', border: '1px solid var(--rule)', borderRadius: 8, display: 'grid', placeItems: 'center', color: 'var(--carbon)' }}>
-                <svg style={{ width: 24, height: 24 }}><use href="#i-zap" /></svg>
-              </div>
-              <div>
-                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 15, letterSpacing: '-0.005em' }}>Envío RM · 24-48 hrs</div>
-                <div style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 13, opacity: 0.7, marginTop: 2 }}>Gratis sobre $50.000</div>
-              </div>
-              <div style={{ textAlign: 'right' }}>
-                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, letterSpacing: '-0.02em', color: 'var(--green)' }}>Gratis</div>
-              </div>
-            </div>
+            ))}
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
             <div style={{ minWidth: 280 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', fontFamily: 'var(--font-body)', fontSize: 14, opacity: 0.75 }}>
-                <span>Subtotal</span><span style={{ fontFamily: 'var(--font-mono)' }}>$89.700</span>
+                <span>Subtotal</span><span style={{ fontFamily: 'var(--font-mono)' }}>{formatCurrency(quote.subtotal || quote.total)}</span>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', fontFamily: 'var(--font-body)', fontSize: 14, opacity: 0.75 }}>
-                <span>IVA (19%)</span><span style={{ fontFamily: 'var(--font-mono)' }}>$17.043</span>
-              </div>
+              {quote.tax && quote.tax > 0 && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', fontFamily: 'var(--font-body)', fontSize: 14, opacity: 0.75 }}>
+                  <span>IVA (19%)</span><span style={{ fontFamily: 'var(--font-mono)' }}>{formatCurrency(quote.tax)}</span>
+                </div>
+              )}
               <div style={{ display: 'flex', justifyContent: 'space-between', padding: '14px 0 0', marginTop: 8, borderTop: '2px solid var(--carbon)', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 20, letterSpacing: '-0.025em' }}>
-                <span>Total</span><span style={{ background: 'var(--voltage)', padding: '2px 10px', borderRadius: 6 }}>$106.743</span>
+                <span>Total</span><span style={{ background: 'var(--voltage)', padding: '2px 10px', borderRadius: 6 }}>{formatCurrency(quote.total)}</span>
               </div>
             </div>
           </div>
@@ -95,7 +171,7 @@ const PublicQuote = () => (
         <div style={{ background: 'var(--bone-2)', padding: '28px 40px', borderTop: '1px solid var(--rule)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 24 }}>
           <div>
             <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 19, letterSpacing: '-0.02em', marginBottom: 4 }}>
-              ¿Vamos por <em style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontWeight: 400 }}>esos polerones?</em>
+              ¿Vamos por <em style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontWeight: 400 }}>esta cotización?</em>
             </div>
             <div style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 13.5, opacity: 0.7, lineHeight: 1.45 }}>
               Si aceptas, te contactamos para coordinar pago y entrega.
@@ -118,7 +194,7 @@ const PublicQuote = () => (
             <svg style={{ width: 18, height: 18 }}><use href="#i-clock" /></svg>
           </div>
           <div>
-            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13.5 }}>Vence el 18 may</div>
+            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13.5 }}>Vence el {expiryDate}</div>
             <div style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 12.5, opacity: 0.7, marginTop: 2, lineHeight: 1.4 }}>
               Después de esa fecha los precios pueden variar.
             </div>
@@ -131,7 +207,7 @@ const PublicQuote = () => (
           <div>
             <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13.5 }}>Descarga el PDF</div>
             <div style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 12.5, opacity: 0.7, marginTop: 2, lineHeight: 1.4 }}>
-              <a style={{ cursor: 'pointer', borderBottom: '1px solid var(--voltage)' }}>COT-0142.pdf</a> · 86 KB
+              <a style={{ cursor: 'pointer', borderBottom: '1px solid var(--voltage)' }}>{quote.quoteNumber || 'COT'}.pdf</a> · disponible
             </div>
           </div>
         </div>
@@ -142,7 +218,9 @@ const PublicQuote = () => (
           <div>
             <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13.5 }}>Tienes dudas</div>
             <div style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 12.5, opacity: 0.7, marginTop: 2, lineHeight: 1.4 }}>
-              Escríbenos a <a style={{ cursor: 'pointer', borderBottom: '1px solid var(--voltage)' }}>hola@acme.cl</a>
+              Escríbenos a <a style={{ cursor: 'pointer', borderBottom: '1px solid var(--voltage)' }} href={`mailto:${quote.companySummary?.email || 'hola@empresa.cl'}`}>
+                {quote.companySummary?.email || 'hola@empresa.cl'}
+              </a>
             </div>
           </div>
         </div>
@@ -154,6 +232,7 @@ const PublicQuote = () => (
       </div>
     </div>
   </div>
-);
+  );
+};
 
 export default PublicQuote;

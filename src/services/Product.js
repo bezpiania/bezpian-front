@@ -17,6 +17,12 @@ class ProductService {
     instance.get(`/api/workspaces/${workspaceId}/chatbots/${chatbotId}/products/search`, {
       params: { q: query }
     });
+
+  update = (workspaceId, chatbotId, productId, productData) =>
+    instance.patch(`/api/workspaces/${workspaceId}/chatbots/${chatbotId}/products/${productId}`, productData);
+
+  delete = (workspaceId, chatbotId, productId) =>
+    instance.delete(`/api/workspaces/${workspaceId}/chatbots/${chatbotId}/products/${productId}`);
 }
 
 const Product = new ProductService();

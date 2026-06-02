@@ -78,7 +78,12 @@ const LeadsPanel = ({ workspaceId, botId, bot }) => {
 
   const handleSaveConfig = async () => {
     try {
-      // TODO: Guardar en backend
+      await Chatbot.update(workspaceId, botId, {
+        features: {
+          leadCaptureFields: config.fields,
+          leadConfirmationMessage: config.confirmationMessage
+        }
+      });
       message.success('Configuración de Leads guardada');
       setShowConfig(false);
     } catch (error) {
@@ -429,9 +434,16 @@ const LeadsPanel = ({ workspaceId, botId, bot }) => {
               />
               <button
                 className="btn btn-primary"
-                onClick={() => {
-                  // TODO: Save notes
-                  message.success('Notas guardadas');
+                onClick={async () => {
+                  try {
+                    await instance.patch(
+                      `/api/workspaces/${workspaceId}/chatbots/${botId}/leads/${selectedLead._id}`,
+                      { notes: selectedLead.notes }
+                    );
+                    message.success('Notas guardadas');
+                  } catch (error) {
+                    message.error('Error al guardar notas');
+                  }
                 }}
                 style={{ marginTop: 12 }}
               >
