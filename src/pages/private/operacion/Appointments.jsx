@@ -1,274 +1,245 @@
 import React, { useState, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
+import { message } from 'antd';
 import AppLayout from '../../../components/AppLayout.jsx';
-import { useGetAppointments } from '../../../hooks/useAppointment.js';
-
-const DAYS_OF_WEEK = ['lun', 'mar', 'mié', 'jue', 'vie', 'sáb', 'dom'];
-const HOURS = ['09:00', '10:00', '11:00', '12:00', '13:00', '14:00'];
-const COLORS_APPOINTMENT = ['var(--carbon)', 'var(--voltage)', '#1B2C5C', '#EC4899', '#8B5CF6', '#FF6B6B'];
-
-const getDaysOfWeek = () => {
-  const days = [];
-  const today = new Date();
-  today.setDate(today.getDate() - today.getDay() + 1);
-
-  for (let i = 0; i < 7; i++) {
-    const d = new Date(today);
-    d.setDate(d.getDate() + i);
-    const isToday = d.toDateString() === new Date().toDateString();
-    const label = isToday ? 'Hoy' : DAYS_OF_WEEK[i];
-    const isOff = i === 5 || i === 6;
-
-    days.push({
-      label,
-      num: d.getDate(),
-      date: d,
-      today: isToday,
-      off: isOff,
-      weekday: i,
-    });
-  }
-
-  return days;
-};
+import CalendarHeader, { CalendarDayHeaders } from '../../../components/Calendar/CalendarHeader.jsx';
+import CalendarGrid from '../../../components/Calendar/CalendarGrid.jsx';
+import AppointmentDrawer from '../../../components/Calendar/AppointmentDrawer.jsx';
+import { getWeekDays, shiftWeek, relativeLabel, fmt, STATUS_STYLES } from '../../../components/Calendar/calendarUtils.js';
+import { useGetAppointments, useCreateAppointment, useUpdateAppointmentStatus } from '../../../hooks/useAppointment.js';
+import { useResources } from '../../../hooks/useResources.js';
 
 const Appointments = () => {
-  const { workspaceId } = useParams();
-  const { data: appointmentsResponse, isLoading } = useGetAppointments(workspaceId, workspaceId);
-  const appointments = appointmentsResponse?.data || [];
+  const { workspaceId, id: chatbotId } = useParams();
 
-  const DAYS = getDaysOfWeek();
+  // Data
+  const { data: appointmentsResponse, isLoading } = useGetAppointments(workspaceId, chatbotId);
+  const rawAppointments = appointmentsResponse?.appointments || appointmentsResponse?.data || [];
+  const { data: resources = [] } = useResources(workspaceId, chatbotId);
+  const { mutate: createAppointment, isPending: isCreating } = useCreateAppointment(workspaceId, chatbotId);
+  const { mutate: updateStatus, isPending: updating } = useUpdateAppointmentStatus(workspaceId, chatbotId);
 
-  const appointmentsByDay = useMemo(() => {
-    const map = {};
-    DAYS.forEach(d => {
-      map[d.date.toDateString()] = [];
+  // UI state
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [selectedResourceId, setSelectedResourceId] = useState('');
+  const [selectedAppointment, setSelectedAppointment] = useState(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [form, setForm] = useState({ scheduledAt: '', customerName: '', customerPhone: '', reason: '', durationMinutes: 60 });
+
+  // Computed
+  const days = useMemo(() => getWeekDays(currentDate), [currentDate]);
+
+  const resourceMap = useMemo(() => {
+    const m = {};
+    for (const r of resources) m[r._id] = r;
+    return m;
+  }, [resources]);
+
+  const filteredAppointments = useMemo(() => {
+    const weekStart = days[0].date;
+    const weekEnd = new Date(days[6].date);
+    weekEnd.setHours(23, 59, 59, 999);
+
+    return rawAppointments.filter(a => {
+      const d = new Date(a.scheduledAt || a.startTime);
+      const inWeek = d >= weekStart && d <= weekEnd;
+      const inResource = !selectedResourceId || a.resourceId?.toString() === selectedResourceId;
+      return inWeek && inResource;
     });
-
-    appointments.forEach(apt => {
-      const aptDate = new Date(apt.date || apt.startTime);
-      const dateStr = aptDate.toDateString();
-      if (map[dateStr]) {
-        map[dateStr].push(apt);
-      }
-    });
-
-    return map;
-  }, [appointments, DAYS]);
+  }, [rawAppointments, days, selectedResourceId]);
 
   const upcomingAppointments = useMemo(() => {
-    return appointments
-      .sort((a, b) => new Date(a.startTime) - new Date(b.startTime))
-      .slice(0, 5);
-  }, [appointments]);
+    const now = new Date();
+    return [...rawAppointments]
+      .filter(a => new Date(a.scheduledAt || a.startTime) >= now && a.status !== 'cancelled')
+      .sort((a, b) => new Date(a.scheduledAt || a.startTime) - new Date(b.scheduledAt || b.startTime))
+      .slice(0, 6);
+  }, [rawAppointments]);
 
-  const formatTime = (date) => {
-    if (!date) return '—';
-    const d = new Date(date);
-    return `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
+  const handleUpdateStatus = (appointmentId, status) => {
+    updateStatus({ appointmentId, status }, {
+      onSuccess: () => {
+        message.success(status === 'confirmed' ? 'Reserva confirmada' : status === 'completed' ? 'Marcada como completada' : 'Reserva cancelada');
+        setSelectedAppointment(prev => prev ? { ...prev, status } : null);
+      },
+      onError: () => message.error('Error al actualizar estado'),
+    });
   };
 
-  const getTimePosition = (timeStr) => {
-    const [hour] = timeStr.split(':').map(Number);
-    return (hour - 9) * 60;
+  const handleCreate = () => {
+    if (!form.scheduledAt || !form.customerName) { message.error('Fecha y nombre son requeridos'); return; }
+    createAppointment({
+      scheduledAt: new Date(form.scheduledAt),
+      customerName: form.customerName,
+      customerPhone: form.customerPhone,
+      reason: form.reason,
+      durationMinutes: form.durationMinutes,
+    }, {
+      onSuccess: () => { message.success('Reserva agendada'); setShowCreateModal(false); setForm({ scheduledAt: '', customerName: '', customerPhone: '', reason: '', durationMinutes: 60 }); },
+      onError: () => message.error('Error al agendar'),
+    });
   };
+
+  const selectedResourceIndex = selectedAppointment
+    ? resources.findIndex(r => r._id === selectedAppointment.resourceId?.toString())
+    : -1;
 
   return (
-  <AppLayout>
-    <div className="page-head with-halo">
-      <div>
-        <div className="page-eyebrow">
-          <span>Agenda</span>
-          <span className="dot"></span>
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-            <span style={{ width: 7, height: 7, background: 'var(--green)', borderRadius: '50%' }}></span>
-            Google Calendar sincronizado
-          </span>
-        </div>
-        <h1 className="page-title">
-          Lo que <span className="hl">viene</span><br />esta semana.
-        </h1>
-        <p className="page-sub">
-          Las citas que tu bot agendó. Todo se sincroniza con tu Google Calendar automáticamente.
-        </p>
-      </div>
-      <div className="page-actions">
-        <button className="filter-chip"><svg><use href="#i-cal" /></svg>11 — 17 may<svg><use href="#i-chevron-down" /></svg></button>
-        <button className="btn btn-primary btn-sm">
-          <svg><use href="#i-plus" /></svg>Bloquear horario
-        </button>
-      </div>
-    </div>
-
-    <div className="page-body">
-      <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: 24 }}>
-        {/* Calendar */}
-        <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-          <div style={{ padding: '18px 22px', borderBottom: '1px solid var(--rule)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div>
-              <div className="section-num">Esta semana</div>
-              <div className="section-title">Semana del <em>11 mayo</em></div>
-            </div>
-            <div style={{ display: 'flex', gap: 4 }}>
-              <button className="btn btn-ghost btn-sm" style={{ padding: '6px 10px' }}>
-                <svg><use href="#i-arrow-left" /></svg>
-              </button>
-              <button className="btn btn-ghost btn-sm" style={{ padding: '6px 10px' }}>
-                <svg><use href="#i-arrow-right" /></svg>
-              </button>
-            </div>
-          </div>
-
-          {/* Header de días */}
-          <div style={{ display: 'grid', gridTemplateColumns: '48px repeat(7, 1fr)', borderBottom: '1px solid var(--rule)' }}>
-            <div></div>
-            {DAYS.map((d, i) => (
-              <div
-                key={i}
-                style={{
-                  padding: '10px 6px',
-                  textAlign: 'center',
-                  borderLeft: '1px solid var(--rule)',
-                  background: d.today ? 'rgba(220,255,30,0.1)' : 'transparent',
-                  opacity: d.off ? 0.5 : 1,
-                }}
-              >
-                <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '0.18em', textTransform: 'uppercase', opacity: d.today ? 0.8 : 0.55, color: 'var(--carbon)' }}>
-                  {d.label}
-                </div>
-                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 16, marginTop: 2 }}>
-                  {d.num}
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Cuerpo del calendario */}
-          <div style={{ display: 'grid', gridTemplateColumns: '48px repeat(7, 1fr)', minHeight: 380 }}>
-            <div style={{ borderRight: '1px solid var(--rule)' }}>
-              {HOURS.map((h) => (
-                <div key={h} style={{ height: 60, padding: '4px 6px', fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '0.05em', opacity: 0.5, textAlign: 'right' }}>
-                  {h}
-                </div>
-              ))}
-            </div>
-
-            {DAYS.map((day, dayIdx) => (
-              <div
-                key={day.date.toDateString()}
-                style={{
-                  borderLeft: '1px solid var(--rule)',
-                  position: 'relative',
-                  background: day.today ? 'rgba(220,255,30,0.04)' : 'transparent',
-                  opacity: day.off ? 0.5 : 1,
-                }}
-              >
-                {day.off ? (
-                  <div style={{ background: 'repeating-linear-gradient(45deg, transparent, transparent 6px, var(--rule) 6px, var(--rule) 7px)', height: 360 }} />
-                ) : (
-                  (appointmentsByDay[day.date.toDateString()] || []).map((apt, aptIdx) => {
-                    const startTime = new Date(apt.startTime);
-                    const endTime = new Date(apt.endTime);
-                    const startHour = startTime.getHours() + startTime.getMinutes() / 60;
-                    const duration = (endTime - startTime) / (1000 * 60 * 60);
-                    const top = (startHour - 9) * 60;
-                    const height = Math.max(50, duration * 60);
-                    const bgColor = COLORS_APPOINTMENT[aptIdx % COLORS_APPOINTMENT.length];
-                    const textColor = bgColor === 'var(--voltage)' ? 'var(--carbon)' : 'var(--bone)';
-
-                    return (
-                      <div
-                        key={apt._id}
-                        style={{
-                          position: 'absolute',
-                          top,
-                          left: 4,
-                          right: 4,
-                          height,
-                          background: bgColor,
-                          color: textColor,
-                          borderRadius: 6,
-                          padding: '6px 8px',
-                          borderLeft: `3px solid ${day.today && bgColor === 'var(--voltage)' ? 'var(--carbon)' : 'var(--voltage)'}`,
-                        }}
-                      >
-                        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 8, opacity: 0.8, letterSpacing: '0.05em' }}>
-                          {formatTime(apt.startTime)}
-                        </div>
-                        <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 11, lineHeight: 1.1, marginTop: 2 }}>
-                          {apt.clientName || apt.title || '—'}
-                        </div>
-                      </div>
-                    );
-                  })
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Lista próximas citas */}
+    <AppLayout>
+      <div className="page-head with-halo">
         <div>
-          <div className="section-head">
-            <div>
-              <div className="section-num">Próximas · {upcomingAppointments.length}</div>
-              <div className="section-title">Tu <em>agenda</em></div>
-            </div>
+          <div className="page-eyebrow">
+            <span>Agenda</span>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {isLoading ? (
-              <div style={{ textAlign: 'center', padding: 20, opacity: 0.6 }}>Cargando citas...</div>
-            ) : upcomingAppointments.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: 20, opacity: 0.6 }}>No hay citas próximas</div>
-            ) : (
-              upcomingAppointments.map((apt, idx) => {
-                const isNextImmediate = idx === 0;
-                const startTime = new Date(apt.startTime);
-                const endTime = new Date(apt.endTime);
-                const now = new Date();
-                const diffMs = startTime - now;
-                const diffMins = Math.round(diffMs / (1000 * 60));
-                const dayStr = startTime.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric' });
+          <h1 className="page-title">
+            Lo que <span className="hl">viene</span><br />esta semana.
+          </h1>
+          <p className="page-sub">
+            Todas las reservas agendadas por tu bot, en tiempo real.
+          </p>
+        </div>
+        <div className="page-actions">
+          <button className="btn btn-primary btn-sm" onClick={() => setShowCreateModal(true)}>
+            <svg><use href="#i-plus" /></svg>Nueva reserva
+          </button>
+        </div>
+      </div>
 
+      <div className="page-body">
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 24, alignItems: 'start' }}>
+
+          {/* Calendar */}
+          <div className="card" style={{ padding: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column', minHeight: 520 }}>
+            <CalendarHeader
+              days={days}
+              currentDate={currentDate}
+              onPrev={() => setCurrentDate(d => shiftWeek(d, -1))}
+              onNext={() => setCurrentDate(d => shiftWeek(d, 1))}
+              onToday={() => setCurrentDate(new Date())}
+              resources={resources}
+              selectedResourceId={selectedResourceId}
+              onResourceChange={setSelectedResourceId}
+            />
+            <CalendarDayHeaders days={days} />
+            {isLoading ? (
+              <div style={{ padding: 40, textAlign: 'center', opacity: 0.5, fontFamily: 'var(--font-mono)', fontSize: 12 }}>
+                Cargando agenda...
+              </div>
+            ) : (
+              <CalendarGrid
+                days={days}
+                appointments={filteredAppointments}
+                resourceMap={resourceMap}
+                onAppointmentClick={setSelectedAppointment}
+              />
+            )}
+          </div>
+
+          {/* Upcoming sidebar */}
+          <div>
+            <div className="section-head">
+              <div>
+                <div className="section-num">Próximas · {upcomingAppointments.length}</div>
+                <div className="section-title">Tu <em>agenda</em></div>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {upcomingAppointments.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: 24, opacity: 0.5, fontFamily: 'var(--font-mono)', fontSize: 11 }}>
+                  Sin reservas próximas
+                </div>
+              ) : upcomingAppointments.map((apt, idx) => {
+                const isFirst = idx === 0;
+                const status = STATUS_STYLES[apt.status] || STATUS_STYLES.scheduled;
                 return (
                   <div
                     key={apt._id}
+                    onClick={() => setSelectedAppointment(apt)}
                     style={{
-                      background: isNextImmediate ? 'var(--voltage)' : 'var(--bone-2)',
-                      border: isNextImmediate ? '1px solid var(--carbon)' : '1px solid var(--rule)',
-                      borderRadius: 12,
-                      padding: '14px 18px',
-                      position: 'relative',
+                      background: isFirst ? 'var(--voltage)' : 'var(--bone-2)',
+                      border: isFirst ? '1px solid var(--carbon)' : '1px solid var(--rule)',
+                      borderRadius: 12, padding: '14px 18px', cursor: 'pointer',
+                      transition: 'opacity 0.15s',
                     }}
+                    onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
+                    onMouseLeave={e => e.currentTarget.style.opacity = '1'}
                   >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
                       <div>
-                        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9.5, letterSpacing: '0.18em', textTransform: 'uppercase', opacity: isNextImmediate ? 0.7 : 0.55 }}>
-                          {diffMins >= 0 && diffMins < 60 ? `En ${diffMins} min` : `${dayStr.charAt(0).toUpperCase() + dayStr.slice(1)} · ${formatTime(apt.startTime)}`}
+                        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '0.15em', textTransform: 'uppercase', opacity: 0.55, marginBottom: 3 }}>
+                          {relativeLabel(apt.scheduledAt || apt.startTime)}
                         </div>
-                        <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: isNextImmediate ? 18 : 15, letterSpacing: isNextImmediate ? '-0.02em' : 0, marginTop: 2 }}>
-                          {apt.clientName || apt.title || '—'}
+                        <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: isFirst ? 17 : 14 }}>
+                          {apt.customerName || '—'}
                         </div>
                       </div>
-                      {isNextImmediate && <span className="pill dark">{apt.type || 'Cita'}</span>}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <span style={{ width: 6, height: 6, borderRadius: '50%', background: status.dot }} />
+                      </div>
                     </div>
-                    {isNextImmediate && apt.notes && (
-                      <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, lineHeight: 1.45, opacity: 0.85, marginBottom: 8 }}>
-                        <em>"{apt.notes}"</em>
-                      </div>
-                    )}
-                    <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.06em', opacity: isNextImmediate ? 0.7 : 0.55 }}>
-                      {formatTime(apt.startTime)} — {formatTime(apt.endTime)} · {apt.location || 'Virtual'}
+                    <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, opacity: 0.55, letterSpacing: '0.04em' }}>
+                      {fmt(apt.scheduledAt || apt.startTime)}
+                      {resourceMap[apt.resourceId?.toString()] && ` · ${resourceMap[apt.resourceId.toString()].name}`}
+                      {apt.guestCount > 1 && ` · ${apt.guestCount} pers.`}
                     </div>
                   </div>
                 );
-              })
-            )}
+              })}
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  </AppLayout>
+
+      {/* Appointment detail drawer */}
+      {selectedAppointment && (
+        <AppointmentDrawer
+          appointment={{ ...selectedAppointment, resourceName: resourceMap[selectedAppointment.resourceId?.toString()]?.name }}
+          resourceIndex={selectedResourceIndex >= 0 ? selectedResourceIndex : 0}
+          onClose={() => setSelectedAppointment(null)}
+          onUpdateStatus={handleUpdateStatus}
+          updating={updating}
+        />
+      )}
+
+      {/* Create modal */}
+      {showCreateModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 300 }}>
+          <div style={{ background: 'var(--bone)', borderRadius: 16, padding: 32, maxWidth: 420, width: '90%', boxShadow: '0 24px 60px rgba(0,0,0,0.12)' }}>
+            <h2 style={{ margin: '0 0 24px', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 22 }}>Nueva reserva</h2>
+            <div style={{ display: 'grid', gap: 16 }}>
+              {[
+                { label: 'Fecha y hora *', key: 'scheduledAt', type: 'datetime-local' },
+                { label: 'Nombre del cliente *', key: 'customerName', type: 'text', placeholder: 'Ej: Juan García' },
+                { label: 'Teléfono', key: 'customerPhone', type: 'tel', placeholder: '+56 9 1234 5678' },
+                { label: 'Motivo', key: 'reason', type: 'text', placeholder: 'Consulta, reserva, etc.' },
+              ].map(f => (
+                <div key={f.key}>
+                  <label style={{ display: 'block', fontSize: 12, fontWeight: 600, marginBottom: 6, fontFamily: 'var(--font-mono)', letterSpacing: '0.06em', opacity: 0.7 }}>{f.label}</label>
+                  <input type={f.type} value={form[f.key]} placeholder={f.placeholder}
+                    onChange={e => setForm(p => ({ ...p, [f.key]: e.target.value }))}
+                    style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1px solid var(--rule)', fontFamily: 'var(--font-body)', fontSize: 13, boxSizing: 'border-box', background: 'var(--bone)' }} />
+                </div>
+              ))}
+              <div>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 600, marginBottom: 6, fontFamily: 'var(--font-mono)', letterSpacing: '0.06em', opacity: 0.7 }}>Duración</label>
+                <select value={form.durationMinutes} onChange={e => setForm(p => ({ ...p, durationMinutes: parseInt(e.target.value) }))}
+                  style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1px solid var(--rule)', fontFamily: 'var(--font-body)', fontSize: 13, background: 'var(--bone)' }}>
+                  {[30, 45, 60, 90, 120].map(v => <option key={v} value={v}>{v < 60 ? `${v} min` : `${v / 60}h`}</option>)}
+                </select>
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: 10, marginTop: 28 }}>
+              <button onClick={() => setShowCreateModal(false)} className="btn btn-secondary" style={{ flex: 1 }}>Cancelar</button>
+              <button onClick={handleCreate} disabled={isCreating}
+                style={{ flex: 1, padding: '10px 16px', borderRadius: 8, background: 'var(--voltage)', color: 'var(--carbon)', border: 'none', fontWeight: 700, fontSize: 13, cursor: 'pointer', fontFamily: 'var(--font-body)', opacity: isCreating ? 0.7 : 1 }}>
+                {isCreating ? 'Agendando...' : 'Agendar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </AppLayout>
   );
 };
 

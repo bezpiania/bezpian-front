@@ -216,6 +216,17 @@ const AppointmentsPanel = ({ workspaceId, botId, bot }) => {
   const [editingResource, setEditingResource] = useState(null);
   const [savingResource, setSavingResource] = useState(false);
 
+  // Appointment fields state
+  const DEFAULT_FIELDS = [
+    { fieldId: 'name', label: 'Nombre', fieldType: 'text', required: true, placeholder: 'Ej: Juan Pérez', order: 0 },
+    { fieldId: 'phone', label: 'Teléfono', fieldType: 'phone', required: true, placeholder: 'Ej: +56 9 1234 5678', order: 1 },
+    { fieldId: 'email', label: 'Email', fieldType: 'email', required: false, placeholder: 'Ej: juan@email.com', order: 2 },
+  ];
+  const [apptFields, setApptFields] = useState(bot?.appointmentFields?.length ? bot.appointmentFields : DEFAULT_FIELDS);
+  const [savingFields, setSavingFields] = useState(false);
+  const [showAddField, setShowAddField] = useState(false);
+  const [newField, setNewField] = useState({ label: '', fieldType: 'text', required: false, placeholder: '', helpText: '', options: '' });
+
   useEffect(() => {
     if (bot?.integrations?.calendar) {
       const cal = bot.integrations.calendar;
@@ -226,10 +237,7 @@ const AppointmentsPanel = ({ workspaceId, botId, bot }) => {
   // Fetch resources
   const { data: resourcesData, refetch: refetchResources } = useQuery({
     queryKey: ['resources', workspaceId, botId],
-    queryFn: async () => {
-      const res = await api.get(`/api/workspaces/${workspaceId}/chatbots/${botId}/resources`);
-      return res.data;
-    },
+    queryFn: () => api.get(`/api/workspaces/${workspaceId}/chatbots/${botId}/resources`),
     enabled: !!workspaceId && !!botId,
   });
   const resources = resourcesData?.resources || [];
@@ -237,10 +245,10 @@ const AppointmentsPanel = ({ workspaceId, botId, bot }) => {
   const handleSave = async () => {
     try {
       setLoading(true);
-      await Chatbot.update(workspaceId, botId, {
-        integrations: {
-          ...bot.integrations,
-          calendar: { ...bot.integrations?.calendar, enabled: config.enabled, timezone: config.timezone },
+      await api.patch(`/api/workspaces/${workspaceId}/chatbots/${botId}`, {
+        $set: {
+          'integrations.calendar.enabled': config.enabled,
+          'integrations.calendar.timezone': config.timezone,
         },
       });
       queryClient.invalidateQueries({ queryKey: ['chatbot', workspaceId, botId] });
@@ -283,19 +291,55 @@ const AppointmentsPanel = ({ workspaceId, botId, bot }) => {
     }
   };
 
+  const handleSaveFields = async () => {
+    try {
+      setSavingFields(true);
+      await api.patch(`/api/workspaces/${workspaceId}/chatbots/${botId}`, {
+        $set: { appointmentFields: apptFields },
+      });
+      queryClient.invalidateQueries({ queryKey: ['chatbot', workspaceId, botId] });
+      message.success('Campos guardados');
+    } catch {
+      message.error('Error al guardar campos');
+    } finally {
+      setSavingFields(false);
+    }
+  };
+
+  const handleAddField = () => {
+    if (!newField.label.trim()) return;
+    const fieldId = newField.label.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '') + '_' + Date.now();
+    const opts = newField.fieldType === 'select' ? newField.options.split(',').map(o => o.trim()).filter(Boolean) : [];
+    setApptFields(prev => [...prev, { fieldId, label: newField.label, fieldType: newField.fieldType, required: newField.required, placeholder: newField.placeholder, helpText: newField.helpText, options: opts, order: prev.length }]);
+    setNewField({ label: '', fieldType: 'text', required: false, placeholder: '', helpText: '', options: '' });
+    setShowAddField(false);
+  };
+
+  const handleRemoveField = (fieldId) => {
+    const LOCKED = ['name', 'phone'];
+    if (LOCKED.includes(fieldId)) { message.warning('Este campo es obligatorio y no se puede eliminar'); return; }
+    setApptFields(prev => prev.filter(f => f.fieldId !== fieldId));
+  };
+
+  const toggleFieldRequired = (fieldId) => {
+    const LOCKED = ['name', 'phone'];
+    if (LOCKED.includes(fieldId)) return;
+    setApptFields(prev => prev.map(f => f.fieldId === fieldId ? { ...f, required: !f.required } : f));
+  };
+
   const handleSaveGoogleOAuth = async () => {
     try {
       if (!googleOAuthForm.googleClientId || !googleOAuthForm.googleClientSecret) {
         message.error('Client ID y Client Secret son requeridos'); return;
       }
       setLoading(true);
-      const response = await Chatbot.patch(`/api/workspaces/${workspaceId}/chatbots/${botId}/google-oauth`, googleOAuthForm);
-      if (response.data?.success) {
+      const response = await api.patch(`/api/workspaces/${workspaceId}/chatbots/${botId}/google-oauth`, googleOAuthForm);
+      if (response?.success) {
         message.success('Credenciales configuradas');
         setGoogleConfigured(true);
         setShowGoogleOAuthModal(false);
       } else {
-        message.error(response.data?.message || 'Error al guardar credenciales');
+        message.error(response?.message || 'Error al guardar credenciales');
       }
     } catch {
       message.error('Error al guardar credenciales de Google');
@@ -431,6 +475,101 @@ const AppointmentsPanel = ({ workspaceId, botId, bot }) => {
             })}
           </div>
         )}
+      </div>
+
+      {/* Appointment fields */}
+      <div style={{ marginTop: 32 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
+          <div>
+            <div className="section-num">Datos a recopilar</div>
+            <small style={{ opacity: 0.6 }}>El chatbot preguntará estos datos antes de confirmar la reserva.</small>
+          </div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            {!showAddField && <button className="btn btn-secondary btn-sm" onClick={() => setShowAddField(true)}>+ Agregar campo</button>}
+            <button className="btn btn-primary btn-sm" onClick={handleSaveFields} disabled={savingFields}>
+              {savingFields ? 'Guardando...' : 'Guardar campos'}
+            </button>
+          </div>
+        </div>
+
+        {showAddField && (
+          <div className="card" style={{ marginBottom: 16, padding: 16 }}>
+            <div className="section-num" style={{ marginBottom: 12 }}>Nuevo campo</div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <div className="field">
+                <label className="field-label">Nombre del campo *</label>
+                <input className="input" placeholder="Ej: Ocasión especial" value={newField.label}
+                  onChange={e => setNewField(p => ({ ...p, label: e.target.value }))} />
+              </div>
+              <div className="field">
+                <label className="field-label">Tipo</label>
+                <select className="select" value={newField.fieldType} onChange={e => setNewField(p => ({ ...p, fieldType: e.target.value }))}>
+                  <option value="text">Texto corto</option>
+                  <option value="textarea">Texto largo</option>
+                  <option value="phone">Teléfono</option>
+                  <option value="email">Email</option>
+                  <option value="number">Número</option>
+                  <option value="select">Opciones (select)</option>
+                </select>
+              </div>
+              <div className="field">
+                <label className="field-label">Placeholder</label>
+                <input className="input" placeholder="Ej: Ej: Cumpleaños, aniversario..." value={newField.placeholder}
+                  onChange={e => setNewField(p => ({ ...p, placeholder: e.target.value }))} />
+              </div>
+              <div className="field">
+                <label className="field-label">Ayuda (opcional)</label>
+                <input className="input" placeholder="Texto de ayuda para el cliente" value={newField.helpText}
+                  onChange={e => setNewField(p => ({ ...p, helpText: e.target.value }))} />
+              </div>
+              {newField.fieldType === 'select' && (
+                <div className="field" style={{ gridColumn: '1 / -1' }}>
+                  <label className="field-label">Opciones (separadas por coma)</label>
+                  <input className="input" placeholder="Cumpleaños, Aniversario, Reunión de negocios, Otro" value={newField.options}
+                    onChange={e => setNewField(p => ({ ...p, options: e.target.value }))} />
+                </div>
+              )}
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 12 }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 13 }}>
+                <input type="checkbox" checked={newField.required} onChange={() => setNewField(p => ({ ...p, required: !p.required }))} />
+                Campo obligatorio
+              </label>
+            </div>
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 12 }}>
+              <button className="btn btn-secondary btn-sm" onClick={() => setShowAddField(false)}>Cancelar</button>
+              <button className="btn btn-primary btn-sm" onClick={handleAddField} disabled={!newField.label.trim()}>Agregar</button>
+            </div>
+          </div>
+        )}
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {apptFields.sort((a, b) => a.order - b.order).map(f => {
+            const isLocked = f.fieldId === 'name' || f.fieldId === 'phone';
+            return (
+              <div key={f.fieldId} className="card" style={{ padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{ fontWeight: 600, fontSize: 14 }}>{f.label}</span>
+                    {f.required && <span style={{ fontSize: 11, background: '#fff2e8', color: '#d46b08', border: '1px solid #ffd591', borderRadius: 4, padding: '1px 6px' }}>Obligatorio</span>}
+                    {isLocked && <span style={{ fontSize: 11, background: '#f6f6f6', color: '#888', border: '1px solid #e0e0e0', borderRadius: 4, padding: '1px 6px' }}>Fijo</span>}
+                  </div>
+                  <div style={{ fontSize: 12, opacity: 0.5, marginTop: 2 }}>{f.fieldType}{f.placeholder ? ` · "${f.placeholder}"` : ''}{f.options?.length ? ` · ${f.options.join(', ')}` : ''}</div>
+                </div>
+                {!isLocked && (
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    <button className="btn btn-secondary btn-sm" style={{ fontSize: 11 }} onClick={() => toggleFieldRequired(f.fieldId)}>
+                      {f.required ? 'Hacer opcional' : 'Hacer obligatorio'}
+                    </button>
+                    <button className="btn btn-secondary btn-sm" style={{ fontSize: 11, color: '#ff4d4f' }} onClick={() => handleRemoveField(f.fieldId)}>
+                      Eliminar
+                    </button>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       {/* Google Calendar */}
