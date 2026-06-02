@@ -66,9 +66,9 @@ const Sidebar = () => {
 
       <div className="app-nav-section">
         <div className="app-nav-label">Cuenta</div>
-        <NavLink to="/integraciones" className={navClass}>
+        {/* <NavLink to="/integraciones" className={navClass}>
           <svg><use href="#i-plug" /></svg>Integraciones
-        </NavLink>
+        </NavLink> */}
         <NavLink to="/equipo" className={navClass}>
           <svg><use href="#i-team" /></svg>Equipo
         </NavLink>
