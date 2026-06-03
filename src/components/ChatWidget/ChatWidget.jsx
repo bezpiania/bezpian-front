@@ -4,8 +4,8 @@ import Chatbot from '../../services/Chatbot.js';
 import QuoteFormModal from '../QuoteFormModal.jsx';
 import AppointmentBookingModal from './AppointmentBookingModal.jsx';
 
-const ChatWidget = ({ embedKey, position = 'bottom-right' }) => {
-  const [isOpen, isOpenSet] = useState(false);
+const ChatWidget = ({ embedKey, tableId = null, position = 'bottom-right', autoOpen = false }) => {
+  const [isOpen, isOpenSet] = useState(autoOpen);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -30,10 +30,10 @@ const ChatWidget = ({ embedKey, position = 'bottom-right' }) => {
 
   const startConversation = async () => {
     try {
-      const response = await Chatbot.post('/api/embed/conversations', { embedKey, visitorId });
+      const response = await Chatbot.post('/api/embed/conversations', { embedKey, visitorId, tableId });
 
       if (response.data?.success) {
-        const { conversationId: convId, botId: bid, welcomeMessage, bot, features } = response.data.data;
+        const { conversationId: convId, botId: bid, welcomeMessage, bot, features, tableName: tName, isDineIn } = response.data.data;
         setConversationId(convId);
         setBotId(bid);
         setBotInfo(bot);

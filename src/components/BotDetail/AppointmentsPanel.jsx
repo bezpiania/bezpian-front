@@ -4,6 +4,7 @@ import { useQueryClient, useQuery } from '@tanstack/react-query';
 import Chatbot from '../../services/Chatbot.js';
 import api from '../../apis/app.js';
 import { getBusinessType } from '../../config/businessTypes.js';
+import TableQRCode from './TableQRCode.jsx';
 
 const DAY_KEYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
 const DAY_LABELS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
@@ -496,7 +497,10 @@ const AppointmentsPanel = ({ workspaceId, botId, bot, businessType }) => {
                         </div>
                       </div>
                     </div>
-                    <div style={{ display: 'flex', gap: 8 }}>
+                    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                      {(r.type === 'table' || r.type === 'room') && r.tableToken && (
+                        <TableQRCode resource={r} />
+                      )}
                       <button className="btn btn-secondary btn-sm" onClick={() => {
                         setEditingResource(r); setShowResourceForm(true);
                       }}>Editar</button>

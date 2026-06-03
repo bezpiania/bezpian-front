@@ -130,17 +130,28 @@ const Orders = () => {
               const s = STATUS_CONFIG[order.status] || STATUS_CONFIG.new;
               const nextStatus = STATUS_FLOW[order.status];
               return (
-                <div key={order._id} className="card" style={{ padding: 0, overflow: 'hidden' }}>
+                <div key={order._id} className="card" style={{ padding: 0, overflow: 'hidden', borderLeft: order.billRequested ? '3px solid var(--voltage)' : order.orderType === 'dine_in' ? '3px solid var(--ink)' : 'none' }}>
+                  {/* Bill requested banner */}
+                  {order.billRequested && (
+                    <div style={{ background: 'var(--voltage)', padding: '6px 20px', fontFamily: 'var(--font-mono)', fontSize: 11, fontWeight: 700, letterSpacing: '0.08em' }}>
+                      🧾 SOLICITUD DE CUENTA — {order.tableName}
+                    </div>
+                  )}
                   {/* Row header */}
                   <div onClick={() => setExpanded(isExpanded ? null : order._id)}
                     style={{ display: 'grid', gridTemplateColumns: '80px 1fr 1fr 140px 160px 120px', gap: 16, alignItems: 'center', padding: '14px 20px', cursor: 'pointer' }}>
                     <div style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: 13 }}>#{order.orderNumber}</div>
                     <div>
-                      <div style={{ fontWeight: 600, fontSize: 14 }}>{order.customerName}</div>
-                      <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, opacity: 0.5 }}>{order.customerPhone}</div>
+                      <div style={{ fontWeight: 600, fontSize: 14 }}>
+                        {order.orderType === 'dine_in' ? (order.tableName || 'Mesa') : (order.customerName || '—')}
+                      </div>
+                      <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, opacity: 0.5 }}>
+                        {order.orderType === 'dine_in' ? '🍽️ En mesa' : order.orderType === 'pickup' ? '🏪 Retiro' : '🛵 Delivery'}
+                        {order.customerPhone ? ` · ${order.customerPhone}` : ''}
+                      </div>
                     </div>
                     <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, opacity: 0.7, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {order.deliveryAddress}
+                      {order.orderType === 'dine_in' ? (order.tableName || '—') : order.deliveryAddress}
                     </div>
                     <div style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: 14 }}>
                       Bs. {order.total?.toLocaleString()}
