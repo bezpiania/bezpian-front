@@ -53,6 +53,10 @@ export const BUSINESS_TYPES = {
         prepTime:      { show: true,  required: false, label: 'Tiempo de preparación', type: 'number',      suffix: 'min' },
         availableFor:  { show: true,  required: false, label: 'Disponible en',         type: 'multiselect', options: ['Almuerzo', 'Cena', 'Todo el día'] },
         calories:      { show: false, required: false, label: 'Calorías (kcal)',        type: 'number' },
+        // Combos
+        isCombo:       { show: true,  required: false, label: 'Es un combo/promoción', type: 'boolean' },
+        comboItems:    { show: true,  required: false, label: 'Ítems del combo',       type: 'combo-items' },
+        comboSavings:  { show: true,  required: false, label: 'Ahorro vs individual',  type: 'number', suffix: '' },
         // No aplica para restaurante
         sku:           { show: false },
         brand:         { show: false },

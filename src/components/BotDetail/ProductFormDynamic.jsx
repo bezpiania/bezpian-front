@@ -105,7 +105,7 @@ const ProductFormDynamic = ({ businessType, initial = {}, onSave, onCancel, savi
   });
 
   const set = (key, val) => setForm(p => ({ ...p, [key]: val }));
-  const show = (key) => fields[key]?.show !== false;
+  const show = (key) => fields[key]?.show === true;
   const required = (key) => fields[key]?.required === true;
   const label = (key) => fields[key]?.label || key;
 
@@ -242,6 +242,39 @@ const ProductFormDynamic = ({ businessType, initial = {}, onSave, onCancel, savi
             <FieldWrap label={label('prepInstructions')}>
               <textarea style={{ ...inputStyle, resize: 'vertical', minHeight: 60 }} value={form.prepInstructions} onChange={e => set('prepInstructions', e.target.value)} placeholder="Ej: Ayuno de 8 horas, traer exámenes previos..." />
             </FieldWrap>
+          )}
+        </div>
+      )}
+
+      {/* Combo */}
+      {show('isCombo') && (
+        <div style={{ border: '1px solid var(--rule)', borderRadius: 8, padding: 16, background: form.isCombo ? 'var(--bone-2)' : 'transparent' }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 13, fontWeight: 600, marginBottom: form.isCombo ? 14 : 0 }}>
+            <input type="checkbox" checked={form.isCombo || false} onChange={() => set('isCombo', !form.isCombo)} />
+            {label('isCombo')}
+          </label>
+          {form.isCombo && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <FieldWrap label={label('comboSavings')} hint="Cuánto ahorra el cliente vs comprar por separado">
+                <input style={inputStyle} type="number" min={0} value={form.comboSavings || ''} onChange={e => set('comboSavings', parseFloat(e.target.value) || 0)} placeholder="0" />
+              </FieldWrap>
+              <div>
+                <div style={{ fontSize: 12, fontWeight: 600, opacity: 0.7, marginBottom: 8, fontFamily: 'var(--font-mono)', letterSpacing: '0.06em' }}>ÍTEMS QUE INCLUYE</div>
+                {(form.comboItems || []).map((item, i) => (
+                  <div key={i} style={{ display: 'flex', gap: 8, marginBottom: 6 }}>
+                    <input style={{ ...inputStyle, flex: 1 }} value={item.name} placeholder="Ej: Pique Macho"
+                      onChange={e => { const items = [...(form.comboItems||[])]; items[i] = { ...items[i], name: e.target.value }; set('comboItems', items); }} />
+                    <input style={{ ...inputStyle, width: 60 }} type="number" min={1} value={item.quantity || 1}
+                      onChange={e => { const items = [...(form.comboItems||[])]; items[i] = { ...items[i], quantity: parseInt(e.target.value)||1 }; set('comboItems', items); }} />
+                    <button type="button" onClick={() => set('comboItems', (form.comboItems||[]).filter((_, j) => j !== i))}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--magma)', fontSize: 16, padding: '0 4px' }}>×</button>
+                  </div>
+                ))}
+                <button type="button" className="btn btn-secondary btn-sm" onClick={() => set('comboItems', [...(form.comboItems||[]), { name: '', quantity: 1 }])}>
+                  + Agregar ítem
+                </button>
+              </div>
+            </div>
           )}
         </div>
       )}

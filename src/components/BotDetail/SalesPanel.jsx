@@ -10,25 +10,31 @@ const SalesPanel = ({ workspaceId, botId, bot }) => {
   const [newZone, setNewZone] = useState('');
 
   const [config, setConfig] = useState({
-    enabled:          bot?.deliveryConfig?.enabled          ?? false,
-    allowDelivery:    bot?.deliveryConfig?.allowDelivery    ?? true,
-    allowPickup:      bot?.deliveryConfig?.allowPickup      ?? true,
-    zones:            bot?.deliveryConfig?.zones            ?? [],
-    deliveryCost:     bot?.deliveryConfig?.deliveryCost     ?? 0,
-    estimatedMinutes: bot?.deliveryConfig?.estimatedMinutes ?? 45,
-    minimumOrder:     bot?.deliveryConfig?.minimumOrder     ?? 0,
+    enabled:               bot?.deliveryConfig?.enabled               ?? false,
+    allowDelivery:         bot?.deliveryConfig?.allowDelivery         ?? true,
+    allowPickup:           bot?.deliveryConfig?.allowPickup           ?? true,
+    zones:                 bot?.deliveryConfig?.zones                 ?? [],
+    deliveryCost:          bot?.deliveryConfig?.deliveryCost          ?? 0,
+    estimatedMinutes:      bot?.deliveryConfig?.estimatedMinutes      ?? 45,
+    minimumOrder:          bot?.deliveryConfig?.minimumOrder          ?? 0,
+    hasCustomDeliveryHours:bot?.deliveryConfig?.hasCustomDeliveryHours ?? false,
+    deliveryHoursStart:    bot?.deliveryConfig?.deliveryHoursStart    ?? '',
+    deliveryHoursEnd:      bot?.deliveryConfig?.deliveryHoursEnd      ?? '',
   });
 
   useEffect(() => {
     if (bot?.deliveryConfig) {
       setConfig({
-        enabled:          bot.deliveryConfig.enabled          ?? false,
-        allowDelivery:    bot.deliveryConfig.allowDelivery    ?? true,
-        allowPickup:      bot.deliveryConfig.allowPickup      ?? true,
-        zones:            bot.deliveryConfig.zones            ?? [],
-        deliveryCost:     bot.deliveryConfig.deliveryCost     ?? 0,
-        estimatedMinutes: bot.deliveryConfig.estimatedMinutes ?? 45,
-        minimumOrder:     bot.deliveryConfig.minimumOrder     ?? 0,
+        enabled:               bot.deliveryConfig.enabled               ?? false,
+        allowDelivery:         bot.deliveryConfig.allowDelivery         ?? true,
+        allowPickup:           bot.deliveryConfig.allowPickup           ?? true,
+        zones:                 bot.deliveryConfig.zones                 ?? [],
+        deliveryCost:          bot.deliveryConfig.deliveryCost          ?? 0,
+        estimatedMinutes:      bot.deliveryConfig.estimatedMinutes      ?? 45,
+        minimumOrder:          bot.deliveryConfig.minimumOrder          ?? 0,
+        hasCustomDeliveryHours:bot.deliveryConfig.hasCustomDeliveryHours ?? false,
+        deliveryHoursStart:    bot.deliveryConfig.deliveryHoursStart    ?? '',
+        deliveryHoursEnd:      bot.deliveryConfig.deliveryHoursEnd      ?? '',
       });
     }
   }, [bot]);
@@ -139,6 +145,28 @@ const SalesPanel = ({ workspaceId, botId, bot }) => {
               <input type="number" className="input" min={0} value={config.minimumOrder}
                 onChange={e => set('minimumOrder', parseFloat(e.target.value) || 0)} />
               <small style={{ opacity: 0.55, marginTop: 4, display: 'block' }}>0 = sin mínimo.</small>
+            </div>
+
+            <div style={{ borderTop: '1px solid var(--rule)', paddingTop: 14 }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', marginBottom: 10 }}>
+                <input type="checkbox" checked={config.hasCustomDeliveryHours}
+                  onChange={() => set('hasCustomDeliveryHours', !config.hasCustomDeliveryHours)} />
+                <span style={{ fontSize: 13, fontWeight: 600 }}>Horario de delivery distinto al del local</span>
+              </label>
+              {config.hasCustomDeliveryHours && (
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                  <div className="field">
+                    <label className="field-label">Inicio delivery</label>
+                    <input type="time" className="input" value={config.deliveryHoursStart}
+                      onChange={e => set('deliveryHoursStart', e.target.value)} />
+                  </div>
+                  <div className="field">
+                    <label className="field-label">Fin delivery</label>
+                    <input type="time" className="input" value={config.deliveryHoursEnd}
+                      onChange={e => set('deliveryHoursEnd', e.target.value)} />
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
