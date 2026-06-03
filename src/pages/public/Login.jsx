@@ -30,7 +30,7 @@ const Login = () => {
             localStorage.setItem('refreshToken', response.data.refreshToken);
             localStorage.setItem('workspaceId', response.data.user.defaultWorkspaceId);
             localStorage.setItem('workspaceRole', response.data.user.workspaceRole || 'member');
-            navigate('/dashboard');
+            navigate('/bots');
           } else {
             message.warning(response?.message || 'No se pudo iniciar sesión');
           }
@@ -43,7 +43,7 @@ const Login = () => {
               'user',
               JSON.stringify({ id: 'demo', name: 'Sebastián R.', email, plan: 'PRO' })
             );
-            navigate('/dashboard');
+            navigate('/bots');
             return;
           }
           const errorMsg =

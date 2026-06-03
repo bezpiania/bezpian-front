@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 
 import IconSprite from './components/IconSprite.jsx';
 import PrivateRoute from './components/PrivateRoute.jsx';
+import RequireActiveBot from './components/RequireActiveBot.jsx';
 
 // Públicas
 import Login from './pages/public/Login.jsx';
@@ -15,6 +16,7 @@ import TableOrder from './pages/public/TableOrder.jsx';
 import PublicQuote from './pages/public/PublicQuote.jsx';
 
 // Privadas
+import BotSelector from './pages/private/chatbots/BotSelector.jsx';
 import Dashboard from './pages/private/Dashboard.jsx';
 import BotsList from './pages/private/chatbots/BotsList.jsx';
 import BotDetail from './pages/private/chatbots/BotDetail.jsx';
@@ -38,44 +40,50 @@ function App() {
       <IconSprite />
       <Router>
         <Routes>
-          {/* Auth & landings públicas */}
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
+          {/* ── Públicas ──────────────────────────────────────── */}
+          <Route path="/login"           element={<Login />} />
+          <Route path="/signup"          element={<Signup />} />
           <Route path="/verificar-email" element={<VerifyEmail />} />
-          <Route path="/invitar" element={<AcceptInvite />} />
-          <Route path="/mesa/:tableToken" element={<TableOrder />} />
-          <Route path="/recuperar" element={<ForgotPassword />} />
-
-          {/* Cliente final (públicas, simulan vistas embebidas) */}
-          <Route path="/widget" element={<Widget />} />
-          <Route path="/cotizacion/:id" element={<PublicQuote />} />
+          <Route path="/invitar"         element={<AcceptInvite />} />
+          <Route path="/recuperar"       element={<ForgotPassword />} />
+          <Route path="/mesa/:tableToken"element={<TableOrder />} />
+          <Route path="/widget"          element={<Widget />} />
+          <Route path="/cotizacion/:id"  element={<PublicQuote />} />
           <Route path="/cotizacion-publica" element={<PublicQuote />} />
 
-          {/* Privadas */}
+          {/* ── Privadas (requieren login) ────────────────────── */}
           <Route element={<PrivateRoute />}>
-            <Route path="/dashboard" element={<Dashboard />} />
 
-            <Route path="/chatbots" element={<BotsList />} />
-            <Route path="/chatbots/nuevo" element={<Nuevo />} />
-            <Route path="/chatbots/:id" element={<BotDetail />} />
+            {/* Bot selector — landing tras login */}
+            <Route path="/bots" element={<BotSelector />} />
+
+            {/* Configuración de chatbots — no requieren bot activo */}
+            <Route path="/chatbots"           element={<BotsList />} />
+            <Route path="/chatbots/nuevo"     element={<Nuevo />} />
+            <Route path="/chatbots/:id"       element={<BotDetail />} />
             <Route path="/chatbots/:id/embed" element={<BotEmbed />} />
 
-            <Route path="/conversaciones" element={<Conversations />} />
-            <Route path="/conversaciones/:id" element={<ConversationDetail />} />
-            <Route path="/leads" element={<Leads />} />
-            <Route path="/citas" element={<Appointments />} />
-            <Route path="/ventas" element={<Orders />} />
-            <Route path="/cotizaciones" element={<Quotes />} />
-            <Route path="/cotizaciones/:id" element={<QuoteDetail />} />
+            {/* Cuenta — no requieren bot activo */}
+            <Route path="/equipo"       element={<Team />} />
+            <Route path="/integraciones"element={<Integrations />} />
+            <Route path="/plan"         element={<Billing />} />
+            <Route path="/perfil"       element={<Profile />} />
 
-            <Route path="/equipo" element={<Team />} />
-            <Route path="/integraciones" element={<Integrations />} />
-            <Route path="/plan" element={<Billing />} />
-            <Route path="/perfil" element={<Profile />} />
+            {/* ── Operación — requieren bot activo ────────────── */}
+            <Route element={<RequireActiveBot />}>
+              <Route path="/dashboard"              element={<Dashboard />} />
+              <Route path="/conversaciones"         element={<Conversations />} />
+              <Route path="/conversaciones/:id"     element={<ConversationDetail />} />
+              <Route path="/leads"                  element={<Leads />} />
+              <Route path="/citas"                  element={<Appointments />} />
+              <Route path="/ventas"                 element={<Orders />} />
+              <Route path="/cotizaciones"           element={<Quotes />} />
+              <Route path="/cotizaciones/:id"       element={<QuoteDetail />} />
+            </Route>
           </Route>
 
-          {/* Fallback */}
-          <Route path="*" element={<Navigate to="/dashboard" />} />
+          {/* Fallback → selector de bots */}
+          <Route path="*" element={<Navigate to="/bots" />} />
         </Routes>
       </Router>
     </>

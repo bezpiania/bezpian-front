@@ -12,7 +12,7 @@ import { useResources } from '../../../hooks/useResources.js';
 const Appointments = () => {
   const params = useParams();
   const workspaceId = params.workspaceId || localStorage.getItem('workspaceId');
-  const chatbotId = params.id || null;
+  const chatbotId = params.id || localStorage.getItem('activeBotId') || null;
 
   // Data
   const { data: appointmentsResponse, isLoading } = useGetAppointments(workspaceId, chatbotId);

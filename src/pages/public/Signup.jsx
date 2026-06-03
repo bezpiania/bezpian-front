@@ -49,7 +49,7 @@ const Signup = () => {
             localStorage.setItem('accessToken', response.data.accessToken);
             localStorage.setItem('refreshToken', response.data.refreshToken);
             localStorage.setItem('workspaceId', response.data.user.defaultWorkspaceId);
-            navigate('/dashboard');
+            navigate('/bots');
           } else {
             message.error(response?.message || 'Error al crear cuenta');
           }

@@ -6,6 +6,7 @@ import api from '../../../apis/app.js';
 import { getBusinessType } from '../../../config/businessTypes.js';
 
 const workspaceId = localStorage.getItem('workspaceId');
+const activeBotId = localStorage.getItem('activeBotId') || '';
 
 const ALL_STATUS_CONFIG = {
   new:        { label: 'Nuevo',           dot: '#F59E0B', bg: '#FEF3C7', color: '#92400E' },
@@ -59,7 +60,7 @@ const Orders = () => {
 
   const { data, isLoading } = useQuery({
     queryKey: ['orders', workspaceId, filter],
-    queryFn: () => api.get(`/api/workspaces/${workspaceId}/orders${filter ? `?status=${filter}` : ''}`),
+    queryFn: () => api.get(`/api/workspaces/${workspaceId}/orders?${activeBotId ? `chatbotId=${activeBotId}&` : ''}${filter ? `status=${filter}` : ''}`),
     enabled: !!workspaceId,
     refetchInterval: 30000,
   });

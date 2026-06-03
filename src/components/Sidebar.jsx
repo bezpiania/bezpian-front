@@ -1,7 +1,8 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { useSidebarCounts } from '../hooks/useSidebarCounts.js';
 import { useQuery } from '@tanstack/react-query';
+import { useSidebarCounts } from '../hooks/useSidebarCounts.js';
+import { getActiveBot, clearActiveBot } from '../hooks/useActiveBot.js';
 import api from '../apis/app.js';
 
 const Sidebar = () => {
@@ -10,36 +11,41 @@ const Sidebar = () => {
   let user = null;
   try { user = JSON.parse(localStorage.getItem('user') || 'null'); } catch {}
 
-  const role      = localStorage.getItem('workspaceRole') || user?.workspaceRole || 'admin';
-  const isAdmin   = !role || role === 'admin' || role === 'owner';
-  const wsId      = localStorage.getItem('workspaceId');
+  const role    = localStorage.getItem('workspaceRole') || user?.workspaceRole || 'admin';
+  const isAdmin = !role || role === 'admin' || role === 'owner';
+  const wsId    = localStorage.getItem('workspaceId');
+  const bot     = getActiveBot();
 
-  const { data: counts } = useSidebarCounts(wsId);
-
-  const { data: ordersData } = useQuery({
-    queryKey: ['orders-new', wsId],
-    queryFn: () => api.get(`/api/workspaces/${wsId}/orders?status=new`),
-    enabled: !!wsId,
-    refetchInterval: 30000,
-    select: d => d?.data?.orders?.length ?? 0,
-  });
-  const newOrders = ordersData ?? null;
-  const chatbots      = counts?.chatbots      ?? null;
+  // Counts filtered by active bot
+  const { data: counts } = useSidebarCounts(wsId, bot.id);
   const conversations = counts?.conversations ?? null;
   const leads         = counts?.leads         ?? null;
   const quotes        = counts?.quotes        ?? null;
+
+  const { data: newOrders } = useQuery({
+    queryKey: ['orders-new', wsId, bot.id],
+    queryFn:  () => api.get(`/api/workspaces/${wsId}/orders?status=new${bot.id ? `&chatbotId=${bot.id}` : ''}`),
+    enabled:  !!wsId,
+    refetchInterval: 30000,
+    select: d => d?.data?.orders?.length ?? 0,
+  });
 
   const userName    = user?.name  || 'Usuario';
   const userEmail   = user?.email || '';
   const userInitial = (userName[0] || 'U').toUpperCase();
 
   const handleLogout = () => {
-    ['user', 'accessToken', 'refreshToken', 'workspaceId', 'workspaceRole'].forEach(k => localStorage.removeItem(k));
+    ['user','accessToken','refreshToken','workspaceId','workspaceRole'].forEach(k => localStorage.removeItem(k));
+    clearActiveBot();
     navigate('/login');
   };
 
-  const navClass = ({ isActive }) => 'app-nav-item' + (isActive ? ' active' : '');
+  const handleChangBot = () => {
+    clearActiveBot();
+    navigate('/bots');
+  };
 
+  const navClass = ({ isActive }) => 'app-nav-item' + (isActive ? ' active' : '');
   const Badge = ({ count }) => {
     if (count === null || count === undefined) return null;
     return <span className="badge">{count > 99 ? '99+' : count}</span>;
@@ -47,33 +53,51 @@ const Sidebar = () => {
 
   return (
     <aside className="app-sidebar">
+      {/* Brand */}
       <div className="app-brand">
         <div className="app-brand-mark">Z</div>
         <div className="app-brand-name">Zapien</div>
         <div className="pill-pro">PRO</div>
       </div>
 
-      <div className="app-store">
-        <div className="app-store-status"></div>
-        <div className="app-store-info">
-          <div className="app-store-name">Workspace</div>
-          <div className="app-store-meta">
-            {chatbots !== null ? `${chatbots} chatbot${chatbots !== 1 ? 's' : ''}` : 'Cargando...'}
+      {/* Active bot selector */}
+      <button
+        onClick={handleChangBot}
+        title="Cambiar de chatbot"
+        style={{
+          display: 'flex', alignItems: 'center', gap: 10,
+          background: 'var(--bone-2)', border: '1px solid var(--rule)',
+          borderRadius: 10, padding: '10px 12px', cursor: 'pointer',
+          width: '100%', textAlign: 'left', transition: 'background 0.15s',
+          marginBottom: 4,
+        }}
+        onMouseEnter={e => e.currentTarget.style.background = 'var(--bone-3)'}
+        onMouseLeave={e => e.currentTarget.style.background = 'var(--bone-2)'}
+      >
+        <div style={{
+          width: 32, height: 32, borderRadius: 8, flexShrink: 0,
+          background: bot.color, display: 'grid', placeItems: 'center',
+          fontSize: 16, boxShadow: `0 2px 6px ${bot.color}44`,
+        }}>
+          {bot.avatar}
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 13, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {bot.name || 'Sin bot activo'}
+          </div>
+          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, opacity: 0.5, letterSpacing: '0.06em', marginTop: 1 }}>
+            Cambiar chatbot
           </div>
         </div>
-      </div>
+        <svg style={{ width: 12, height: 12, opacity: 0.4, flexShrink: 0 }}><use href="#i-chevron-down" /></svg>
+      </button>
 
+      {/* Nav — Operación */}
       <div className="app-nav-section">
         <div className="app-nav-label">Operación</div>
         <NavLink to="/dashboard" className={navClass} end>
           <svg><use href="#i-home" /></svg>Inicio
         </NavLink>
-        {isAdmin && (
-          <NavLink to="/chatbots" className={navClass}>
-            <svg><use href="#i-bot" /></svg>Chatbots
-            <Badge count={chatbots} />
-          </NavLink>
-        )}
         <NavLink to="/conversaciones" className={navClass}>
           <svg><use href="#i-chat" /></svg>Conversaciones
           <Badge count={conversations} />
@@ -95,10 +119,14 @@ const Sidebar = () => {
         </NavLink>
       </div>
 
+      {/* Nav — Cuenta */}
       <div className="app-nav-section">
         <div className="app-nav-label">Cuenta</div>
         {isAdmin && (
           <>
+            <NavLink to="/chatbots" className={navClass}>
+              <svg><use href="#i-bot" /></svg>Mis chatbots
+            </NavLink>
             <NavLink to="/equipo" className={navClass}>
               <svg><use href="#i-team" /></svg>Equipo
             </NavLink>
@@ -112,6 +140,7 @@ const Sidebar = () => {
         </NavLink>
       </div>
 
+      {/* User */}
       <div className="app-user">
         <div className="app-user-avatar">{userInitial}</div>
         <div className="app-user-info">

@@ -1,16 +1,19 @@
 import { useQuery } from '@tanstack/react-query';
 import api from '../apis/app.js';
 
-export const useSidebarCounts = (workspaceId) => {
+export const useSidebarCounts = (workspaceId, chatbotId) => {
   return useQuery({
-    queryKey: ['sidebar-counts', workspaceId],
+    queryKey: ['sidebar-counts', workspaceId, chatbotId],
     queryFn: async () => {
       if (!workspaceId) return {};
-      const res = await api.get(`/api/workspaces/${workspaceId}/counts`);
+      const url = chatbotId
+        ? `/api/workspaces/${workspaceId}/counts?chatbotId=${chatbotId}`
+        : `/api/workspaces/${workspaceId}/counts`;
+      const res = await api.get(url);
       return res?.data || {};
     },
     enabled: !!workspaceId,
-    staleTime: 60 * 1000,       // refresca cada 1 minuto
-    refetchInterval: 2 * 60 * 1000, // polling cada 2 minutos
+    staleTime:      60 * 1000,
+    refetchInterval: 2 * 60 * 1000,
   });
 };

@@ -61,7 +61,7 @@ const AcceptInvite = () => {
         localStorage.setItem('workspaceId', acceptRes.workspaceId);
         localStorage.setItem('workspaceRole', acceptRes.role || 'member');
         message.success(`¡Bienvenido a ${invitation.workspaceName}!`);
-        navigate('/dashboard');
+        navigate('/bots');
       } else {
         message.error(acceptRes.message || 'Error al aceptar invitación');
       }
