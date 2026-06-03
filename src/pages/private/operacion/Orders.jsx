@@ -73,8 +73,10 @@ const Orders = () => {
   const bizConfig     = getBusinessType(detectedBusinessType);
   const features      = bizConfig.sales?.features || {};
 
+  const [trackingInput, setTrackingInput] = useState({});
+
   const { mutate: updateStatus } = useMutation({
-    mutationFn: ({ id, status }) => api.patch(`/api/workspaces/${workspaceId}/orders/${id}/status`, { status }),
+    mutationFn: ({ id, status, trackingCode }) => api.patch(`/api/workspaces/${workspaceId}/orders/${id}/status`, { status, ...(trackingCode && { trackingCode }) }),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['orders', workspaceId] }); message.success('Estado actualizado'); },
     onError: () => message.error('Error al actualizar estado'),
   });
@@ -206,12 +208,35 @@ const Orders = () => {
 
                       {/* Actions */}
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 8, minWidth: 180 }}>
-                        {nextStatus && (
+                        {/* Tracking code input when shipping a store order */}
+                        {nextStatus === 'shipped' && (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                            <input
+                              className="input"
+                              placeholder="Nº de guía de envío (opcional)"
+                              value={trackingInput[order._id] || ''}
+                              onChange={e => setTrackingInput(p => ({ ...p, [order._id]: e.target.value }))}
+                              style={{ fontSize: 12 }}
+                            />
+                            <button
+                              onClick={() => updateStatus({ id: order._id, status: 'shipped', trackingCode: trackingInput[order._id] || '' })}
+                              style={{ padding: '10px 14px', background: 'var(--voltage)', color: 'var(--carbon)', border: 'none', borderRadius: 8, fontWeight: 700, fontSize: 12, cursor: 'pointer', fontFamily: 'var(--font-body)' }}>
+                              Marcar como enviado →
+                            </button>
+                          </div>
+                        )}
+                        {nextStatus && nextStatus !== 'shipped' && (
                           <button
                             onClick={() => updateStatus({ id: order._id, status: nextStatus })}
                             style={{ padding: '10px 14px', background: 'var(--voltage)', color: 'var(--carbon)', border: 'none', borderRadius: 8, fontWeight: 700, fontSize: 12, cursor: 'pointer', fontFamily: 'var(--font-body)', textAlign: 'center' }}>
                             {STATUS_NEXT_LABEL[order.status]}
                           </button>
+                        )}
+                        {/* Show tracking code if already set */}
+                        {order.trackingCode && (
+                          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, background: 'var(--bone-2)', padding: '6px 10px', borderRadius: 6 }}>
+                            📦 Guía: <strong>{order.trackingCode}</strong>
+                          </div>
                         )}
                         {order.status !== 'cancelled' && order.status !== 'delivered' && (
                           <button

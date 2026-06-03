@@ -15,16 +15,19 @@ const FIELD_TYPES = [
 ];
 
 // ── Quote config by business type ───────────────────────────────────────────
-const QuoteBusinessConfig = ({ workspaceId, botId, bot, qFeatures }) => {
+const QuoteBusinessConfig = ({ workspaceId, botId, bot, qFeatures, businessType }) => {
   const [saving, setSaving] = useState(false);
   const [cfg, setCfg] = useState({
-    validDays:       bot?.quoteConfig?.validDays       ?? 30,
-    paymentTerms:    bot?.quoteConfig?.paymentTerms    ?? '',
-    taxIncluded:     bot?.quoteConfig?.taxIncluded     ?? true,
-    taxRate:         bot?.quoteConfig?.taxRate         ?? 0,
-    termsText:       bot?.quoteConfig?.termsText       ?? '',
-    sessionCount:    bot?.quoteConfig?.sessionCount    ?? 1,
+    enabled:           bot?.quoteConfig?.enabled           ?? false,
+    validDays:         bot?.quoteConfig?.validDays         ?? 30,
+    paymentTerms:      bot?.quoteConfig?.paymentTerms      ?? '',
+    taxIncluded:       bot?.quoteConfig?.taxIncluded       ?? true,
+    taxRate:           bot?.quoteConfig?.taxRate           ?? 0,
+    termsText:         bot?.quoteConfig?.termsText         ?? '',
+    sessionCount:      bot?.quoteConfig?.sessionCount      ?? 1,
     insuranceCoverage: bot?.quoteConfig?.insuranceCoverage ?? '',
+    autoQuoteMinQty:   bot?.quoteConfig?.autoQuoteMinQty   ?? 10,
+    volumeDiscounts:   bot?.quoteConfig?.volumeDiscounts   ?? [],
   });
 
   const handleSave = async () => {
@@ -112,6 +115,50 @@ const QuoteBusinessConfig = ({ workspaceId, botId, bot, qFeatures }) => {
           </div>
         )}
       </div>
+      {/* Store-only: auto-quote + volume discounts */}
+      {businessType === 'store' && (
+        <div className="card" style={{ marginTop: 16 }}>
+          <div className="section-num" style={{ marginBottom: 14 }}>Cotización automática por volumen</div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
+            <div>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', marginBottom: 10 }}>
+                <input type="checkbox" checked={cfg.enabled} onChange={() => setCfg(p => ({ ...p, enabled: !p.enabled }))} />
+                <span style={{ fontWeight: 600, fontSize: 13 }}>Activar cotizaciones automáticas</span>
+              </label>
+              {cfg.enabled && (
+                <div className="field">
+                  <label className="field-label">Ofrecer cotización cuando la cantidad supere</label>
+                  <input className="input" type="number" min={1} value={cfg.autoQuoteMinQty}
+                    onChange={e => setCfg(p => ({ ...p, autoQuoteMinQty: parseInt(e.target.value) || 10 }))} />
+                  <small style={{ opacity: 0.55, marginTop: 4, display: 'block' }}>unidades de un mismo producto</small>
+                </div>
+              )}
+            </div>
+          </div>
+          {cfg.enabled && (
+            <div>
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, opacity: 0.6, marginBottom: 10, letterSpacing: '0.06em', textTransform: 'uppercase' }}>Descuentos por volumen</div>
+              {cfg.volumeDiscounts.map((tier, i) => (
+                <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 8 }}>
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, opacity: 0.6, whiteSpace: 'nowrap' }}>Desde</span>
+                  <input className="input" type="number" min={1} value={tier.minQty} style={{ width: 80 }}
+                    onChange={e => { const d = [...cfg.volumeDiscounts]; d[i] = { ...d[i], minQty: parseInt(e.target.value)||1 }; setCfg(p => ({ ...p, volumeDiscounts: d })); }} />
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, opacity: 0.6, whiteSpace: 'nowrap' }}>uds →</span>
+                  <input className="input" type="number" min={0} max={100} value={tier.discountPct} style={{ width: 80 }}
+                    onChange={e => { const d = [...cfg.volumeDiscounts]; d[i] = { ...d[i], discountPct: parseFloat(e.target.value)||0 }; setCfg(p => ({ ...p, volumeDiscounts: d })); }} />
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, opacity: 0.6 }}>% descuento</span>
+                  <button onClick={() => setCfg(p => ({ ...p, volumeDiscounts: p.volumeDiscounts.filter((_, j) => j !== i) }))}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--magma)', fontSize: 16 }}>×</button>
+                </div>
+              ))}
+              <button className="btn btn-secondary btn-sm" onClick={() => setCfg(p => ({ ...p, volumeDiscounts: [...p.volumeDiscounts, { minQty: 10, discountPct: 10 }] }))}>
+                + Agregar tier
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
       <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 16 }}>
         <button className="btn btn-primary" onClick={handleSave} disabled={saving}>
           {saving ? 'Guardando...' : 'Guardar opciones'}
@@ -417,7 +464,7 @@ const QuotesPanel = ({ workspaceId, botId, bot }) => {
 
       {/* Business-type specific quote config */}
       {(qFeatures.expiry || qFeatures.paymentTerms || qFeatures.taxConfig || qFeatures.sessionBreakdown) && (
-        <QuoteBusinessConfig workspaceId={workspaceId} botId={botId} bot={bot} qFeatures={qFeatures} />
+        <QuoteBusinessConfig workspaceId={workspaceId} botId={botId} bot={bot} qFeatures={qFeatures} businessType={bot?.businessType} />
       )}
 
     </>
