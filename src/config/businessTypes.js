@@ -43,6 +43,7 @@ export const BUSINESS_TYPES = {
         description: { show: true, required: false, label: 'Descripción' },
         price:       { show: true, required: true,  label: 'Precio' },
         category:    { show: true, required: true,  label: 'Categoría' },
+        subcategory: { show: true, required: false, label: 'Subcategoría',        type: 'text' },
         image:       { show: true, required: false, label: 'Foto' },
         available:   { show: true, required: false, label: 'Disponible' },
         // Campos específicos restaurante
@@ -135,6 +136,7 @@ export const BUSINESS_TYPES = {
         description: { show: true, required: false, label: 'Descripción' },
         price:       { show: true, required: true,  label: 'Precio' },
         category:    { show: true, required: true,  label: 'Categoría' },
+        subcategory: { show: true, required: false, label: 'Subcategoría',        type: 'text' },
         image:       { show: true, required: false, label: 'Foto' },
         available:   { show: true, required: false, label: 'Disponible' },
         // Campos específicos tienda
