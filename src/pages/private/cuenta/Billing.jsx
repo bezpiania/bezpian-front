@@ -3,45 +3,23 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { message } from 'antd';
 import AppLayout from '../../../components/AppLayout.jsx';
 import api from '../../../apis/app.js';
+import { PLAN_CONFIG, getPlanConfig } from '../../../config/plans.js';
 
 const workspaceId = localStorage.getItem('workspaceId');
 
-const PLAN_LIMITS = {
-    free:       { conversations: 500,   chatbots: 1,  members: 2  },
-    starter:    { conversations: 1000,  chatbots: 1,  members: 2  },
-    pro:        { conversations: 5000,  chatbots: 3,  members: 10 },
-    enterprise: { conversations: 50000, chatbots: -1, members: -1 },
+// Build PLANS array from centralized config, adding visual styles
+const PLAN_STYLES = {
+    starter:    { bg: 'var(--bone-2)', border: 'var(--rule)' },
+    pro:        { bg: 'var(--carbon)', border: 'var(--carbon)', labelColor: 'var(--voltage)', textColor: 'var(--bone)' },
+    enterprise: { bg: 'var(--voltage)', border: 'var(--carbon)', textColor: 'var(--carbon)' },
 };
+const PLANS = ['starter', 'pro', 'enterprise'].map(key => ({
+    key,
+    ...PLAN_CONFIG[key],
+    style: PLAN_STYLES[key] || {},
+}));
 
-const PLANS = [
-    {
-        key: 'starter',
-        label: 'Starter',
-        price: '$9.990',
-        desc: 'Para empezar sin compromiso.',
-        features: ['1 chatbot', '1.000 conversaciones/mes', '2 miembros'],
-        missing: ['Sin agendamiento'],
-        style: { bg: 'var(--bone-2)', border: 'var(--rule)' },
-    },
-    {
-        key: 'pro',
-        label: 'Pro',
-        price: '$29.990',
-        desc: 'Para PyMEs que venden todos los días.',
-        features: ['3 chatbots', '5.000 conversaciones/mes', '10 miembros', 'Agendamiento + integraciones'],
-        style: { bg: 'var(--carbon)', border: 'var(--carbon)', labelColor: 'var(--voltage)', textColor: 'var(--bone)' },
-    },
-    {
-        key: 'enterprise',
-        label: 'Empresa',
-        price: '$99.000',
-        desc: 'Cuando ya volaste de la PyME.',
-        features: ['Bots ilimitados', '50.000 conversaciones/mes', 'Equipo ilimitado · SSO', 'Soporte dedicado'],
-        style: { bg: 'var(--voltage)', border: 'var(--carbon)', textColor: 'var(--carbon)' },
-    },
-];
-
-const PLAN_LABELS = { free: 'Free', starter: 'Starter', pro: 'Pro', enterprise: 'Empresa' };
+const PLAN_LABELS = Object.fromEntries(Object.entries(PLAN_CONFIG).map(([k, v]) => [k, v.label]));
 
 // ── Usage bar ────────────────────────────────────────────────────────────────
 const UsageBar = ({ label, used, limit, unlimited }) => {
@@ -128,7 +106,7 @@ const Billing = () => {
     });
 
     const usage    = usageData?.data?.usage   || { conversations: 0, chatbots: 0, members: 0 };
-    const limits   = usageData?.data?.limits  || PLAN_LIMITS.free;
+    const limits   = usageData?.data?.limits  || getPlanConfig('free');
     const plan     = usageData?.data?.plan    || 'free';
     const invoices = invoicesData?.data?.invoices || [];
 
