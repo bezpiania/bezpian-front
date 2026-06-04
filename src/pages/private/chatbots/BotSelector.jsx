@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useGetChatbots } from '../../../hooks/useChatbot.js';
-import { setActiveBot } from '../../../hooks/useActiveBot.js';
+import { setActiveBot, clearActiveBot } from '../../../hooks/useActiveBot.js';
 
 const BIZ_LABELS = {
   restaurant: '🍽️ Restaurante',
@@ -107,6 +107,17 @@ const BotSelector = () => {
     navigate('/dashboard');
   };
 
+  const handleLogout = () => {
+    ['user','accessToken','refreshToken','workspaceId','workspaceRole'].forEach(k => localStorage.removeItem(k));
+    clearActiveBot();
+    navigate('/login');
+  };
+
+  let user = null;
+  try { user = JSON.parse(localStorage.getItem('user') || 'null'); } catch {}
+  const userName    = user?.name  || 'Usuario';
+  const userInitial = (userName[0] || 'U').toUpperCase();
+
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bone)', padding: '40px 24px' }}>
       {/* Header */}
@@ -120,13 +131,31 @@ const BotSelector = () => {
               Elige el chatbot que quieres gestionar.
             </p>
           </div>
-          <button
-            onClick={() => navigate('/chatbots/nuevo')}
-            className="btn btn-primary"
-            style={{ gap: 8 }}
-          >
-            <svg style={{ width: 16, height: 16 }}><use href="#i-plus" /></svg>
-            Nuevo chatbot
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <button
+              onClick={() => navigate('/chatbots/nuevo')}
+              className="btn btn-primary"
+              style={{ gap: 8 }}
+            >
+              <svg style={{ width: 16, height: 16 }}><use href="#i-plus" /></svg>
+              Nuevo chatbot
+            </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', background: 'var(--bone-2)', border: '1px solid var(--rule)', borderRadius: 10 }}>
+              <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'var(--carbon)', color: 'var(--voltage)', display: 'grid', placeItems: 'center', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 13 }}>
+                {userInitial}
+              </div>
+              <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, opacity: 0.7 }}>{userName}</span>
+              <button
+                onClick={handleLogout}
+                title="Cerrar sesión"
+                style={{ background: 'none', border: 'none', cursor: 'pointer', opacity: 0.5, padding: 4, display: 'flex', alignItems: 'center' }}
+                onMouseEnter={e => e.currentTarget.style.opacity = '1'}
+                onMouseLeave={e => e.currentTarget.style.opacity = '0.5'}
+              >
+                <svg style={{ width: 16, height: 16 }}><use href="#i-logout" /></svg>
+              </button>
+            </div>
+          </div>
           </button>
         </div>
       </div>
