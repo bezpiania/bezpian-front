@@ -322,7 +322,7 @@
     <div class="welcome-avatar" id="welcome-avatar">🤖</div>
   </div>
 
-  <div id="welcome-greeting" style="font-size:15px;color:rgba(232,234,237,0.5);letter-spacing:.3px;"></div>
+  <div id="welcome-greeting" style="font-size:15px;color:rgba(232,234,237,0.5);letter-spacing:.3px;">Hola, soy tu asistente</div>
   <h1 class="welcome-title" id="welcome-title">¿En qué puedo ayudarte?</h1>
 
   <div class="suggestions-grid" id="suggestions"></div>
@@ -388,7 +388,8 @@
     try {
       const info = await api('GET', `/api/embed/bot-info?embedKey=${EMBED_KEY}`);
       if (info.success) applyBotInfo(info.data);
-    } catch {}
+      else console.warn('bot-info failed:', info);
+    } catch(e) { console.error('bot-info error:', e); }
 
     // Start conversation
     try {
