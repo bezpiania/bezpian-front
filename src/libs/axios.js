@@ -19,7 +19,19 @@ const createInstance = (baseURL) => {
 
   instance.interceptors.response.use(
     (res) => res.data,
-    (error) => { throw error; }
+    (error) => {
+      // Token expirado o inválido → limpiar sesión y redirigir al login
+      if (error?.response?.status === 401) {
+        ['user','accessToken','refreshToken','workspaceId','workspaceRole',
+         'activeBotId','activeBotName','activeBotColor','activeBotAvatar','activeBotType']
+          .forEach(k => localStorage.removeItem(k));
+        // Only redirect if not already on a public page
+        const publicPaths = ['/login','/signup','/recuperar','/invitar','/widget','/cotizacion','/mesa'];
+        const isPublic = publicPaths.some(p => window.location.pathname.startsWith(p));
+        if (!isPublic) window.location.href = '/login';
+      }
+      throw error;
+    }
   );
 
   return instance;
