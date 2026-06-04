@@ -322,7 +322,7 @@
     <div class="welcome-avatar" id="welcome-avatar">🤖</div>
   </div>
 
-  <div id="welcome-name" style="font-size:16px;font-weight:600;color:rgba(232,234,237,0.6);letter-spacing:.5px;min-height:22px;"></div>
+  <div id="welcome-greeting" style="font-size:15px;color:rgba(232,234,237,0.5);letter-spacing:.3px;"></div>
   <h1 class="welcome-title" id="welcome-title">¿En qué puedo ayudarte?</h1>
 
   <div class="suggestions-grid" id="suggestions"></div>
@@ -425,8 +425,8 @@
     wa.style.background = accentColor + '22';
     wa.style.boxShadow  = `0 0 0 2px ${accentColor}`;
 
-    // Bot name + title
-    document.getElementById('welcome-name').textContent = name;
+    // Greeting + title
+    document.getElementById('welcome-greeting').textContent = `Hola, soy el asistente de ${name}`;
     document.getElementById('welcome-title').textContent = '¿En qué puedo ayudarte?';
     document.title = name;
 
