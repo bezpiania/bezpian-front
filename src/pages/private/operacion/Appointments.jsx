@@ -16,7 +16,7 @@ const Appointments = () => {
 
   // Data
   const { data: appointmentsResponse, isLoading } = useGetAppointments(workspaceId, chatbotId);
-  const rawAppointments = appointmentsResponse?.data || [];
+  const rawAppointments = appointmentsResponse?.data?.appointments || appointmentsResponse?.appointments || appointmentsResponse?.data || [];
   const { data: resources = [] } = useResources(workspaceId, chatbotId);
   const { mutate: createAppointment, isPending: isCreating } = useCreateAppointment(workspaceId, chatbotId);
   const { mutate: updateStatus, isPending: updating } = useUpdateAppointmentStatus(workspaceId, chatbotId);
