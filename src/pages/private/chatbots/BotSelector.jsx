@@ -156,7 +156,6 @@ const BotSelector = () => {
               </button>
             </div>
           </div>
-          </button>
         </div>
       </div>
 
