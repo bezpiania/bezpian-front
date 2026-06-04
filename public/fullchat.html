@@ -322,6 +322,7 @@
     <div class="welcome-avatar" id="welcome-avatar">🤖</div>
   </div>
 
+  <div id="welcome-name" style="font-size:16px;font-weight:600;color:rgba(232,234,237,0.6);letter-spacing:.5px;min-height:22px;"></div>
   <h1 class="welcome-title" id="welcome-title">¿En qué puedo ayudarte?</h1>
 
   <div class="suggestions-grid" id="suggestions"></div>
@@ -424,10 +425,9 @@
     wa.style.background = accentColor + '22';
     wa.style.boxShadow  = `0 0 0 2px ${accentColor}`;
 
-    // Welcome title
-    // Show bot name + subtitle separately
-    const titleEl = document.getElementById('welcome-title');
-    titleEl.innerHTML = `<span style="display:block;font-size:0.75em;font-weight:600;opacity:0.7;margin-bottom:8px;letter-spacing:.5px">${name}</span>¿En qué puedo ayudarte?`;
+    // Bot name + title
+    document.getElementById('welcome-name').textContent = name;
+    document.getElementById('welcome-title').textContent = '¿En qué puedo ayudarte?';
     document.title = name;
 
     // Header
