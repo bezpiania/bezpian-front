@@ -1219,7 +1219,7 @@ const BotDetail = () => {
                 const code = html
                   .replace("const EMBED_KEY = 'EMBED_KEY_AQUI'", `const EMBED_KEY = '${bot.embedKey}'`)
                   .replace("const API_URL   = 'http://localhost:5001'", `const API_URL   = '${apiUrl}'`)
-                  .replace('El agente IA de tu empresa', `El agente IA de ${bot.name}`)
+                  .replace('Hola, soy el agente IA de tu empresa', `Hola, soy el agente IA de ${bot.name}`)
                   .replace(">🤖<", `>${bot.widget?.avatar || '🤖'}<`)
                   .replace("--accent: #6366f1", `--accent: ${bot.widget?.color || '#6366f1'}`);
                 setFullChatCode(code);
