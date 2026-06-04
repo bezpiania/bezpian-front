@@ -20,40 +20,33 @@
       --font: 'Google Sans', -apple-system, BlinkMacSystemFont, sans-serif;
     }
 
-    html, body { height: 100%; width: 100%; overflow: hidden; margin: 0; padding: 0; }
+    html, body { height: 100%; overflow: hidden; margin: 0; padding: 0; }
 
     body {
       font-family: var(--font);
       background: var(--bg-dark);
       color: var(--text);
-      display: grid;
-      grid-template-rows: 1fr auto;
-      grid-template-columns: 100%;
-      position: relative;
-      width: 100%;
-      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
     }
 
     /* ── Welcome screen ──────────────────────────── */
     #welcome {
-      grid-row: 1;
+      flex: 1;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 40px 24px;
+      text-align: center;
+      padding: 40px 24px 20px;
       gap: 28px;
       transition: opacity .35s ease, transform .35s ease;
-      overflow: hidden;
-      width: 100%;
+      overflow-y: auto;
     }
 
     #welcome.hidden {
-      opacity: 0;
-      pointer-events: none;
-      transform: translateY(-16px);
-      position: absolute;
-      top: 0; left: 0; right: 0;
+      display: none;
     }
 
     .welcome-avatar-wrap {
@@ -142,19 +135,15 @@
 
     /* ── Chat screen ─────────────────────────────── */
     #chat-screen {
-      grid-row: 1;
-      display: flex;
+      display: none;
       flex-direction: column;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity .35s ease;
+      flex: 1;
       min-height: 0;
       overflow: hidden;
     }
 
     #chat-screen.visible {
-      opacity: 1;
-      pointer-events: all;
+      display: flex;
     }
 
     #chat-header {
@@ -252,7 +241,7 @@
 
     /* ── Input area (shared) ─────────────────────── */
     #input-container {
-      grid-row: 2;
+      flex-shrink: 0;
       padding: 12px 24px 28px;
       background: linear-gradient(to top, var(--bg-dark) 85%, transparent);
     }
