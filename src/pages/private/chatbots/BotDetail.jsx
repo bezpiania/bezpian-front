@@ -144,8 +144,11 @@ const BotDetail = () => {
     proactiveDelaySeconds: bot?.widget?.proactiveDelaySeconds || 0
   });
 
-  const [embedCode, setEmbedCode] = useState('');
+  const [embedCode, setEmbedCode]       = useState('');
   const [loadingEmbed, setLoadingEmbed] = useState(false);
+  const [fullChatCode, setFullChatCode] = useState('');
+  const [loadingFull, setLoadingFull]   = useState(false);
+  const [copiedFull, setCopiedFull]     = useState(false);
 
   const [openaiForm, setOpenaiForm] = useState({
     openaiApiKey: '',
@@ -1207,10 +1210,6 @@ const BotDetail = () => {
 <!-- Pega este código antes de </body> en tu sitio web -->`;
 
           // ── Chat pantalla completa ─────────────────────────────────────────
-          const [fullChatCode, setFullChatCode] = React.useState('');
-          const [loadingFull, setLoadingFull]   = React.useState(false);
-          const [copiedFull, setCopiedFull]     = React.useState(false);
-
           const loadFullChat = () => {
             if (fullChatCode) return;
             setLoadingFull(true);
