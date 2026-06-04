@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { message } from 'antd';
-import AppLayout from '../../../components/AppLayout.jsx';
+import AccountLayout from '../../../components/AccountLayout.jsx';
 import api from '../../../apis/app.js';
 import { PLAN_CONFIG, getPlanConfig } from '../../../config/plans.js';
 
@@ -114,7 +114,7 @@ const Billing = () => {
     const periodEnd   = usageData?.data?.periodEnd   ? new Date(usageData.data.periodEnd).toLocaleDateString('es-CL', { day: 'numeric', month: 'short' }) : '';
 
     return (
-        <AppLayout>
+        <AccountLayout>
             <div className="page-head with-halo">
                 <div>
                     <div className="page-eyebrow">
@@ -300,7 +300,7 @@ const Billing = () => {
                     loading={changingPlan}
                 />
             )}
-        </AppLayout>
+        </AccountLayout>
     );
 };
 

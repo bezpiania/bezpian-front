@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import AppLayout from '../../../components/AppLayout.jsx';
+import AccountLayout from '../../../components/AccountLayout.jsx';
 
 const Toggle = ({ on, onClick }) => (
   <div
@@ -40,7 +40,7 @@ const Profile = () => {
   );
 
   return (
-    <AppLayout>
+    <AccountLayout>
       <div className="page-head">
         <div>
           <div className="page-eyebrow"><span>Mi cuenta</span></div>
@@ -152,7 +152,7 @@ const Profile = () => {
           </button>
         </div>
       </div>
-    </AppLayout>
+    </AccountLayout>
   );
 };
 

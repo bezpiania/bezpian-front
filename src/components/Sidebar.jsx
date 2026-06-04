@@ -11,12 +11,9 @@ const Sidebar = () => {
   let user = null;
   try { user = JSON.parse(localStorage.getItem('user') || 'null'); } catch {}
 
-  const role    = localStorage.getItem('workspaceRole') || user?.workspaceRole || 'admin';
-  const isAdmin = !role || role === 'admin' || role === 'owner';
-  const wsId    = localStorage.getItem('workspaceId');
-  const bot     = getActiveBot();
+  const wsId = localStorage.getItem('workspaceId');
+  const bot  = getActiveBot();
 
-  // Counts filtered by active bot
   const { data: counts } = useSidebarCounts(wsId, bot.id);
   const conversations = counts?.conversations ?? null;
   const leads         = counts?.leads         ?? null;
@@ -31,16 +28,9 @@ const Sidebar = () => {
   });
 
   const userName    = user?.name  || 'Usuario';
-  const userEmail   = user?.email || '';
   const userInitial = (userName[0] || 'U').toUpperCase();
 
-  const handleLogout = () => {
-    ['user','accessToken','refreshToken','workspaceId','workspaceRole'].forEach(k => localStorage.removeItem(k));
-    clearActiveBot();
-    navigate('/login');
-  };
-
-  const handleChangBot = () => {
+  const handleChangeBot = () => {
     clearActiveBot();
     navigate('/bots');
   };
@@ -60,9 +50,9 @@ const Sidebar = () => {
         <div className="pill-pro">PRO</div>
       </div>
 
-      {/* Active bot selector */}
+      {/* Active bot — click to change */}
       <button
-        onClick={handleChangBot}
+        onClick={handleChangeBot}
         title="Cambiar de chatbot"
         style={{
           display: 'flex', alignItems: 'center', gap: 10,
@@ -119,25 +109,14 @@ const Sidebar = () => {
         </NavLink>
       </div>
 
-      {/* Nav — Cuenta */}
+      {/* Nav — Bot */}
       <div className="app-nav-section">
-        <div className="app-nav-label">Cuenta</div>
-        {isAdmin && (
-          <>
-            <NavLink to="/chatbots" className={navClass}>
-              <svg><use href="#i-bot" /></svg>Mis chatbots
-            </NavLink>
-            <NavLink to="/equipo" className={navClass}>
-              <svg><use href="#i-team" /></svg>Equipo
-            </NavLink>
-            <NavLink to="/plan" className={navClass}>
-              <svg><use href="#i-card" /></svg>Plan
-            </NavLink>
-          </>
+        <div className="app-nav-label">Chatbot</div>
+        {bot.id && (
+          <NavLink to={`/chatbots/${bot.id}`} className={navClass}>
+            <svg><use href="#i-settings" /></svg>Configuración
+          </NavLink>
         )}
-        <NavLink to="/perfil" className={navClass}>
-          <svg><use href="#i-settings" /></svg>Configuración
-        </NavLink>
       </div>
 
       {/* User */}
@@ -146,12 +125,9 @@ const Sidebar = () => {
         <div className="app-user-info">
           <div className="app-user-name">{userName}</div>
           <div className="app-user-email" style={{ fontSize: 10, opacity: 0.55 }}>
-            {role === 'owner' ? 'Owner' : role === 'admin' ? 'Admin' : 'Operador'} · {userEmail}
+            {user?.email || ''}
           </div>
         </div>
-        <button type="button" className="app-user-logout" onClick={handleLogout} title="Cerrar sesión">
-          <svg><use href="#i-logout" /></svg>
-        </button>
       </div>
     </aside>
   );

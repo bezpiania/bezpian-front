@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { message } from 'antd';
-import AppLayout from '../../../components/AppLayout.jsx';
+import AccountLayout from '../../../components/AccountLayout.jsx';
 import { useTeam, useCreateMember, useUpdateMemberInfo, useUpdateMemberRole, useRemoveMember } from '../../../hooks/useTeam.js';
 
 const workspaceId = localStorage.getItem('workspaceId');
@@ -103,7 +103,7 @@ const Team = () => {
   };
 
   return (
-    <AppLayout>
+    <AccountLayout>
       <div className="page-head with-halo">
         <div>
           <div className="page-eyebrow">
@@ -284,7 +284,7 @@ const Team = () => {
           </div>
         </div>
       )}
-    </AppLayout>
+    </AccountLayout>
   );
 };
 
