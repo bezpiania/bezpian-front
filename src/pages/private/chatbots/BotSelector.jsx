@@ -3,8 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { useGetChatbots } from '../../../hooks/useChatbot.js';
 import { setActiveBot } from '../../../hooks/useActiveBot.js';
 
-const workspaceId = localStorage.getItem('workspaceId');
-
 const BIZ_LABELS = {
   restaurant: '🍽️ Restaurante',
   store:      '🛍️ Tienda',
@@ -99,7 +97,8 @@ const BotCard = ({ bot, onSelect }) => {
 };
 
 const BotSelector = () => {
-  const navigate  = useNavigate();
+  const navigate    = useNavigate();
+  const workspaceId = localStorage.getItem('workspaceId');
   const { data, isLoading } = useGetChatbots(workspaceId);
   const bots = data?.data || [];
 
