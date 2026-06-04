@@ -1170,123 +1170,167 @@ const BotDetail = () => {
           </>
         )}
 
-        {tab === 'embed' && (
-          <>
-            <div className="section-head">
-              <div>
-                <div className="section-num">Código para incrustar</div>
-                <div className="section-title">Dos formas de <em>compartir tu chatbot</em></div>
+        {tab === 'embed' && bot?.embedKey && (() => {
+          const apiUrl  = import.meta.env.VITE_API_APP || 'http://localhost:5001';
+          const baseUrl = import.meta.env.VITE_API_APP?.replace(':5001', ':5173') || 'http://localhost:5173';
+
+          // ── Widget burbuja ─────────────────────────────────────────────────
+          const bubbleCode = `<!-- Zapien · Widget burbuja -->
+<script>
+  (function() {
+    var chatbotId = '${id}';
+    var embedKey  = '${bot.embedKey}';
+    var apiUrl    = '${apiUrl}';
+    var baseUrl   = '${baseUrl}';
+    var color     = '${bot.widget?.color || '#667eea'}';
+    var avatar    = '${bot.widget?.avatar || '🤖'}';
+    var name      = '${bot.name}';
+
+    var iframe = document.createElement('iframe');
+    iframe.src = baseUrl + '/embed.html?botId=' + chatbotId + '&embedKey=' + embedKey
+               + '&color=' + encodeURIComponent(color)
+               + '&avatar=' + encodeURIComponent(avatar)
+               + '&name='  + encodeURIComponent(name);
+    iframe.style.cssText = 'position:fixed;bottom:20px;right:20px;width:64px;height:64px;border:none;border-radius:999px;overflow:hidden;box-shadow:0 6px 18px rgba(0,0,0,0.16);z-index:99999;transition:width 240ms ease,height 240ms ease,border-radius 240ms ease;';
+    iframe.id = 'zapien-iframe';
+    document.body.appendChild(iframe);
+
+    window.addEventListener('message', function(e) {
+      if (e.data.type === 'zapien-chat-ready') {
+        iframe.contentWindow.postMessage({ type:'zapien-init', chatbotId:chatbotId, embedKey:embedKey, apiUrl:apiUrl, color:color, avatar:avatar, chatbotName:name }, '*');
+      }
+      if (e.data.type === 'zapien-open-request')  { iframe.style.cssText += 'width:400px!important;height:500px!important;border-radius:12px!important;'; }
+      if (e.data.type === 'zapien-close-request') { iframe.style.cssText += 'width:64px!important;height:64px!important;border-radius:999px!important;'; iframe.contentWindow.postMessage({type:'zapien-close'},'*'); }
+    });
+  })();
+</script>
+<!-- Pega este código antes de </body> en tu sitio web -->`;
+
+          // ── Chat pantalla completa ─────────────────────────────────────────
+          const [fullChatCode, setFullChatCode] = React.useState('');
+          const [loadingFull, setLoadingFull]   = React.useState(false);
+          const [copiedFull, setCopiedFull]     = React.useState(false);
+
+          const loadFullChat = () => {
+            if (fullChatCode) return;
+            setLoadingFull(true);
+            fetch(`${baseUrl}/fullchat.html`)
+              .then(r => r.text())
+              .then(html => {
+                const code = html
+                  .replace("const EMBED_KEY = 'EMBED_KEY_AQUI'", `const EMBED_KEY = '${bot.embedKey}'`)
+                  .replace("const API_URL   = 'http://localhost:5001'", `const API_URL   = '${apiUrl}'`);
+                setFullChatCode(code);
+              })
+              .catch(() => message.error('Error al cargar el código'))
+              .finally(() => setLoadingFull(false));
+          };
+
+          const copyFull = () => {
+            navigator.clipboard.writeText(fullChatCode);
+            setCopiedFull(true);
+            message.success('Código copiado');
+            setTimeout(() => setCopiedFull(false), 2000);
+          };
+
+          const codeBlockStyle = {
+            background: 'var(--bone-2)', borderRadius: 8, padding: 16,
+            marginBottom: 12, maxHeight: 260, overflow: 'auto',
+          };
+          const preStyle = {
+            margin: 0, fontSize: 11, fontFamily: 'monospace',
+            color: 'var(--carbon)', whiteSpace: 'pre-wrap', wordBreak: 'break-all',
+          };
+          const instructionsStyle = {
+            marginTop: 16, padding: 14, background: 'var(--bone-2)',
+            borderRadius: 8, fontFamily: 'var(--font-body)', fontSize: 13,
+            opacity: 0.7, lineHeight: 1.6,
+          };
+
+          return (
+            <>
+              <div className="section-head">
+                <div>
+                  <div className="section-num">Código para incrustar</div>
+                  <div className="section-title">Dos formas de <em>compartir tu chatbot</em></div>
+                </div>
               </div>
-            </div>
 
-            {/* Full chat HTML file */}
-            {bot?.embedKey && (() => {
-              const apiUrl = import.meta.env.VITE_API_APP || 'http://localhost:5001';
-              const fullChatCode = `<!-- Zapien Chat Pantalla Completa -->
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Chat</title>
-</head>
-<body>
-  <!-- Pega el contenido de fullchat.html aquí,
-       o ábrelo directamente cambiando estas dos líneas: -->
-  <script>
-    const EMBED_KEY = '${bot.embedKey}';
-    const API_URL   = '${apiUrl}';
-  </script>
-  <script src="${apiUrl.replace(':5001','')}/fullchat.js" async></script>
-</body>
-</html>`;
+              <div className="grid-2-eq" style={{ gap: 20 }}>
 
-              // Simpler: generate the download link for fullchat.html pre-configured
-              const handleDownloadFullChat = () => {
-                const baseUrl = import.meta.env.VITE_API_APP?.replace(':5001', ':5173') || 'http://localhost:5173';
-                fetch(`${baseUrl}/fullchat.html`)
-                  .then(r => r.text())
-                  .then(html => {
-                    const configured = html
-                      .replace("const EMBED_KEY = 'EMBED_KEY_AQUI'", `const EMBED_KEY = '${bot.embedKey}'`)
-                      .replace("const API_URL   = 'http://localhost:5001'", `const API_URL   = '${apiUrl}'`);
-                    const blob = new Blob([configured], { type: 'text/html' });
-                    const a = document.createElement('a');
-                    a.href = URL.createObjectURL(blob);
-                    a.download = `chat-${bot.name?.toLowerCase().replace(/\s+/g,'-')}.html`;
-                    a.click();
-                    URL.revokeObjectURL(a.href);
-                  });
-              };
-
-              return (
-                <div className="card" style={{ marginBottom: 24, background: 'var(--voltage)', borderColor: 'var(--carbon)' }}>
-                  <div className="section-num" style={{ marginBottom: 6 }}>💬 Chat pantalla completa</div>
-                  <p style={{ fontSize: 13, margin: '0 0 12px', opacity: 0.75, lineHeight: 1.5 }}>
-                    Archivo HTML independiente tipo ChatGPT. Descárgalo, ábrelo en cualquier browser o súbelo a tu web. No requiere instalar nada.
-                  </p>
-                  <div style={{ display: 'flex', gap: 8 }}>
-                    <button className="btn btn-primary btn-sm" onClick={handleDownloadFullChat}>
-                      ⬇️ Descargar HTML
-                    </button>
+                {/* ── Widget burbuja ── */}
+                <div className="card">
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                    <div style={{ width: 36, height: 36, borderRadius: 10, background: bot.widget?.color || '#667eea', display: 'grid', placeItems: 'center', fontSize: 18, flexShrink: 0 }}>
+                      {bot.widget?.avatar || '🤖'}
+                    </div>
+                    <div>
+                      <div className="section-num">Widget burbuja</div>
+                      <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, opacity: 0.55 }}>Aparece como burbuja flotante en tu web</div>
+                    </div>
                   </div>
-                </div>
-              );
-            })()}
 
-            {!embedCode && (
-              <button
-                className="btn btn-primary btn-lg"
-                onClick={handleLoadEmbed}
-                disabled={loadingEmbed}
-                style={{ marginBottom: 24 }}
-              >
-                {loadingEmbed ? 'Cargando...' : 'Generar código embed'}
-              </button>
-            )}
+                  <div style={codeBlockStyle}>
+                    <pre style={preStyle}>{bubbleCode}</pre>
+                  </div>
 
-            {embedCode && (
-              <div className="card">
-                <div style={{ background: 'var(--bone-2)', borderRadius: 8, padding: 16, marginBottom: 12, position: 'relative' }}>
-                  <pre
-                    style={{
-                      margin: 0,
-                      fontSize: 12,
-                      overflow: 'auto',
-                      fontFamily: 'monospace',
-                      color: 'var(--carbon)',
-                      whiteSpace: 'pre-wrap',
-                      wordBreak: 'break-all',
-                    }}
-                  >
-                    {embedCode}
-                  </pre>
-                </div>
-
-                <div style={{ display: 'flex', gap: 8 }}>
-                  <button className="btn btn-primary btn-sm" onClick={handleCopyEmbed}>
+                  <button className="btn btn-primary btn-sm" onClick={() => { navigator.clipboard.writeText(bubbleCode); message.success('Código copiado'); }}>
                     <svg><use href="#i-copy" /></svg>Copiar código
                   </button>
-                  <button className="btn btn-ghost btn-sm" onClick={() => setEmbedCode('')}>
-                    <svg><use href="#i-x" /></svg>Limpiar
-                  </button>
+
+                  <div style={instructionsStyle}>
+                    <strong>¿Cómo usarlo?</strong>
+                    <ol style={{ paddingLeft: 18, margin: '6px 0 0' }}>
+                      <li>Copia el código</li>
+                      <li>Pégalo antes de <code>&lt;/body&gt;</code> en tu HTML</li>
+                      <li>El chatbot aparece como burbuja en la esquina</li>
+                    </ol>
+                  </div>
                 </div>
 
-                <div style={{ marginTop: 24, padding: '16px', background: 'var(--bone-2)', borderRadius: 8 }}>
-                  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14, marginBottom: 8 }}>
-                    ¿Cómo instalarlo?
+                {/* ── Chat pantalla completa ── */}
+                <div className="card">
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                    <div style={{ width: 36, height: 36, borderRadius: 10, background: 'var(--ink)', display: 'grid', placeItems: 'center', fontSize: 18, flexShrink: 0, color: 'var(--voltage)' }}>
+                      💬
+                    </div>
+                    <div>
+                      <div className="section-num">Chat pantalla completa</div>
+                      <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, opacity: 0.55 }}>Página completa tipo ChatGPT, sin instalar nada</div>
+                    </div>
                   </div>
-                  <ol style={{ fontFamily: 'var(--font-body)', fontSize: 13, opacity: 0.7, lineHeight: 1.6, paddingLeft: 20, margin: 0 }}>
-                    <li>Copia el código de arriba</li>
-                    <li>Abre el HTML de tu sitio web</li>
-                    <li>Pega el código antes de <code>&lt;/body&gt;</code></li>
-                    <li>¡Listo! El chatbot aparecerá en tu sitio</li>
-                  </ol>
+
+                  {!fullChatCode ? (
+                    <div style={{ padding: '24px 0', textAlign: 'center' }}>
+                      <button className="btn btn-secondary btn-sm" onClick={loadFullChat} disabled={loadingFull}>
+                        {loadingFull ? 'Cargando...' : '⚡ Generar código'}
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <div style={codeBlockStyle}>
+                        <pre style={preStyle}>{fullChatCode}</pre>
+                      </div>
+                      <button className="btn btn-primary btn-sm" onClick={copyFull}>
+                        <svg><use href="#i-copy" /></svg>{copiedFull ? '✓ Copiado' : 'Copiar código'}
+                      </button>
+                    </>
+                  )}
+
+                  <div style={instructionsStyle}>
+                    <strong>¿Cómo usarlo?</strong>
+                    <ol style={{ paddingLeft: 18, margin: '6px 0 0' }}>
+                      <li>Copia el código</li>
+                      <li>Pégalo en un archivo <code>.html</code> vacío</li>
+                      <li>Ábrelo en el browser — funciona al instante</li>
+                    </ol>
+                  </div>
                 </div>
+
               </div>
-            )}
-          </>
-        )}
+            </>
+          );
+        })()}
 
         {tab === 'leads' && (
           <LeadsPanel workspaceId={workspaceId} botId={id} bot={bot} />
