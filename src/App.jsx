@@ -14,6 +14,7 @@ import Widget from './pages/public/Widget.jsx';
 import AcceptInvite from './pages/public/AcceptInvite.jsx';
 import TableOrder from './pages/public/TableOrder.jsx';
 import PublicQuote from './pages/public/PublicQuote.jsx';
+import FullChat from './pages/public/FullChat.jsx';
 
 // Privadas
 import BotSelector from './pages/private/chatbots/BotSelector.jsx';
@@ -46,7 +47,8 @@ function App() {
           <Route path="/verificar-email" element={<VerifyEmail />} />
           <Route path="/invitar"         element={<AcceptInvite />} />
           <Route path="/recuperar"       element={<ForgotPassword />} />
-          <Route path="/mesa/:tableToken"element={<TableOrder />} />
+          <Route path="/mesa/:tableToken" element={<TableOrder />} />
+          <Route path="/chat/:embedKey"   element={<FullChat />} />
           <Route path="/widget"          element={<Widget />} />
           <Route path="/cotizacion/:id"  element={<PublicQuote />} />
           <Route path="/cotizacion-publica" element={<PublicQuote />} />

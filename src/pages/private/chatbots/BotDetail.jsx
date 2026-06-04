@@ -1175,9 +1175,34 @@ const BotDetail = () => {
             <div className="section-head">
               <div>
                 <div className="section-num">Código para incrustar</div>
-                <div className="section-title">Copia este código en tu <em>sitio web</em></div>
+                <div className="section-title">Dos formas de <em>compartir tu chatbot</em></div>
               </div>
             </div>
+
+            {/* Full chat link */}
+            {bot?.embedKey && (() => {
+              const baseUrl = import.meta.env.VITE_API_APP?.replace(':5001', ':5173') || 'http://localhost:5173';
+              const fullChatUrl = `${baseUrl}/chat/${bot.embedKey}`;
+              return (
+                <div className="card" style={{ marginBottom: 24, background: 'var(--voltage)', borderColor: 'var(--carbon)' }}>
+                  <div className="section-num" style={{ marginBottom: 6 }}>💬 Chat de pantalla completa</div>
+                  <p style={{ fontSize: 13, margin: '0 0 10px', opacity: 0.75 }}>
+                    Link directo tipo ChatGPT. Compártelo por WhatsApp, email o ponlo en un botón de tu web.
+                  </p>
+                  <div style={{ padding: '8px 12px', background: 'rgba(0,0,0,0.08)', borderRadius: 7, fontFamily: 'monospace', fontSize: 12, wordBreak: 'break-all', marginBottom: 12 }}>
+                    {fullChatUrl}
+                  </div>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <button className="btn btn-primary btn-sm" onClick={() => { navigator.clipboard.writeText(fullChatUrl); message.success('Link copiado'); }}>
+                      📋 Copiar link
+                    </button>
+                    <a href={fullChatUrl} target="_blank" rel="noreferrer" className="btn btn-secondary btn-sm">
+                      👁 Vista previa
+                    </a>
+                  </div>
+                </div>
+              );
+            })()}
 
             {!embedCode && (
               <button
