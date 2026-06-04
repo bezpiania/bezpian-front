@@ -1218,7 +1218,10 @@ const BotDetail = () => {
               .then(html => {
                 const code = html
                   .replace("const EMBED_KEY = 'EMBED_KEY_AQUI'", `const EMBED_KEY = '${bot.embedKey}'`)
-                  .replace("const API_URL   = 'http://localhost:5001'", `const API_URL   = '${apiUrl}'`);
+                  .replace("const API_URL   = 'http://localhost:5001'", `const API_URL   = '${apiUrl}'`)
+                  .replace("Hola, soy tu asistente", `Hola, soy el asistente de ${bot.name}`)
+                  .replace(">🤖<", `>${bot.widget?.avatar || '🤖'}<`)
+                  .replace("--accent: #6366f1", `--accent: ${bot.widget?.color || '#6366f1'}`);
                 setFullChatCode(code);
               })
               .catch(() => message.error('Error al cargar el código'))
