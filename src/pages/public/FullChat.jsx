@@ -106,24 +106,22 @@ const FullChat = () => {
   // Start conversation
   useEffect(() => {
     if (!embedKey) return;
+    // Get bot info first (name, color, avatar)
+    Chatbot.get(`/api/embed/bot-info?embedKey=${embedKey}`)
+      .then(res => { if (res?.success) setBotInfo(res.data); })
+      .catch(() => {});
+
+    // Start conversation
     Chatbot.post('/api/embed/conversations', { embedKey, visitorId })
       .then(res => {
-        if (res.data?.success) {
-          const d = res.data.data;
+        if (res?.success) {
+          const d = res.data;
           setConvId(d.conversationId);
           setBotId(d.botId);
-          setBotInfo(d.bot);
           setMessages([{ role: 'assistant', content: d.welcomeMessage, id: '0' }]);
         }
       })
       .catch(() => setMessages([{ role: 'assistant', content: 'Hubo un error al conectar. Intenta recargar la página.', id: 'err' }]));
-  }, [embedKey]);
-
-  // Also fetch bot info for sidebar
-  useEffect(() => {
-    if (!embedKey) return;
-    Chatbot.get(`/api/embed/conversations`)
-      .catch(() => {});
   }, [embedKey]);
 
   const sendMessage = async (text) => {
@@ -134,8 +132,8 @@ const FullChat = () => {
     setLoading(true);
     try {
       const res = await Chatbot.post('/api/embed/messages', { conversationId: convId, content: msg, botId });
-      if (res.data?.success) {
-        const botMsg = res.data.data.botMessage;
+      if (res?.success) {
+        const botMsg = res.data?.botMessage;
         setMessages(prev => [...prev, { role: 'assistant', content: botMsg.content, id: botMsg._id }]);
       }
     } catch {
