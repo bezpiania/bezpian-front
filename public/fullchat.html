@@ -269,8 +269,15 @@
       flex: 1; border: none; background: transparent; resize: none;
       font-size: 15px; font-family: var(--font); line-height: 1.5;
       outline: none; max-height: 160px; overflow-y: auto;
-      color: var(--text); caret-color: var(--accent);
+      color: var(--text);
+      caret-color: #4285f4;
+      caret-shape: bar;
       padding: 6px 0;
+    }
+
+    @keyframes blink-caret {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
     }
 
     #msg-input::placeholder { color: var(--text-muted); }
@@ -549,7 +556,10 @@
 
   // ── Start ─────────────────────────────────────────────────────────────────
   document.getElementById('msg-input').disabled = true;
-  init();
+  init().then(() => {
+    const input = document.getElementById('msg-input');
+    if (!input.disabled) input.focus();
+  });
 </script>
 </body>
 </html>
