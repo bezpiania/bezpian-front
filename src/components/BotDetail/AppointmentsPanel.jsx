@@ -5,6 +5,7 @@ import Chatbot from '../../services/Chatbot.js';
 import api from '../../apis/app.js';
 import { getBusinessType } from '../../config/businessTypes.js';
 import TableQRCode from './TableQRCode.jsx';
+import ServiceAlert from './ServiceAlert.jsx';
 
 const DAY_KEYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
 const DAY_LABELS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
@@ -403,8 +404,18 @@ const AppointmentsPanel = ({ workspaceId, botId, bot, businessType }) => {
 
   const typeLabel = { table: 'Mesa', person: 'Especialista', room: 'Sala', equipment: 'Equipo' };
 
+  const apptEnabled = config.enabled;
+  const hasResourceWithSlots = resources.some(r =>
+    Object.values(r.schedule || {}).some(d => d.enabled && d.slots?.length > 0)
+  );
+  const apptAlertSteps = [
+    { done: resources.length > 0,    label: 'Agrega al menos un recurso (mesa, sala, especialista, etc.)' },
+    { done: hasResourceWithSlots,     label: 'Configura al menos un horario disponible en un recurso' },
+  ];
+
   return (
     <>
+      {apptEnabled && <ServiceAlert steps={apptAlertSteps} />}
       <div className="section-head">
         <div>
           <div className="section-num">Agendamiento</div>

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { message } from 'antd';
 import { useQueryClient } from '@tanstack/react-query';
 import api from '../../apis/app.js';
+import ServiceAlert from './ServiceAlert.jsx';
 
 const SalesPanel = ({ workspaceId, botId, bot }) => {
   const queryClient = useQueryClient();
@@ -66,8 +67,14 @@ const SalesPanel = ({ workspaceId, botId, bot }) => {
     }
   };
 
+  const salesAlertSteps = [
+    { done: config.allowDelivery || config.allowPickup, label: 'Activa al menos una modalidad: delivery o retiro en tienda' },
+    { done: !config.allowDelivery || config.zones.length > 0, label: 'Agrega al menos una zona de despacho' },
+  ];
+
   return (
     <>
+      {config.enabled && <ServiceAlert steps={salesAlertSteps} />}
       <div className="section-head">
         <div>
           <div className="section-num">Ventas / Delivery</div>

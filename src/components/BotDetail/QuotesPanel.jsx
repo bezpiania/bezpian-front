@@ -3,6 +3,7 @@ import { message, Spin } from 'antd';
 import Chatbot from '../../services/Chatbot.js';
 import api from '../../apis/app.js';
 import { getBusinessType } from '../../config/businessTypes.js';
+import ServiceAlert from './ServiceAlert.jsx';
 
 const FIELD_TYPES = [
   { value: 'text', label: 'Texto' },
@@ -250,8 +251,14 @@ const QuotesPanel = ({ workspaceId, botId, bot }) => {
 
 
 
+  const quoteEnabled = bot?.quoteConfig?.enabled ?? false;
+  const alertSteps = [
+    { done: quoteFields.length > 0,  label: 'Agrega al menos un campo que el bot debe solicitar al cliente' },
+  ];
+
   return (
     <>
+      {quoteEnabled && <ServiceAlert steps={alertSteps} />}
       <div className="section-head">
         <div>
           <div className="section-num">Cotizaciones</div>
