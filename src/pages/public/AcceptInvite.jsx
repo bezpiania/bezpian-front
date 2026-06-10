@@ -92,7 +92,7 @@ const AcceptInvite = () => {
     <div className="auth-layout">
       <div className="auth-form-panel">
         <div className="auth-form-top">
-          <a href="/" className="auth-brand"><BrainSVG /><span>Zapien</span></a>
+          <a href="/" className="auth-brand"><BrainSVG /><span>Bezpian</span></a>
         </div>
 
         <div className="auth-form-shell">
@@ -157,7 +157,7 @@ const AcceptInvite = () => {
         </div>
         <div className="auth-visual-footer">
           <span>Invitación válida por 7 días</span>
-          <span className="auth-mark">Zapien</span>
+          <span className="auth-mark">Bezpian</span>
         </div>
       </div>
     </div>

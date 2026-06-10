@@ -190,10 +190,6 @@ const FullChat = () => {
         </div>
       </div>
 
-      {/* Powered by */}
-      <div style={{ marginTop: 'auto', textAlign: 'center', paddingTop: 16, borderTop: '1px solid #f0f0f0' }}>
-        <span style={{ fontSize: 11, color: '#ccc', fontFamily: 'sans-serif' }}>Powered by Zapien AI</span>
-      </div>
     </div>
   );
 
@@ -301,9 +297,6 @@ const FullChat = () => {
                 <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" />
               </svg>
             </button>
-          </div>
-          <div style={{ textAlign: 'center', marginTop: 8, fontSize: 11, color: '#ccc' }}>
-            Powered by <strong style={{ color: '#bbb' }}>Zapien AI</strong>
           </div>
         </div>
       </div>

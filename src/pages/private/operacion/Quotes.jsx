@@ -36,18 +36,19 @@ const formatDate = (date) => {
 
 const Quotes = () => {
   const workspaceId = localStorage.getItem('workspaceId');
+  const activeBotId = localStorage.getItem('activeBotId') || '';
   const [search, setSearch] = useState('');
   const [quotes, setQuotes] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (!workspaceId) return;
+    if (!workspaceId || !activeBotId) return;
 
     const fetchQuotes = async () => {
       try {
         setIsLoading(true);
-        const response = await Quote.listByWorkspace(workspaceId);
-        setQuotes(response.data || []);
+        const response = await Quote.list(workspaceId, activeBotId);
+        setQuotes(response?.data || response || []);
       } catch (error) {
         console.error('Error fetching quotes:', error);
         setQuotes([]);
@@ -57,7 +58,7 @@ const Quotes = () => {
     };
 
     fetchQuotes();
-  }, [workspaceId]);
+  }, [workspaceId, activeBotId]);
 
   const filteredQuotes = useMemo(() => {
     if (!search) return quotes;

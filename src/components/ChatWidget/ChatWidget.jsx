@@ -145,7 +145,7 @@ const ChatWidget = ({ embedKey, tableId = null, position = 'bottom-right', autoO
         <div className="zapien-chat-window">
           <div className="zapien-header">
             <div className="zapien-header-content">
-              <div className="zapien-bot-name">{botInfo?.name || 'Zapien Chat'}</div>
+              <div className="zapien-bot-name">{botInfo?.name || 'Bezpian Chat'}</div>
               <div className="zapien-bot-status">En línea</div>
             </div>
             <button className="zapien-close-btn" onClick={() => isOpenSet(false)} aria-label="Close chat">✕</button>

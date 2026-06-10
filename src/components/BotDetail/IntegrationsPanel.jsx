@@ -427,7 +427,7 @@ const GuideSection = () => (
               <br />• Phone Number ID: WhatsApp → Configuración
               <br />• Access Token: Settings → Tokens de acceso de sistema
             </li>
-            <li><strong>3. Conectar en Zapien:</strong>
+            <li><strong>3. Conectar en Bezpian:</strong>
               <br />• Haz clic en "Conectar"
               <br />• Completa los 3 campos
               <br />• ¡Listo!
@@ -457,7 +457,7 @@ const GuideSection = () => (
               <br />• Ve a Tools → Meta App Manager
               <br />• Genera un Access Token con permisos: instagram_basic, instagram_manage_messages
             </li>
-            <li><strong>4. Conectar en Zapien:</strong>
+            <li><strong>4. Conectar en Bezpian:</strong>
               <br />• Haz clic en "Conectar"
               <br />• Completa los 2 campos
               <br />• ¡Listo!

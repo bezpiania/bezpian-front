@@ -6,6 +6,22 @@ import '../../styles/company-instructions.css';
 const dayNames = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
 const dayLabels = { monday: 'Lunes', tuesday: 'Martes', wednesday: 'Miércoles', thursday: 'Jueves', friday: 'Viernes', saturday: 'Sábado', sunday: 'Domingo' };
 
+// Normalize day key — accepts Spanish or English, returns English key
+const ES_TO_EN = { lunes:'monday', martes:'tuesday', miércoles:'wednesday', miercoles:'wednesday', jueves:'thursday', viernes:'friday', sábado:'saturday', sabado:'saturday', domingo:'sunday' };
+const normDay = (d) => {
+  if (!d) return d;
+  const lower = d.toLowerCase();
+  return ES_TO_EN[lower] || lower; // already english or unknown → pass through
+};
+
+// Normalize an operationHours array so all .day values are English keys
+const normalizeHours = (hours = []) =>
+  hours.map(h => ({ ...h, day: normDay(h.day) }));
+
+// Normalize operationHoursDisplay (array of day strings)
+const normalizeDisplay = (display = []) =>
+  display.map(d => normDay(d));
+
 const CompanyInfoForm = ({ workspaceId, botId }) => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -31,8 +47,21 @@ const CompanyInfoForm = ({ workspaceId, botId }) => {
         const companyData = response.data.company;
         setForm({
           company: companyData.company || {},
-          operationHours: (companyData.operationHours && companyData.operationHours.length > 0) ? companyData.operationHours : dayNames.map(day => ({ day, open: '09:00', close: '18:00', isClosed: ['saturday', 'sunday'].includes(day) })),
-          operationHoursDisplay: (companyData.operationHoursDisplay && companyData.operationHoursDisplay.length > 0) ? companyData.operationHoursDisplay : dayNames,
+          operationHours: (() => {
+            if (!companyData.operationHours?.length) return dayNames.map(day => ({ day, open: '09:00', close: '18:00', isClosed: ['saturday', 'sunday'].includes(day) }));
+            const normalized = normalizeHours(companyData.operationHours);
+            // Ensure all 7 days exist (fill missing with defaults)
+            const existing = new Set(normalized.map(h => h.day));
+            const missing = dayNames.filter(d => !existing.has(d)).map(d => ({ day: d, open: '09:00', close: '18:00', isClosed: ['saturday','sunday'].includes(d) }));
+            return [...normalized, ...missing];
+          })(),
+          operationHoursDisplay: (() => {
+            if (!companyData.operationHours?.length) return dayNames;
+            // Rebuild display from the actual day keys (normalized), in week order
+            const normalized = normalizeHours(companyData.operationHours);
+            const keys = new Set(normalized.map(h => h.day));
+            return dayNames.filter(d => keys.has(d));
+          })(),
           dispatches: companyData.dispatches || {},
           payments: companyData.payments || {},
           social: companyData.social || {},

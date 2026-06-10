@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { message } from 'antd';
 import AppLayout from '../../../components/AppLayout.jsx';
 
-const SNIPPET = `<!-- Zapien chatbot · Zapi -->
+const SNIPPET = `<!-- Bezpian chatbot · Zapi -->
 <script src="https://cdn.zapien.cl/widget.js" data-bot="zapi_acme_abc123" async></script>`;
 
 const BotEmbed = () => {
@@ -68,7 +68,7 @@ const BotEmbed = () => {
                   Copiar
                 </button>
               </div>
-              <div><span style={{ color: '#9C9586' }}>{'<!-- Zapien chatbot · Zapi -->'}</span></div>
+              <div><span style={{ color: '#9C9586' }}>{'<!-- Bezpian chatbot · Zapi -->'}</span></div>
               <div>
                 <span style={{ color: '#8FA3D6' }}>{'<script '}</span>
                 <span style={{ color: '#DCFF1E' }}>src</span>=<span style={{ color: '#D3B58D' }}>"https://cdn.zapien.cl/widget.js"</span>{' '}

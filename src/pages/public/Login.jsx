@@ -61,7 +61,7 @@ const Login = () => {
         <div className="auth-form-top">
           <a href="/" className="auth-brand">
             <BrainSVG />
-            <span>Zapien</span>
+            <span>Bezpian</span>
           </a>
           <button className="auth-back-link" onClick={() => navigate('/')}>
             Volver al sitio
@@ -76,7 +76,7 @@ const Login = () => {
 
           <h1 className="auth-headline">
             Vuelve a tu<br />
-            <em>Zapien.</em>
+            <em>Bezpian.</em>
           </h1>
 
           <p className="auth-subheading">
@@ -131,7 +131,7 @@ const Login = () => {
               className="auth-btn-submit"
               disabled={isPending}
             >
-              {isPending ? 'Conectando…' : 'Entrar a mi Zapien'}
+              {isPending ? 'Conectando…' : 'Entrar a mi Bezpian'}
             </button>
 
             <div className="auth-divider">
@@ -153,7 +153,7 @@ const Login = () => {
         <div className="auth-form-nav">
           <div>
             <em>¿Aún no tienes cuenta?</em>
-            <Link to="/signup">Crear mi Zapien gratis</Link>
+            <Link to="/signup">Crear mi Bezpian gratis</Link>
           </div>
           <div>
             <span>Términos</span>
@@ -168,7 +168,7 @@ const Login = () => {
       {/* Visual Panel */}
       <div className="auth-visual-panel">
         <div className="auth-visual-top">
-          <span className="auth-section-num">Tu Zapien · Anoche</span>
+          <span className="auth-section-num">Tu Bezpian · Anoche</span>
           <div className="auth-live">
             <span className="auth-dot-live"></span>
             EN VIVO
@@ -202,7 +202,7 @@ const Login = () => {
 
         <div className="auth-visual-footer">
           <span>Santiago · CL</span>
-          <span className="auth-mark">Zapien</span>
+          <span className="auth-mark">Bezpian</span>
         </div>
       </div>
     </div>

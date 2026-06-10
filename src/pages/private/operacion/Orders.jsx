@@ -6,7 +6,6 @@ import api from '../../../apis/app.js';
 import { getBusinessType } from '../../../config/businessTypes.js';
 
 const workspaceId = localStorage.getItem('workspaceId');
-const activeBotId = localStorage.getItem('activeBotId') || '';
 
 const ALL_STATUS_CONFIG = {
   new:        { label: 'Nuevo',           dot: '#F59E0B', bg: '#FEF3C7', color: '#92400E' },
@@ -17,6 +16,15 @@ const ALL_STATUS_CONFIG = {
   delivered:  { label: 'Entregado',       dot: 'var(--green)', bg: '#F0FDF4', color: '#166534' },
   returned:   { label: 'Devuelto',        dot: '#F97316', bg: '#FFF7ED', color: '#9A3412' },
   cancelled:  { label: 'Cancelado',       dot: 'var(--magma)', bg: '#FFF1F0', color: '#B91C1C' },
+};
+
+// Label for the "advance to next status" button
+const STATUS_NEXT_LABEL = {
+  new:        'Confirmar pedido →',
+  processing: 'Iniciar preparación →',
+  preparing:  'Listo para envío →',
+  on_the_way: 'Marcar entregado →',
+  delivered:  'Entregado ✓',
 };
 
 // Status flow and labels per business type
@@ -55,13 +63,14 @@ const StatusPill = ({ status, statusConfig }) => {
 
 const Orders = () => {
   const qc = useQueryClient();
+  const activeBotId = localStorage.getItem('activeBotId') || '';
   const [filter, setFilter] = useState('');
   const [expanded, setExpanded] = useState(null);
 
   const { data, isLoading } = useQuery({
-    queryKey: ['orders', workspaceId, filter],
+    queryKey: ['orders', workspaceId, activeBotId, filter],
     queryFn: () => api.get(`/api/workspaces/${workspaceId}/orders?${activeBotId ? `chatbotId=${activeBotId}&` : ''}${filter ? `status=${filter}` : ''}`),
-    enabled: !!workspaceId,
+    enabled: !!workspaceId && !!activeBotId,
     refetchInterval: 30000,
   });
 

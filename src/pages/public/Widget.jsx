@@ -121,7 +121,7 @@ const Widget = () => (
             </div>
 
             <div style={{ padding: '8px 14px', textAlign: 'center', background: 'var(--bone-2)', borderTop: '1px solid var(--rule)', fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase', opacity: 0.55 }}>
-              Con tecnología de <strong style={{ fontWeight: 700 }}>Zapien</strong>
+              Con tecnología de <strong style={{ fontWeight: 700 }}>Bezpian</strong>
             </div>
           </div>
         </div>

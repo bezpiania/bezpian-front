@@ -42,10 +42,11 @@ const BotPill = ({ bot }) => {
 
 const Leads = () => {
   const { workspaceId } = useParams();
+  const activeBotId = localStorage.getItem('activeBotId') || '';
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
 
-  const { data: leadsResponse, isLoading } = useGetLeads(workspaceId, workspaceId);
+  const { data: leadsResponse, isLoading } = useGetLeads(workspaceId, activeBotId);
   const leads = leadsResponse?.data || [];
 
   const filteredLeads = useMemo(() => {

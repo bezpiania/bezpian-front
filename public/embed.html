@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zapien Chat Widget</title>
+    <title>Bezpian Chat Widget</title>
     <style>
         * {
             margin: 0;
@@ -23,15 +23,32 @@
             position: relative;
         }
 
+        /* Standalone mode: body gets a backdrop */
+        body.standalone-mode {
+            background: rgba(0, 0, 0, 0.15);
+        }
+
         .chat-widget {
             display: flex;
             flex-direction: column;
-            height: 100vh;
-            max-height: 600px;
             width: 100%;
+            height: 100%;
             background: white;
-            border-radius: 0;
-            box-shadow: none;
+        }
+
+        /* Popup mode: floating chat above the button */
+        #chatWidgetRoot {
+            position: fixed;
+            bottom: 90px;
+            right: 20px;
+            z-index: 999;
+            width: 370px;
+            max-width: calc(100vw - 32px);
+            height: 520px;
+            max-height: calc(100vh - 120px);
+            border-radius: 16px;
+            box-shadow: 0 24px 64px rgba(0, 0, 0, 0.22), 0 4px 16px rgba(0, 0, 0, 0.12);
+            overflow: hidden;
         }
 
         .chat-header {
@@ -145,6 +162,30 @@
             color: var(--text-color, white);
         }
 
+        .typing-bubble {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 10px 14px;
+            background: #ffffff;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px 16px 16px 16px;
+            width: fit-content;
+        }
+        .typing-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #bbb;
+            animation: tdot 1.4s infinite;
+        }
+        .typing-dot:nth-child(2) { animation-delay: .2s }
+        .typing-dot:nth-child(3) { animation-delay: .4s }
+        @keyframes tdot {
+            0%, 60%, 100% { opacity: .25; transform: scale(1) }
+            30%            { opacity: .8;  transform: scale(1.3) }
+        }
+
         .chat-input-area {
             padding: 14px 16px;
             border-top: 1px solid #e8e8e8;
@@ -234,10 +275,8 @@
         </div>
 
         <div class="chat-messages" id="messages">
-            <div class="message bot">
-                <div class="message-content">
-                    ¡Hola! 👋 ¿En qué te puedo ayudar?
-                </div>
+            <div class="message bot" id="welcomeMsg">
+                <div class="message-content" style="opacity:0.5;font-style:italic;font-size:12px;">Conectando...</div>
             </div>
         </div>
 
@@ -253,7 +292,7 @@
     </div>
 
     <!-- Minimized floating button (for iframe internal toggle) -->
-    <button id="minimizedButton" aria-label="Abrir chat" style="position:absolute;bottom:0;right:0;width:100%;height:100%;border-radius:50%;border:none;background:var(--primary-color,#667eea);color:var(--text-color,white);display:flex;align-items:center;justify-content:center;font-size:28px;box-shadow:0 6px 18px rgba(0,0,0,0.16);z-index:1000;line-height:0.8;padding:0;text-align:center;font-weight:normal;">💬</button>
+    <button id="minimizedButton" aria-label="Abrir chat" style="position:fixed;bottom:20px;right:20px;width:60px;height:60px;border-radius:50%;border:none;background:var(--primary-color,#667eea);color:var(--text-color,white);display:flex;align-items:center;justify-content:center;font-size:26px;box-shadow:0 4px 16px rgba(0,0,0,0.22);z-index:1000;line-height:1;padding:0;cursor:pointer;transition:transform 0.15s ease,box-shadow 0.15s ease;" onmouseover="this.style.transform='scale(1.08)';this.style.boxShadow='0 6px 22px rgba(0,0,0,0.28)'" onmouseout="this.style.transform='scale(1)';this.style.boxShadow='0 4px 16px rgba(0,0,0,0.22)'">💬</button>
 
     <script>
         // Función para calcular contraste de color
@@ -273,7 +312,7 @@
 
         // Get URL parameters
         const params = new URLSearchParams(window.location.search);
-        const botId = params.get('botId');
+        let botId = params.get('botId');
         const embedKey = params.get('embedKey');
         const urlColor = params.get('color');
         const urlAvatar = params.get('avatar');
@@ -281,13 +320,14 @@
 
         // Initial values
         let apiUrl = 'http://localhost:5001';
-        let conversationId = Date.now().toString();
+        let conversationId = null;
         let visitorId = 'visitor-' + Math.random().toString(36).substr(2, 9);
         let primaryColor = urlColor || '#667eea';
         let textColor = getContrastColor(primaryColor);
         let avatar = urlAvatar || '🤖';
-        let chatbotName = urlName || 'Zapien Chat';
+        let chatbotName = urlName || 'Bezpian Chat';
         let additionalInfo = []; // Almacenar información adicional del usuario
+        let visitorContext = {}; // Contexto del usuario (isLoggedIn, role, etc.)
 
         // Apply theme
         function applyTheme() {
@@ -325,28 +365,56 @@
 
         // Apply theme on load
         applyTheme();
-        // Initially hide full widget and show minimized button (iframe consumer may resize)
+
+        // Detect standalone BEFORE hiding
+        const isStandalone = window.self === window.top;
+        // Always start with widget hidden and button visible
         document.getElementById('chatWidgetRoot').style.display = 'none';
         document.getElementById('minimizedButton').style.display = 'flex';
 
-        // Click on minimized button -> request parent to open and show widget
-        document.getElementById('minimizedButton').addEventListener('click', function() {
-            window.parent.postMessage({ type: 'zapien-open-request' }, '*');
-            // Also reveal internal UI
+        if (isStandalone && botId && embedKey) {
+            // Standalone: apply popup style and preload bot config
+            document.body.classList.add('standalone-mode');
+            fetch(apiUrl + '/api/embed/bot-info?botId=' + botId + '&embedKey=' + embedKey)
+                .then(r => r.json())
+                .then(res => {
+                    if (res.success && res.data) {
+                        const info = res.data;
+                        if (info.widget?.color) { primaryColor = info.widget.color; textColor = getContrastColor(primaryColor); }
+                        if (info.widget?.avatar) { avatar = info.widget.avatar; }
+                        if (info.name)           { chatbotName = info.name; }
+                        applyTheme();
+                        // Update button emoji with bot avatar
+                        document.getElementById('minimizedButton').textContent = info.widget?.avatar || '💬';
+                    }
+                })
+                .catch(() => {});
+        }
+
+        // Toggle chat open/closed — button always stays visible
+        let conversationStarted = false;
+        function openChat() {
             document.getElementById('chatWidgetRoot').style.display = 'flex';
-            document.getElementById('minimizedButton').style.display = 'none';
-            // Start conversation when opened
-            if (typeof startConversation === 'function') startConversation();
+            window.parent.postMessage({ type: 'zapien-open-request' }, '*');
+            if (!conversationStarted) {
+                conversationStarted = true;
+                startConversation();
+            }
+        }
+        function closeChat() {
+            document.getElementById('chatWidgetRoot').style.display = 'none';
+            window.parent.postMessage({ type: 'zapien-close-request' }, '*');
+        }
+
+        document.getElementById('minimizedButton').addEventListener('click', function() {
+            const isOpen = document.getElementById('chatWidgetRoot').style.display === 'flex';
+            if (isOpen) { closeChat(); } else { openChat(); }
         });
 
-        // Close button inside header -> request parent to collapse
+        // Close button inside header
         const closeBtn = document.getElementById('headerCloseBtn');
         if (closeBtn) {
-            closeBtn.addEventListener('click', function() {
-                window.parent.postMessage({ type: 'zapien-close-request' }, '*');
-                document.getElementById('chatWidgetRoot').style.display = 'none';
-                document.getElementById('minimizedButton').style.display = 'flex';
-            });
+            closeBtn.addEventListener('click', closeChat);
         }
 
         // Start conversation helper: create conversation on backend and set ids
@@ -355,7 +423,7 @@
                 const res = await fetch(apiUrl + '/api/embed/conversations', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ embedKey, visitorId })
+                    body: JSON.stringify({ chatbotId: botId, embedKey, visitorId })
                 });
                 const data = await res.json();
                 if (data.success && data.data) {
@@ -402,13 +470,15 @@
                     additionalInfo = event.data.additionalInfo;
                 }
 
-                // If embed provided a conversationId use it, otherwise start one
+                if (event.data.visitorContext && typeof event.data.visitorContext === 'object') {
+                    visitorContext = event.data.visitorContext;
+                }
+
+                // If embed provided a conversationId use it
                 if (event.data.conversationId) {
                     conversationId = event.data.conversationId;
-                } else {
-                    // create conversation on server
-                    startConversation();
                 }
+                // Otherwise conversation is created lazily on first message
             }
         });
 
@@ -421,8 +491,7 @@
         window.addEventListener('message', function(event) {
             if (!event.data) return;
             if (event.data.type === 'zapien-close') {
-                document.getElementById('chatWidgetRoot').style.display = 'none';
-                document.getElementById('minimizedButton').style.display = 'flex';
+                closeChat();
             }
         });
 
@@ -440,6 +509,12 @@
 
             if (!message) return;
 
+            // Lazy conversation creation: ensure we have a real conversationId before sending
+            if (!conversationId) {
+                await startConversation();
+                if (!conversationId) return; // failed to create conversation
+            }
+
             const messagesDiv = document.getElementById('messages');
 
             // Add user message with primary color
@@ -451,6 +526,9 @@
             input.value = '';
             input.disabled = true;
             document.getElementById('sendBtn').disabled = true;
+
+            // Show typing indicator
+            showTyping(messagesDiv);
 
             // Auto-scroll
             messagesDiv.scrollTop = messagesDiv.scrollHeight;
@@ -466,12 +544,14 @@
                         content: message,
                         visitorId,
                         embedKey,
-                        additionalInfo: additionalInfo.filter(p => p.question && p.answer) // Enviar solo pares completos
+                        additionalInfo: additionalInfo.filter(p => p.question && p.answer),
+                        visitorContext
                     })
                 });
 
                 const data = await response.json();
 
+                hideTyping();
                 if (data.success && data.data?.botMessage) {
                     // Add bot response
                     const botMsg = document.createElement('div');
@@ -488,7 +568,7 @@
                 }
             } catch (error) {
                 console.error('Error:', error);
-
+                hideTyping();
                 const errorMsg = document.createElement('div');
                 errorMsg.className = 'message bot';
                 errorMsg.innerHTML = `<div class="message-content">⚠️ Error al procesar tu mensaje. Intenta de nuevo.</div>`;
@@ -499,6 +579,19 @@
                 input.focus();
                 messagesDiv.scrollTop = messagesDiv.scrollHeight;
             }
+        }
+
+        let typingEl = null;
+        function showTyping(messagesDiv) {
+            const row = document.createElement('div');
+            row.className = 'message bot';
+            row.innerHTML = '<div class="typing-bubble"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>';
+            typingEl = row;
+            messagesDiv.appendChild(row);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+        function hideTyping() {
+            if (typingEl) { typingEl.remove(); typingEl = null; }
         }
 
         function escapeHtml(text) {

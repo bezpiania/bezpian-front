@@ -29,7 +29,7 @@ export const BUSINESS_TYPES = {
       appointments: true,
       sales:        true,
       quotes:       false,
-      leads:        true,
+      leads:        false,  // desactivado temporalmente
       conversations: true,
     },
     catalog: {
@@ -123,7 +123,7 @@ export const BUSINESS_TYPES = {
       appointments: false,
       sales:        true,
       quotes:       true,
-      leads:        true,
+      leads:        false,  // desactivado temporalmente
       conversations: true,
     },
     catalog: {
@@ -208,9 +208,9 @@ export const BUSINESS_TYPES = {
     modules: {
       catalog:      true,
       appointments: true,
-      sales:        false,
+      sales:        true,
       quotes:       true,
-      leads:        true,
+      leads:        false,  // desactivado temporalmente
       conversations: true,
     },
     catalog: {
@@ -297,7 +297,7 @@ export const BUSINESS_TYPES = {
       appointments: true,
       sales:        true,
       quotes:       true,
-      leads:        true,
+      leads:        false,  // desactivado temporalmente
       conversations: true,
     },
     catalog: {

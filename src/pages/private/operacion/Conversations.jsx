@@ -70,6 +70,7 @@ const getTimeAgo = (date) => {
 };
 
 const ConversationsPage = () => {
+  const activeBotId = localStorage.getItem('activeBotId') || '';
   const [conversations, setConversations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
@@ -84,12 +85,13 @@ const ConversationsPage = () => {
 
   useEffect(() => {
     fetchConversations();
-  }, [filters]);
+  }, [filters, activeBotId]);
 
   const fetchConversations = async () => {
     try {
       setLoading(true);
-      const response = await Conversations.list(filters);
+      const workspaceId = localStorage.getItem('workspaceId');
+      const response = await Conversations.listByBot(workspaceId, activeBotId, filters);
 
       if (response?.data) {
         setConversations(response.data);

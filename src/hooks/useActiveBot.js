@@ -9,24 +9,33 @@
  *   activeBotType  → businessType (restaurant / store / clinic / generic)
  */
 
-export const getActiveBot = () => ({
-  id:     localStorage.getItem('activeBotId')    || null,
-  name:   localStorage.getItem('activeBotName')  || '',
-  color:  localStorage.getItem('activeBotColor') || '#667eea',
-  avatar: localStorage.getItem('activeBotAvatar')|| '🤖',
-  type:   localStorage.getItem('activeBotType')  || 'generic',
-});
+export const getActiveBot = () => {
+  let features = { chat: true, quotes: false, appointments: false, sales: false };
+  try {
+    const f = localStorage.getItem('activeBotFeatures');
+    if (f) features = { ...features, ...JSON.parse(f) };
+  } catch {}
+  return {
+    id:       localStorage.getItem('activeBotId')    || null,
+    name:     localStorage.getItem('activeBotName')  || '',
+    color:    localStorage.getItem('activeBotColor') || '#667eea',
+    avatar:   localStorage.getItem('activeBotAvatar')|| '🤖',
+    type:     localStorage.getItem('activeBotType')  || 'generic',
+    features,
+  };
+};
 
 export const setActiveBot = (bot) => {
-  localStorage.setItem('activeBotId',    bot._id || bot.id || '');
-  localStorage.setItem('activeBotName',  bot.name || '');
-  localStorage.setItem('activeBotColor', bot.widget?.color || '#667eea');
-  localStorage.setItem('activeBotAvatar',bot.widget?.avatar || '🤖');
-  localStorage.setItem('activeBotType',  bot.businessType || 'generic');
+  localStorage.setItem('activeBotId',       bot._id || bot.id || '');
+  localStorage.setItem('activeBotName',     bot.name || '');
+  localStorage.setItem('activeBotColor',    bot.widget?.color || '#667eea');
+  localStorage.setItem('activeBotAvatar',   bot.widget?.avatar || '🤖');
+  localStorage.setItem('activeBotType',     bot.businessType || 'generic');
+  localStorage.setItem('activeBotFeatures', JSON.stringify(bot.features || {}));
 };
 
 export const clearActiveBot = () => {
-  ['activeBotId','activeBotName','activeBotColor','activeBotAvatar','activeBotType']
+  ['activeBotId','activeBotName','activeBotColor','activeBotAvatar','activeBotType','activeBotFeatures']
     .forEach(k => localStorage.removeItem(k));
 };
 

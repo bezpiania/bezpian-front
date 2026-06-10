@@ -20,6 +20,21 @@ class ConversationsService {
     return await Chatbot.get(url);
   };
 
+  // Get conversations filtered by chatbot (uses scoped route for correct isolation)
+  listByBot = async (workspaceId, chatbotId, filters = {}) => {
+    const params = new URLSearchParams();
+    if (filters.search)    params.append('search',  filters.search);
+    if (filters.status)    params.append('status',  filters.status);
+    if (filters.outcome)   params.append('outcome', filters.outcome);
+    if (filters.page)      params.append('page',    filters.page);
+    if (filters.limit)     params.append('limit',   filters.limit);
+    const qs = params.toString();
+    const base = workspaceId && chatbotId
+      ? `/api/workspaces/${workspaceId}/chatbots/${chatbotId}/conversations`
+      : '/api/conversations';
+    return await Chatbot.get(`${base}${qs ? '?' + qs : ''}`);
+  };
+
   // Get single conversation with messages
   get = async (conversationId) => {
     return await Chatbot.get(`/api/conversations/${conversationId}`);

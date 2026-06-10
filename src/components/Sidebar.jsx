@@ -19,10 +19,20 @@ const Sidebar = () => {
   const leads         = counts?.leads         ?? null;
   const quotes        = counts?.quotes        ?? null;
 
+  // Fetch live features from API — always fresh, never stale localStorage
+  const { data: botFeatures } = useQuery({
+    queryKey: ['bot-features', bot.id],
+    queryFn:  () => api.get(`/api/workspaces/${wsId}/chatbots/${bot.id}`),
+    enabled:  !!wsId && !!bot.id,
+    staleTime: 30000,
+    select: d => (d?.data ?? d)?.features ?? {},
+  });
+  const features = botFeatures || bot.features || {};
+
   const { data: newOrders } = useQuery({
     queryKey: ['orders-new', wsId, bot.id],
     queryFn:  () => api.get(`/api/workspaces/${wsId}/orders?status=new${bot.id ? `&chatbotId=${bot.id}` : ''}`),
-    enabled:  !!wsId,
+    enabled:  !!wsId && !!features.sales,
     refetchInterval: 30000,
     select: d => d?.data?.orders?.length ?? 0,
   });
@@ -46,7 +56,7 @@ const Sidebar = () => {
       {/* Brand */}
       <div className="app-brand">
         <div className="app-brand-mark">Z</div>
-        <div className="app-brand-name">Zapien</div>
+        <div className="app-brand-name">Bezpian</div>
         <div className="pill-pro">PRO</div>
       </div>
 
@@ -92,21 +102,23 @@ const Sidebar = () => {
           <svg><use href="#i-chat" /></svg>Conversaciones
           <Badge count={conversations} />
         </NavLink>
-        <NavLink to="/leads" className={navClass}>
-          <svg><use href="#i-lead" /></svg>Leads
-          <Badge count={leads} />
-        </NavLink>
-        <NavLink to="/cotizaciones" className={navClass}>
-          <svg><use href="#i-quote" /></svg>Cotizaciones
-          <Badge count={quotes} />
-        </NavLink>
-        <NavLink to="/citas" className={navClass}>
-          <svg><use href="#i-cal" /></svg>Agenda
-        </NavLink>
-        <NavLink to="/ventas" className={navClass}>
-          <svg><use href="#i-money" /></svg>Ventas
-          {newOrders > 0 && <Badge count={newOrders} />}
-        </NavLink>
+        {features.quotes && (
+          <NavLink to="/cotizaciones" className={navClass}>
+            <svg><use href="#i-quote" /></svg>Cotizaciones
+            <Badge count={quotes} />
+          </NavLink>
+        )}
+        {features.appointments && (
+          <NavLink to="/citas" className={navClass}>
+            <svg><use href="#i-cal" /></svg>Agenda
+          </NavLink>
+        )}
+        {features.sales && (
+          <NavLink to="/ventas" className={navClass}>
+            <svg><use href="#i-money" /></svg>Ventas
+            {newOrders > 0 && <Badge count={newOrders} />}
+          </NavLink>
+        )}
       </div>
 
       {/* Nav — Bot */}

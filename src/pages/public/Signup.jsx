@@ -70,7 +70,7 @@ const Signup = () => {
         <div className="auth-form-top">
           <a href="/" className="auth-brand">
             <BrainSVG />
-            <span>Zapien</span>
+            <span>Bezpian</span>
           </a>
           <button className="auth-back-link" onClick={() => navigate('/')}>
             Volver al sitio
@@ -85,7 +85,7 @@ const Signup = () => {
 
           <h1 className="auth-headline">
             Crea tu<br />
-            <em>Zapien.</em>
+            <em>Bezpian.</em>
           </h1>
 
           <p className="auth-subheading">
@@ -169,7 +169,7 @@ const Signup = () => {
               className="auth-btn-submit"
               disabled={!agreeTerms || isPending}
             >
-              {isPending ? 'Creando cuenta…' : 'Crear mi Zapien'}
+              {isPending ? 'Creando cuenta…' : 'Crear mi Bezpian'}
             </button>
 
             <div className="auth-divider">
@@ -206,7 +206,7 @@ const Signup = () => {
       {/* Visual Panel */}
       <div className="auth-visual-panel">
         <div className="auth-visual-top">
-          <span className="auth-section-num">Tu Zapien · Anoche</span>
+          <span className="auth-section-num">Tu Bezpian · Anoche</span>
           <div className="auth-live">
             <span className="auth-dot-live"></span>
             EN VIVO
@@ -240,7 +240,7 @@ const Signup = () => {
 
         <div className="auth-visual-footer">
           <span>Santiago · CL</span>
-          <span className="auth-mark">Zapien</span>
+          <span className="auth-mark">Bezpian</span>
         </div>
       </div>
     </div>

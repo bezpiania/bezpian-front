@@ -10,7 +10,7 @@ export const useSidebarCounts = (workspaceId, chatbotId) => {
         ? `/api/workspaces/${workspaceId}/counts?chatbotId=${chatbotId}`
         : `/api/workspaces/${workspaceId}/counts`;
       const res = await api.get(url);
-      return res?.data || {};
+      return res?.data?.data || {};
     },
     enabled: !!workspaceId,
     staleTime:      60 * 1000,

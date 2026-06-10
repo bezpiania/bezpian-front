@@ -56,7 +56,7 @@ export default function CreateChatbot() {
       company: false,
     },
     openaiApiKey: '',
-    openaiModel: 'gpt-3.5-turbo',
+    openaiModel: 'gpt-4o-mini',
     openaiSettings: {
       temperature: 0.7,
       maxTokens: 500,
@@ -272,7 +272,7 @@ export default function CreateChatbot() {
         <div className="topbar">
           <div className="brand">
             <div className="brand-mark">Z</div>
-            <div className="brand-name">Zapien</div>
+            <div className="brand-name">Bezpian</div>
           </div>
           <button className="topbar-exit" onClick={() => navigate(-1)}>
             <X size={14} />
@@ -301,7 +301,7 @@ export default function CreateChatbot() {
             </div>
             <h2 className="step-title">
               Ponle <span className="hl">nombre</span>
-              <br />a tu Zapien.
+              <br />a tu Bezpian.
             </h2>
             <p className="step-sub">
               Así lo van a ver tus clientes cuando converse con ellos. Puedes cambiarlo después si te arrepientes.
@@ -889,9 +889,11 @@ export default function CreateChatbot() {
                 onChange={handleInputChange}
                 className="select"
               >
-                <option value="gpt-3.5-turbo">GPT-3.5 Turbo — Rápido y económico</option>
-                <option value="gpt-4">GPT-4 — Más inteligente y preciso</option>
-                <option value="gpt-4-turbo">GPT-4 Turbo — Balance óptimo</option>
+                <option value="gpt-4o-mini">GPT-4o Mini — Rápido y económico ⭐</option>
+                <option value="gpt-4o">GPT-4o — Más inteligente y rápido</option>
+                <option value="gpt-3.5-turbo">GPT-3.5 Turbo — Legado</option>
+                <option value="gpt-4">GPT-4 — Legado</option>
+                <option value="gpt-4-turbo">GPT-4 Turbo — Legado</option>
               </select>
               <div className="field-hint">
                 GPT-3.5 es más rápido y barato. GPT-4 es más inteligente pero más lento.
@@ -990,7 +992,7 @@ export default function CreateChatbot() {
           </div>
           {currentStep === visibleSteps.length - 1 ? (
             <button className="btn btn-primary voltage" onClick={handleSave} disabled={isPending}>
-              {isPending ? 'Creando...' : 'Crear Zapien'}
+              {isPending ? 'Creando...' : 'Crear Bezpian'}
             </button>
           ) : (
             <button className="btn btn-primary" onClick={handleNextStep}>

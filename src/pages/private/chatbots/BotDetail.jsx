@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { generateFullChatHtml } from '../../../utils/generateFullChatHtml.js';
 import { Link, useParams } from 'react-router-dom';
 import { Spin, message } from 'antd';
 import { useQueryClient } from '@tanstack/react-query';
@@ -12,6 +13,7 @@ import QuotesPanel from '../../../components/BotDetail/QuotesPanel.jsx';
 import AppointmentsPanel from '../../../components/BotDetail/AppointmentsPanel.jsx';
 import SalesPanel from '../../../components/BotDetail/SalesPanel.jsx';
 import IntegrationsPanel from '../../../components/BotDetail/IntegrationsPanel.jsx';
+import WoocommercePanel from '../../../components/BotDetail/WoocommercePanel.jsx';
 import AddProductModal from '../../../components/BotDetail/AddProductModal.jsx';
 import ImportCSVModal from '../../../components/BotDetail/ImportCSVModal.jsx';
 import CompanyInfoForm from '../../../components/BotDetail/CompanyInfoForm.jsx';
@@ -141,7 +143,9 @@ const BotDetail = () => {
     position: bot?.widget?.position || 'bottom-right',
     avatar: bot?.widget?.avatar || '🤖',
     proactiveMessage: bot?.widget?.proactiveMessage || '',
-    proactiveDelaySeconds: bot?.widget?.proactiveDelaySeconds || 0
+    proactiveDelaySeconds: bot?.widget?.proactiveDelaySeconds || 0,
+    pattern: bot?.widget?.pattern || 'dots',
+    patternOpacity: bot?.widget?.patternOpacity ?? 0.45,
   });
 
   const [embedCode, setEmbedCode]       = useState('');
@@ -175,7 +179,9 @@ const BotDetail = () => {
         position: bot.widget?.position || 'bottom-right',
         avatar: bot.widget?.avatar || '🤖',
         proactiveMessage: bot.widget?.proactiveMessage || '',
-        proactiveDelaySeconds: bot.widget?.proactiveDelaySeconds || 0
+        proactiveDelaySeconds: bot.widget?.proactiveDelaySeconds || 0,
+        pattern: bot.widget?.pattern || 'dots',
+        patternOpacity: bot.widget?.patternOpacity ?? 0.45,
       });
     }
   }, [bot]);
@@ -220,11 +226,6 @@ const BotDetail = () => {
         id,
         data: {
           name: configForm.name,
-          personality: {
-            customPrompt: configForm.customPrompt,
-            tone: configForm.tone,
-            welcomeMessage: configForm.welcomeMessage
-          }
         }
       },
       {
@@ -243,20 +244,25 @@ const BotDetail = () => {
   };
 
   const handleToggleFeature = (featureName) => {
-    const newFeatures = {
-      ...bot.features,
-      [featureName]: !bot.features?.[featureName]
-    };
+    const newValue = !bot.features?.[featureName];
+    const newFeatures = { ...bot.features, [featureName]: newValue };
+
+    // Sync integrations flags with feature toggles
+    const data = { features: newFeatures };
+    if (featureName === 'appointments') {
+      data.integrations = {
+        ...bot.integrations,
+        calendar: { ...(bot.integrations?.calendar || {}), enabled: newValue }
+      };
+    }
 
     updateChatbot(
-      {
-        workspaceId,
-        id,
-        data: { features: newFeatures }
-      },
+      { workspaceId, id, data },
       {
         onSuccess: () => {
-          message.success(`${featureName} ${newFeatures[featureName] ? 'activado' : 'desactivado'}`);
+          message.success(`${featureName} ${newValue ? 'activado' : 'desactivado'}`);
+          // Invalidate sidebar features cache so it re-renders immediately
+          queryClient.invalidateQueries({ queryKey: ['bot-features', id] });
         },
         onError: (error) => {
           message.error(error?.response?.data?.message || 'Error al actualizar');
@@ -276,7 +282,9 @@ const BotDetail = () => {
             position: appearanceForm.position,
             avatar: appearanceForm.avatar,
             proactiveMessage: appearanceForm.proactiveMessage,
-            proactiveDelaySeconds: appearanceForm.proactiveDelaySeconds
+            proactiveDelaySeconds: appearanceForm.proactiveDelaySeconds,
+            pattern: appearanceForm.pattern,
+            patternOpacity: appearanceForm.patternOpacity
           }
         }
       },
@@ -471,9 +479,9 @@ const BotDetail = () => {
         {/* Tabs — dinámicas según businessType */}
         <div style={{ borderBottom: '1px solid var(--rule)', marginBottom: 24, display: 'flex', gap: 4, overflowX: 'auto' }}>
           {/* Pestañas siempre visibles */}
+          <TabBtn active={tab === 'config'}        onClick={() => setTab('config')}>Configuración</TabBtn>
           <TabBtn active={tab === 'empresa'}       onClick={() => setTab('empresa')}>Empresa</TabBtn>
           <TabBtn active={tab === 'instrucciones'} onClick={() => setTab('instrucciones')}>Instrucciones</TabBtn>
-          <TabBtn active={tab === 'config'}        onClick={() => setTab('config')}>Configuración</TabBtn>
           <TabBtn active={tab === 'openai'}        onClick={() => setTab('openai')}>OpenAI</TabBtn>
           <TabBtn active={tab === 'appearance'}    onClick={() => setTab('appearance')}>Apariencia</TabBtn>
           <TabBtn active={tab === 'embed'}         onClick={() => setTab('embed')}>Código embed</TabBtn>
@@ -484,9 +492,9 @@ const BotDetail = () => {
               {bizConfig.catalog.label}
             </TabBtn>
           )}
-          {bizConfig.modules.leads && (
+          {/* {bizConfig.modules.leads && (
             <TabBtn active={tab === 'leads'} onClick={() => setTab('leads')}>Leads</TabBtn>
-          )}
+          )} */}
           {bizConfig.modules.quotes && (
             <TabBtn active={tab === 'quotes'} onClick={() => setTab('quotes')}>Cotizaciones</TabBtn>
           )}
@@ -516,51 +524,19 @@ const BotDetail = () => {
               </div>
             </div>
 
-            <div className="grid-2-eq">
-              <div className="card">
-                <div className="section-num">Nombre y descripción</div>
-                <div className="field" style={{ marginTop: 12 }}>
-                  <div className="field-label">Nombre del bot</div>
-                  <input
-                    type="text"
-                    className="input"
-                    value={configForm.name}
-                    onChange={(e) => handleConfigChange('name', e.target.value)}
-                  />
-                </div>
-                <div className="field" style={{ marginBottom: 0 }}>
-                  <div className="field-label">Descripción</div>
-                  <textarea
-                    className="textarea"
-                    value={configForm.customPrompt}
-                    onChange={(e) => handleConfigChange('customPrompt', e.target.value)}
-                  />
-                </div>
-              </div>
-
-              <div className="card">
-                <div className="section-num">Personalidad</div>
-                <div className="field" style={{ marginTop: 12 }}>
-                  <div className="field-label">Tono de voz</div>
-                  <select
-                    className="select"
-                    value={configForm.tone}
-                    onChange={(e) => handleConfigChange('tone', e.target.value)}
-                  >
-                    <option>Casual</option>
-                    <option>Neutral</option>
-                    <option>Formal</option>
-                  </select>
-                </div>
-                <div className="field" style={{ marginBottom: 0 }}>
-                  <div className="field-label">Mensaje de bienvenida</div>
-                  <input
-                    type="text"
-                    className="input"
-                    value={configForm.welcomeMessage}
-                    onChange={(e) => handleConfigChange('welcomeMessage', e.target.value)}
-                  />
-                </div>
+            <div className="card" style={{ maxWidth: 480 }}>
+              <div className="section-num">Nombre del chatbot</div>
+              <div className="field" style={{ marginTop: 12, marginBottom: 0 }}>
+                <div className="field-label">Nombre</div>
+                <input
+                  type="text"
+                  className="input"
+                  value={configForm.name}
+                  onChange={(e) => handleConfigChange('name', e.target.value)}
+                />
+                <small style={{ opacity: 0.5, marginTop: 4, display: 'block' }}>
+                  El tono, mensajes y personalidad se configuran en la pestaña <strong>Instrucciones</strong>.
+                </small>
               </div>
             </div>
 
@@ -583,7 +559,8 @@ const BotDetail = () => {
               <Capability icon="#i-chat" title="Conversación general" hint="Siempre encendida" on disabled />
               <Capability icon="#i-quote" title="Cotizaciones" hint={`${bot.stats?.totalQuotes || 0} cotizaciones`} on={bot.features?.quotes || false} onClick={() => handleToggleFeature('quotes')} />
               <Capability icon="#i-cal" title="Agendamiento" hint={`${bot.stats?.totalAppointments || 0} citas`} on={bot.features?.appointments || false} onClick={() => handleToggleFeature('appointments')} />
-              <Capability icon="#i-lead" title="Captura de leads" hint={`${bot.stats?.totalLeads || 0} leads`} on={bot.features?.leadCapture || false} onClick={() => handleToggleFeature('leadCapture')} />
+              <Capability icon="#i-money" title="Ventas / Pedidos" hint={`${bot.stats?.totalOrders || 0} pedidos`} on={bot.features?.sales || false} onClick={() => handleToggleFeature('sales')} />
+              {/* <Capability icon="#i-lead" title="Captura de leads" hint={`${bot.stats?.totalLeads || 0} leads`} on={bot.features?.leadCapture || false} onClick={() => handleToggleFeature('leadCapture')} /> */}
             </div>
 
             <div style={{ background: 'var(--bone-2)', border: '1px solid rgba(255, 77, 31, 0.3)', borderRadius: 12, padding: '18px 22px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 18 }}>
@@ -647,9 +624,11 @@ const BotDetail = () => {
                     value={openaiForm.openaiModel}
                     onChange={(e) => setOpenaiForm(prev => ({ ...prev, openaiModel: e.target.value }))}
                   >
-                    <option value="gpt-3.5-turbo">GPT-3.5 Turbo (Rápido y económico)</option>
-                    <option value="gpt-4">GPT-4 (Más inteligente)</option>
-                    <option value="gpt-4-turbo">GPT-4 Turbo (Balance óptimo)</option>
+                    <option value="gpt-4o-mini">GPT-4o Mini (Rápido y económico) ⭐</option>
+                    <option value="gpt-4o">GPT-4o (Más inteligente y rápido)</option>
+                    <option value="gpt-3.5-turbo">GPT-3.5 Turbo (Legado)</option>
+                    <option value="gpt-4">GPT-4 (Legado)</option>
+                    <option value="gpt-4-turbo">GPT-4 Turbo (Legado)</option>
                   </select>
                 </div>
               </div>
@@ -874,22 +853,21 @@ const BotDetail = () => {
               </button>
 
               <button
-                disabled
+                onClick={() => setProductMethod('woocommerce')}
                 style={{
                   padding: '10px 18px',
                   fontFamily: 'var(--font-display)',
-                  fontWeight: 500,
+                  fontWeight: productMethod === 'woocommerce' ? 600 : 500,
                   fontSize: 14,
                   border: 'none',
                   borderRadius: 8,
-                  cursor: 'not-allowed',
-                  background: 'transparent',
-                  color: 'var(--carbon)',
-                  opacity: 0.5,
+                  cursor: 'pointer',
+                  background: productMethod === 'woocommerce' ? 'var(--carbon)' : 'transparent',
+                  color: productMethod === 'woocommerce' ? 'var(--voltage)' : 'var(--carbon)',
                   transition: 'all 0.2s ease',
                 }}
               >
-                🔗 Integraciones (Próximamente)
+                🛒 WooCommerce
               </button>
             </div>
 
@@ -926,24 +904,8 @@ const BotDetail = () => {
               </div>
             )}
 
-            {productMethod === 'integrations' && (
-              <div className="card" style={{ padding: '18px', marginBottom: 32 }}>
-                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 15, marginBottom: 8 }}>
-                  Sincroniza desde tus tiendas
-                </div>
-                <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, opacity: 0.6, marginBottom: 16 }}>
-                  Shopify, Jumpseller, WooCommerce y más
-                </div>
-                <button
-                  className="btn btn-primary btn-sm"
-                  onClick={handleSyncProducts}
-                  disabled={isSyncing}
-                  style={{ display: 'flex', alignItems: 'center', gap: 6 }}
-                >
-                  <svg style={{ width: 16, height: 16 }}><use href="#i-refresh" /></svg>
-                  {isSyncing ? 'Sincronizando...' : 'Sincronizar ahora'}
-                </button>
-              </div>
+            {productMethod === 'woocommerce' && (
+              <WoocommercePanel workspaceId={workspaceId} botId={id} />
             )}
 
             {/* PASO 3: Grid de productos */}
@@ -1159,6 +1121,36 @@ const BotDetail = () => {
                     placeholder="¿En qué te puedo ayudar?"
                   />
                 </div>
+
+                <div className="field">
+                  <div className="field-label">Patrón de fondo del chat</div>
+                  <select
+                    className="input"
+                    value={appearanceForm.pattern}
+                    onChange={(e) => handleAppearanceChange('pattern', e.target.value)}
+                  >
+                    <option value="dots">Puntos</option>
+                    <option value="grid">Cuadrícula</option>
+                    <option value="cross">Cruces</option>
+                    <option value="diagonal">Diagonales</option>
+                    <option value="topo">Topográfico</option>
+                    <option value="doodle">Doodle IA</option>
+                    <option value="hex">Hexágonos</option>
+                    <option value="glow">Glow</option>
+                    <option value="none">Sin patrón</option>
+                  </select>
+                </div>
+
+                <div className="field" style={{ marginBottom: 0 }}>
+                  <div className="field-label">Intensidad del patrón — {Math.round(appearanceForm.patternOpacity * 100)}%</div>
+                  <input
+                    type="range"
+                    min="0" max="1" step="0.05"
+                    value={appearanceForm.patternOpacity}
+                    onChange={(e) => handleAppearanceChange('patternOpacity', parseFloat(e.target.value))}
+                    style={{ width: '100%', accentColor: 'var(--voltage)' }}
+                  />
+                </div>
               </div>
             </div>
 
@@ -1178,7 +1170,7 @@ const BotDetail = () => {
           const baseUrl = import.meta.env.VITE_API_APP?.replace(':5001', ':5173') || 'http://localhost:5173';
 
           // ── Widget burbuja ─────────────────────────────────────────────────
-          const bubbleCode = `<!-- Zapien · Widget burbuja -->
+          const bubbleCode = `<!-- Bezpian · Widget burbuja -->
 <script>
   (function() {
     var chatbotId = '${id}';
@@ -1212,20 +1204,13 @@ const BotDetail = () => {
           // ── Chat pantalla completa ─────────────────────────────────────────
           const loadFullChat = () => {
             if (fullChatCode) return;
-            setLoadingFull(true);
-            fetch(`${baseUrl}/fullchat.html`)
-              .then(r => r.text())
-              .then(html => {
-                const code = html
-                  .replace("const EMBED_KEY = 'EMBED_KEY_AQUI'", `const EMBED_KEY = '${bot.embedKey}'`)
-                  .replace("const API_URL   = 'http://localhost:5001'", `const API_URL   = '${apiUrl}'`)
-                  .replace('Hola, soy el agente IA de tu empresa', `Hola, soy el agente IA de ${bot.name}`)
-                  .replace(">🤖<", `>${bot.widget?.avatar || '🤖'}<`)
-                  .replace("--accent: #6366f1", `--accent: ${bot.widget?.color || '#6366f1'}`);
-                setFullChatCode(code);
-              })
-              .catch(() => message.error('Error al cargar el código'))
-              .finally(() => setLoadingFull(false));
+            const color          = bot.widget?.color          || '#0d0d0d';
+            const avatar         = bot.widget?.avatar         || '🤖';
+            const name           = bot.name                   || 'Asistente';
+            const pattern        = bot.widget?.pattern        || 'dots';
+            const patternOpacity = bot.widget?.patternOpacity ?? 0.45;
+            const code = generateFullChatHtml({ embedKey: bot.embedKey, apiUrl, color, avatar, name, pattern, patternOpacity });
+            setFullChatCode(code);
           };
 
           const copyFull = () => {

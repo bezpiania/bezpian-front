@@ -83,7 +83,7 @@ const EmbedCodePanel = ({ workspaceId, botId, botName, bot }) => {
         <div className="card">
           <div style={{ marginBottom: 16 }}>
             <p style={{ fontSize: 13, opacity: 0.7, margin: 0 }}>
-              Copia el siguiente código HTML y pégalo en tu sitio web para incrustar el chat de Zapien. El chat aparecerá en la esquina inferior derecha.
+              Copia el siguiente código HTML y pégalo en tu sitio web para incrustar el chat de Bezpian. El chat aparecerá en la esquina inferior derecha.
             </p>
           </div>
 
@@ -123,21 +123,47 @@ const EmbedCodePanel = ({ workspaceId, botId, botName, bot }) => {
             </button>
           </div>
 
-          <div style={{
-            marginTop: 20,
-            padding: 16,
-            background: '#f0f8ff',
-            border: '1px solid #b3d9ff',
-            borderRadius: 8
-          }}>
+          <div style={{ marginTop: 20, padding: 16, background: '#f0f8ff', border: '1px solid #b3d9ff', borderRadius: 8 }}>
             <strong style={{ fontSize: 13 }}>💡 Instrucciones:</strong>
             <ol style={{ margin: '8px 0 0 0', paddingLeft: 20, fontSize: 12, opacity: 0.8 }}>
               <li>Copia el código de arriba</li>
               <li>Abre tu editor HTML o tu sitio web</li>
               <li>Pega el código antes de cerrar la etiqueta &lt;/body&gt;</li>
               <li>Guarda los cambios</li>
-              <li>El chat de Zapien aparecerá automáticamente en tu página</li>
+              <li>El chat de Bezpian aparecerá automáticamente en tu página</li>
             </ol>
+          </div>
+
+          {/* Visitor context explainer */}
+          <div style={{ marginTop: 16, padding: 16, background: 'var(--bone-2, #f9f9f7)', border: '1px solid var(--border, #e8e8e0)', borderRadius: 8 }}>
+            <strong style={{ fontSize: 13 }}>👤 ¿Tienes usuarios logueados en tu sitio?</strong>
+            <p style={{ fontSize: 12, margin: '8px 0', opacity: 0.75, lineHeight: 1.6 }}>
+              Puedes decirle al bot si el usuario está autenticado, su nombre, plan u otros datos.
+              El bot usará esa información para personalizar sus respuestas según las reglas que configures en <strong>Instrucciones → Reglas adicionales</strong>.
+            </p>
+            <p style={{ fontSize: 12, margin: '8px 0 4px', opacity: 0.6 }}>Agrega esto <strong>antes</strong> del snippet, llenando los valores con las variables de tu sistema:</p>
+            <pre style={{
+              margin: 0,
+              padding: '12px 14px',
+              background: '#1e1e1e',
+              color: '#d4d4d4',
+              borderRadius: 6,
+              fontSize: 11.5,
+              lineHeight: 1.6,
+              overflowX: 'auto',
+              whiteSpace: 'pre',
+            }}>{`<script>
+  window.BezpianUser = {
+    isLoggedIn: false,        // true si el usuario está logueado
+    // name:  currentUser.name,  // nombre del usuario
+    // email: currentUser.email, // email del usuario
+    // role:  currentUser.plan,  // plan o rol (ej: 'premium', 'free')
+  };
+</script>`}</pre>
+            <p style={{ fontSize: 12, margin: '10px 0 4px', opacity: 0.6 }}>Luego añade una regla en <strong>Instrucciones</strong>, por ejemplo:</p>
+            <div style={{ padding: '8px 12px', background: 'rgba(0,0,0,0.04)', borderRadius: 6, fontSize: 12, fontStyle: 'italic', opacity: 0.8, borderLeft: '3px solid var(--voltage, #c8ff00)' }}>
+              "Si el usuario no está autenticado, no muestres precios y sugiérele que inicie sesión."
+            </div>
           </div>
         </div>
       </Spin>

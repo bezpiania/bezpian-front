@@ -6,7 +6,7 @@ const VerifyEmail = () => (
     <div style={{ maxWidth: 480, textAlign: 'center' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, marginBottom: 48 }}>
         <div style={{ width: 36, height: 36, background: 'var(--carbon)', color: 'var(--voltage)', display: 'grid', placeItems: 'center', borderRadius: 9, fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 20, letterSpacing: '-0.05em' }}>Z</div>
-        <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 22, letterSpacing: '-0.035em' }}>Zapien</div>
+        <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 22, letterSpacing: '-0.035em' }}>Bezpian</div>
       </div>
 
       <div style={{ width: 96, height: 96, margin: '0 auto 28px', background: 'var(--bone-2)', border: '1px solid var(--rule)', borderRadius: 24, display: 'grid', placeItems: 'center', position: 'relative' }}>
