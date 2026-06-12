@@ -36,13 +36,13 @@
             background: white;
         }
 
-        /* Popup mode: fills the iframe entirely */
+        /* Popup mode: fills iframe leaving 64px at bottom for the toggle button */
         #chatWidgetRoot {
             position: absolute;
             top: 0;
             left: 0;
             right: 0;
-            bottom: 0;
+            bottom: 64px;
             z-index: 999;
             border-radius: 16px;
             box-shadow: 0 24px 64px rgba(0, 0, 0, 0.22), 0 4px 16px rgba(0, 0, 0, 0.12);
