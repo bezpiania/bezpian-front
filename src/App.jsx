@@ -15,6 +15,7 @@ import AcceptInvite from './pages/public/AcceptInvite.jsx';
 import TableOrder from './pages/public/TableOrder.jsx';
 import PublicQuote from './pages/public/PublicQuote.jsx';
 import FullChat from './pages/public/FullChat.jsx';
+import GoogleCallback from './pages/public/GoogleCallback.jsx';
 
 // Privadas
 import BotSelector from './pages/private/chatbots/BotSelector.jsx';
@@ -42,8 +43,9 @@ function App() {
       <Router>
         <Routes>
           {/* ── Públicas ──────────────────────────────────────── */}
-          <Route path="/login"           element={<Login />} />
-          <Route path="/signup"          element={<Signup />} />
+          <Route path="/login"                   element={<Login />} />
+          <Route path="/signup"                  element={<Signup />} />
+          <Route path="/auth/google/success"     element={<GoogleCallback />} />
           <Route path="/verificar-email" element={<VerifyEmail />} />
           <Route path="/invitar"         element={<AcceptInvite />} />
           <Route path="/recuperar"       element={<ForgotPassword />} />
