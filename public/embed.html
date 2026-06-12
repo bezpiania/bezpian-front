@@ -36,16 +36,14 @@
             background: white;
         }
 
-        /* Popup mode: floating chat above the button */
+        /* Popup mode: fills the iframe entirely */
         #chatWidgetRoot {
-            position: fixed;
-            bottom: 90px;
-            right: 20px;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
             z-index: 999;
-            width: 370px;
-            max-width: calc(100vw - 32px);
-            height: 520px;
-            max-height: calc(100vh - 120px);
             border-radius: 16px;
             box-shadow: 0 24px 64px rgba(0, 0, 0, 0.22), 0 4px 16px rgba(0, 0, 0, 0.12);
             overflow: hidden;
@@ -461,6 +459,7 @@
                 if (event.data.avatar) {
                     avatar = event.data.avatar;
                     applyTheme();
+                    document.getElementById('minimizedButton').textContent = event.data.avatar;
                 }
                 if (event.data.chatbotName) {
                     chatbotName = event.data.chatbotName;
