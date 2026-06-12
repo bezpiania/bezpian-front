@@ -40,6 +40,7 @@
         if (isOpen) {
           iframe.style.display = 'block';
           iframe.contentWindow.postMessage({ type:'zapien-init', chatbotId:chatbotId, embedKey:embedKey, apiUrl:apiUrl, color:color, avatar:avatar, chatbotName:name }, '*');
+          iframe.contentWindow.postMessage({ type:'zapien-open' }, '*');
         } else {
           iframe.style.display = 'none';
         }

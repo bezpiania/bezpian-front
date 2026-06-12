@@ -493,6 +493,10 @@
         // NOTE: do NOT call closeChat() here — that would postMessage back to parent causing an infinite loop
         window.addEventListener('message', function(event) {
             if (!event.data) return;
+            if (event.data.type === 'zapien-open') {
+                document.getElementById('chatWidgetRoot').style.display = 'flex';
+                if (!conversationStarted) { conversationStarted = true; startConversation(); }
+            }
             if (event.data.type === 'zapien-close') {
                 document.getElementById('chatWidgetRoot').style.display = 'none';
             }
