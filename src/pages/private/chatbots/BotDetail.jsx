@@ -1167,7 +1167,7 @@ const BotDetail = () => {
 
         {tab === 'embed' && bot?.embedKey && (() => {
           const apiUrl  = import.meta.env.VITE_API_APP || 'http://localhost:5001';
-          const baseUrl = import.meta.env.VITE_API_APP?.replace(':5001', ':5173') || 'http://localhost:5173';
+          const baseUrl = import.meta.env.VITE_APP_URL || 'http://localhost:5173';
 
           // ── Widget burbuja ─────────────────────────────────────────────────
           const bubbleCode = `<!-- Bezpian · Widget burbuja -->
