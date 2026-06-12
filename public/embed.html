@@ -290,7 +290,7 @@
     </div>
 
     <!-- Minimized floating button (for iframe internal toggle) -->
-    <button id="minimizedButton" aria-label="Abrir chat" style="position:absolute;bottom:0;right:0;width:100%;height:100%;border-radius:50%;border:none;background:var(--primary-color,#667eea);color:var(--text-color,white);display:flex;align-items:center;justify-content:center;font-size:28px;box-shadow:0 6px 18px rgba(0,0,0,0.16);z-index:1000;line-height:0.8;padding:0;cursor:pointer;text-align:center;font-weight:normal;">💬</button>
+    <button id="minimizedButton" aria-label="Toggle chat" style="position:fixed;bottom:0;right:0;width:64px;height:64px;border-radius:50%;border:none;background:var(--primary-color,#667eea);color:var(--text-color,white);display:flex;align-items:center;justify-content:center;font-size:28px;box-shadow:0 6px 18px rgba(0,0,0,0.16);z-index:2000;line-height:0.8;padding:0;cursor:pointer;text-align:center;font-weight:normal;">💬</button>
 
     <script>
         // Función para calcular contraste de color
@@ -392,7 +392,6 @@
         // Toggle chat open/closed — button always stays visible
         let conversationStarted = false;
         function openChat() {
-            document.getElementById('minimizedButton').style.display = 'none';
             document.getElementById('chatWidgetRoot').style.display = 'flex';
             window.parent.postMessage({ type: 'zapien-open-request' }, '*');
             if (!conversationStarted) {
@@ -402,7 +401,6 @@
         }
         function closeChat() {
             document.getElementById('chatWidgetRoot').style.display = 'none';
-            document.getElementById('minimizedButton').style.display = 'flex';
             window.parent.postMessage({ type: 'zapien-close-request' }, '*');
         }
 
@@ -494,7 +492,6 @@
             if (!event.data) return;
             if (event.data.type === 'zapien-close') {
                 document.getElementById('chatWidgetRoot').style.display = 'none';
-                document.getElementById('minimizedButton').style.display = 'flex';
             }
         });
 
