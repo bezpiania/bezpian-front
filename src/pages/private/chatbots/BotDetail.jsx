@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { generateFullChatHtml } from '../../../utils/generateFullChatHtml.js';
+import { generateBubbleWidgetHtml } from '../../../utils/generateBubbleWidgetHtml.js';
 import { Link, useParams } from 'react-router-dom';
 import { Spin, message } from 'antd';
 import { useQueryClient } from '@tanstack/react-query';
@@ -1167,69 +1168,38 @@ const BotDetail = () => {
 
         {tab === 'embed' && bot?.embedKey && (() => {
           const apiUrl  = import.meta.env.VITE_API_APP || 'http://localhost:5001';
-          const baseUrl = import.meta.env.VITE_APP_URL || 'http://localhost:5173';
+          const appUrl  = import.meta.env.VITE_APP_URL || 'http://localhost:5173';
+          const color   = bot.widget?.color   || '#667eea';
+          const avatar  = bot.widget?.avatar  || '🤖';
+          const name    = bot.name            || 'Asistente';
+          const pattern        = bot.widget?.pattern        || 'dots';
+          const patternOpacity = bot.widget?.patternOpacity ?? 0.45;
 
-          // ── Widget burbuja ─────────────────────────────────────────────────
-          const bubbleCode = `<!-- Bezpian · Widget burbuja -->
-<script>
-  (function() {
-    var chatbotId = '${id}';
-    var embedKey  = '${bot.embedKey}';
-    var apiUrl    = '${apiUrl}';
-    var baseUrl   = '${baseUrl}';
-    var color     = '${bot.widget?.color || '#667eea'}';
-    var avatar    = '${bot.widget?.avatar || '🤖'}';
-    var name      = '${bot.name}';
+          // HTML completos listos para copiar y guardar como .html
+          const bubbleHtml = generateBubbleWidgetHtml({
+            botId: id, embedKey: bot.embedKey,
+            color, avatar, name, apiUrl, appUrl,
+          });
+          const fullChatHtml = generateFullChatHtml({
+            embedKey: bot.embedKey, apiUrl, color, avatar, name, pattern, patternOpacity,
+          });
 
-    var iframe = document.createElement('iframe');
-    iframe.src = baseUrl + '/embed.html?botId=' + chatbotId + '&embedKey=' + embedKey
-               + '&color=' + encodeURIComponent(color)
-               + '&avatar=' + encodeURIComponent(avatar)
-               + '&name='  + encodeURIComponent(name);
-    iframe.style.cssText = 'position:fixed;bottom:20px;right:20px;width:64px;height:64px;border:none;border-radius:999px;overflow:hidden;box-shadow:0 6px 18px rgba(0,0,0,0.16);z-index:99999;transition:width 240ms ease,height 240ms ease,border-radius 240ms ease;';
-    iframe.id = 'zapien-iframe';
-    document.body.appendChild(iframe);
-
-    window.addEventListener('message', function(e) {
-      if (e.data.type === 'zapien-chat-ready') {
-        iframe.contentWindow.postMessage({ type:'zapien-init', chatbotId:chatbotId, embedKey:embedKey, apiUrl:apiUrl, color:color, avatar:avatar, chatbotName:name }, '*');
-      }
-      if (e.data.type === 'zapien-open-request')  { iframe.style.cssText += 'width:400px!important;height:500px!important;border-radius:12px!important;'; }
-      if (e.data.type === 'zapien-close-request') { iframe.style.cssText += 'width:64px!important;height:64px!important;border-radius:999px!important;'; iframe.contentWindow.postMessage({type:'zapien-close'},'*'); }
-    });
-  })();
-</script>
-<!-- Pega este código antes de </body> en tu sitio web -->`;
-
-          // ── Chat pantalla completa ─────────────────────────────────────────
-          const loadFullChat = () => {
-            if (fullChatCode) return;
-            const color          = bot.widget?.color          || '#0d0d0d';
-            const avatar         = bot.widget?.avatar         || '🤖';
-            const name           = bot.name                   || 'Asistente';
-            const pattern        = bot.widget?.pattern        || 'dots';
-            const patternOpacity = bot.widget?.patternOpacity ?? 0.45;
-            const code = generateFullChatHtml({ embedKey: bot.embedKey, apiUrl, color, avatar, name, pattern, patternOpacity });
-            setFullChatCode(code);
-          };
-
-          const copyFull = () => {
-            navigator.clipboard.writeText(fullChatCode);
-            setCopiedFull(true);
-            message.success('Código copiado');
-            setTimeout(() => setCopiedFull(false), 2000);
+          const copy = (code, label) => {
+            navigator.clipboard.writeText(code);
+            message.success(`${label} copiado`);
           };
 
           const codeBlockStyle = {
-            background: 'var(--bone-2)', borderRadius: 8, padding: 16,
-            marginBottom: 12, maxHeight: 260, overflow: 'auto',
+            background: 'var(--carbon)', borderRadius: 10, padding: 16,
+            marginBottom: 14, maxHeight: 220, overflow: 'auto',
           };
           const preStyle = {
             margin: 0, fontSize: 11, fontFamily: 'monospace',
-            color: 'var(--carbon)', whiteSpace: 'pre-wrap', wordBreak: 'break-all',
+            color: 'var(--bone)', whiteSpace: 'pre-wrap', wordBreak: 'break-all',
+            opacity: 0.8,
           };
-          const instructionsStyle = {
-            marginTop: 16, padding: 14, background: 'var(--bone-2)',
+          const hintStyle = {
+            marginTop: 14, padding: '12px 14px', background: 'var(--bone-2)',
             borderRadius: 8, fontFamily: 'var(--font-body)', fontSize: 13,
             opacity: 0.7, lineHeight: 1.6,
           };
@@ -1238,79 +1208,64 @@ const BotDetail = () => {
             <>
               <div className="section-head">
                 <div>
-                  <div className="section-num">Código para incrustar</div>
-                  <div className="section-title">Dos formas de <em>compartir tu chatbot</em></div>
+                  <div className="section-num">Widgets · HTML listo para usar</div>
+                  <div className="section-title">Copia, pega y <em>funciona.</em></div>
                 </div>
               </div>
 
               <div className="grid-2-eq" style={{ gap: 20 }}>
 
-                {/* ── Widget burbuja ── */}
+                {/* ── Bubble widget ── */}
                 <div className="card">
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-                    <div style={{ width: 36, height: 36, borderRadius: 10, background: bot.widget?.color || '#667eea', display: 'grid', placeItems: 'center', fontSize: 18, flexShrink: 0 }}>
-                      {bot.widget?.avatar || '🤖'}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+                    <div style={{ width: 40, height: 40, borderRadius: 50, background: color, display: 'grid', placeItems: 'center', fontSize: 20, flexShrink: 0 }}>
+                      {avatar}
                     </div>
                     <div>
-                      <div className="section-num">Widget burbuja</div>
-                      <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, opacity: 0.55 }}>Aparece como burbuja flotante en tu web</div>
+                      <div className="section-num" style={{ marginBottom: 2 }}>Bubble widget</div>
+                      <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, opacity: 0.55 }}>
+                        Botón flotante · chat se abre encima
+                      </div>
                     </div>
                   </div>
 
                   <div style={codeBlockStyle}>
-                    <pre style={preStyle}>{bubbleCode}</pre>
+                    <pre style={preStyle}>{bubbleHtml}</pre>
                   </div>
 
-                  <button className="btn btn-primary btn-sm" onClick={() => { navigator.clipboard.writeText(bubbleCode); message.success('Código copiado'); }}>
-                    <svg><use href="#i-copy" /></svg>Copiar código
+                  <button className="btn btn-primary btn-sm" onClick={() => copy(bubbleHtml, 'HTML del bubble widget')}>
+                    <svg><use href="#i-copy" /></svg>Copiar HTML completo
                   </button>
 
-                  <div style={instructionsStyle}>
-                    <strong>¿Cómo usarlo?</strong>
-                    <ol style={{ paddingLeft: 18, margin: '6px 0 0' }}>
-                      <li>Copia el código</li>
-                      <li>Pégalo antes de <code>&lt;/body&gt;</code> en tu HTML</li>
-                      <li>El chatbot aparece como burbuja en la esquina</li>
-                    </ol>
+                  <div style={hintStyle}>
+                    Guarda el contenido en un archivo <code>.html</code> y ábrelo en el navegador — funciona igual que el demo de Imfluid.
                   </div>
                 </div>
 
-                {/* ── Chat pantalla completa ── */}
+                {/* ── Full screen chat ── */}
                 <div className="card">
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-                    <div style={{ width: 36, height: 36, borderRadius: 10, background: 'var(--ink)', display: 'grid', placeItems: 'center', fontSize: 18, flexShrink: 0, color: 'var(--voltage)' }}>
-                      💬
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+                    <div style={{ width: 40, height: 40, borderRadius: 10, background: color, display: 'grid', placeItems: 'center', fontSize: 20, flexShrink: 0 }}>
+                      {avatar}
                     </div>
                     <div>
-                      <div className="section-num">Chat pantalla completa</div>
-                      <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, opacity: 0.55 }}>Página completa tipo ChatGPT, sin instalar nada</div>
+                      <div className="section-num" style={{ marginBottom: 2 }}>Chat pantalla completa</div>
+                      <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, opacity: 0.55 }}>
+                        Página dedicada · estilo ChatGPT
+                      </div>
                     </div>
                   </div>
 
-                  {!fullChatCode ? (
-                    <div style={{ padding: '24px 0', textAlign: 'center' }}>
-                      <button className="btn btn-secondary btn-sm" onClick={loadFullChat} disabled={loadingFull}>
-                        {loadingFull ? 'Cargando...' : '⚡ Generar código'}
-                      </button>
-                    </div>
-                  ) : (
-                    <>
-                      <div style={codeBlockStyle}>
-                        <pre style={preStyle}>{fullChatCode}</pre>
-                      </div>
-                      <button className="btn btn-primary btn-sm" onClick={copyFull}>
-                        <svg><use href="#i-copy" /></svg>{copiedFull ? '✓ Copiado' : 'Copiar código'}
-                      </button>
-                    </>
-                  )}
+                  <div style={codeBlockStyle}>
+                    <pre style={preStyle}>{fullChatHtml}</pre>
+                  </div>
 
-                  <div style={instructionsStyle}>
-                    <strong>¿Cómo usarlo?</strong>
-                    <ol style={{ paddingLeft: 18, margin: '6px 0 0' }}>
-                      <li>Copia el código</li>
-                      <li>Pégalo en un archivo <code>.html</code> vacío</li>
-                      <li>Ábrelo en el browser — funciona al instante</li>
-                    </ol>
+                  <button className="btn btn-primary btn-sm" onClick={() => copy(fullChatHtml, 'HTML del chat completo')}>
+                    <svg><use href="#i-copy" /></svg>Copiar HTML completo
+                  </button>
+
+                  <div style={hintStyle}>
+                    Guarda el contenido en un archivo <code>.html</code> y ábrelo en el navegador — funciona igual que el chat de Imfluid.
                   </div>
                 </div>
 
