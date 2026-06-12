@@ -74,39 +74,49 @@ export function generateBubbleWidgetHtml({ botId, embedKey, color = '#667eea', a
 
   <script>
     (function() {
-      var chatbotId = '${botId}';
-      var embedKey  = '${embedKey}';
-      var apiUrl    = '${apiUrl}';
-      var color     = '${color}';
-      var avatar    = '${avatar}';
-      var name      = '${name}';
-      var isOpen    = false;
-      var initiated = false;
+      var chatbotId   = '${botId}';
+      var embedKey    = '${embedKey}';
+      var apiUrl      = '${apiUrl}';
+      var color       = '${color}';
+      var avatar      = '${avatar}';
+      var name        = '${name}';
+      var isOpen      = false;
+      var iframeReady = false;  // true once zapien-chat-ready received
+      var openPending = false;  // button clicked before iframe finished loading
 
       var iframe = document.getElementById('zapien-iframe');
       var btn    = document.getElementById('zapien-btn');
 
-      btn.onclick = function() {
+      function sendMsg(obj) {
+        try { if (iframe.contentWindow) iframe.contentWindow.postMessage(obj, '*'); } catch(e) {}
+      }
+
+      btn.addEventListener('click', function() {
         isOpen = !isOpen;
         if (isOpen) {
           iframe.classList.add('open');
-          if (!initiated) {
-            initiated = true;
-            iframe.contentWindow.postMessage({ type:'zapien-init', chatbotId:chatbotId, embedKey:embedKey, apiUrl:apiUrl, color:color, avatar:avatar, chatbotName:name }, '*');
+          if (!iframeReady) {
+            openPending = true;  // will fire sendOpen once iframe is ready
+          } else {
+            sendMsg({ type:'zapien-open' });
           }
-          iframe.contentWindow.postMessage({ type:'zapien-open' }, '*');
         } else {
+          openPending = false;
           iframe.classList.remove('open');
-          iframe.contentWindow.postMessage({ type:'zapien-close' }, '*');
+          sendMsg({ type:'zapien-close' });
         }
-      };
+      });
 
       window.addEventListener('message', function(e) {
+        if (!e.data || !e.data.type) return;
         if (e.data.type === 'zapien-chat-ready') {
-          iframe.contentWindow.postMessage({ type:'zapien-init', chatbotId:chatbotId, embedKey:embedKey, apiUrl:apiUrl, color:color, avatar:avatar, chatbotName:name }, '*');
+          iframeReady = true;
+          sendMsg({ type:'zapien-init', chatbotId:chatbotId, embedKey:embedKey, apiUrl:apiUrl, color:color, avatar:avatar, chatbotName:name });
+          if (openPending) { openPending = false; sendMsg({ type:'zapien-open' }); }
         }
         if (e.data.type === 'zapien-close-request') {
           isOpen = false;
+          openPending = false;
           iframe.classList.remove('open');
         }
       });
