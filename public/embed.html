@@ -394,6 +394,7 @@
         // Toggle chat open/closed — button always stays visible
         let conversationStarted = false;
         function openChat() {
+            document.getElementById('minimizedButton').style.display = 'none';
             document.getElementById('chatWidgetRoot').style.display = 'flex';
             window.parent.postMessage({ type: 'zapien-open-request' }, '*');
             if (!conversationStarted) {
@@ -403,6 +404,7 @@
         }
         function closeChat() {
             document.getElementById('chatWidgetRoot').style.display = 'none';
+            document.getElementById('minimizedButton').style.display = 'flex';
             window.parent.postMessage({ type: 'zapien-close-request' }, '*');
         }
 
