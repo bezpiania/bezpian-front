@@ -15,31 +15,45 @@
       var color     = '#FF6B00';
       var avatar    = '🔧';
       var name      = 'Imfluid';
+      var isOpen    = false;
 
+      // ── Iframe (solo el chat, sin botón) ──────────────────────────────
       var iframe = document.createElement('iframe');
       iframe.src = baseUrl + '/embed.html?botId=' + chatbotId + '&embedKey=' + embedKey
                  + '&color=' + encodeURIComponent(color)
                  + '&avatar=' + encodeURIComponent(avatar)
                  + '&name='  + encodeURIComponent(name);
-      iframe.style.cssText = 'position:fixed;bottom:20px;right:20px;width:64px;height:64px;border:none;border-radius:999px;overflow:hidden;box-shadow:0 6px 18px rgba(0,0,0,0.16);z-index:99999;transition:width 240ms ease,height 240ms ease,border-radius 240ms ease;background:transparent;';
       iframe.setAttribute('allowtransparency', 'true');
+      iframe.style.cssText = 'display:none;position:fixed;bottom:90px;right:20px;width:400px;height:500px;border:none;border-radius:16px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,0.18);z-index:99998;';
       iframe.id = 'zapien-iframe';
       document.body.appendChild(iframe);
 
+      // ── Botón flotante (fuera del iframe, siempre visible) ────────────
+      var btn = document.createElement('button');
+      btn.id = 'zapien-btn';
+      btn.textContent = avatar;
+      btn.style.cssText = 'position:fixed;bottom:20px;right:20px;width:64px;height:64px;border-radius:50%;border:none;background:' + color + ';color:white;font-size:28px;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 18px rgba(0,0,0,0.22);z-index:99999;cursor:pointer;transition:transform 0.15s ease;';
+      btn.onmouseover = function() { btn.style.transform = 'scale(1.08)'; };
+      btn.onmouseout  = function() { btn.style.transform = 'scale(1)'; };
+      btn.onclick = function() {
+        isOpen = !isOpen;
+        if (isOpen) {
+          iframe.style.display = 'block';
+          iframe.contentWindow.postMessage({ type:'zapien-init', chatbotId:chatbotId, embedKey:embedKey, apiUrl:apiUrl, color:color, avatar:avatar, chatbotName:name }, '*');
+        } else {
+          iframe.style.display = 'none';
+        }
+      };
+      document.body.appendChild(btn);
+
+      // ── Mensajes del iframe ───────────────────────────────────────────
       window.addEventListener('message', function(e) {
         if (e.data.type === 'zapien-chat-ready') {
           iframe.contentWindow.postMessage({ type:'zapien-init', chatbotId:chatbotId, embedKey:embedKey, apiUrl:apiUrl, color:color, avatar:avatar, chatbotName:name }, '*');
         }
-        if (e.data.type === 'zapien-open-request') {
-          iframe.style.width         = '400px';
-          iframe.style.height        = '580px';
-          iframe.style.borderRadius  = '16px';
-        }
         if (e.data.type === 'zapien-close-request') {
-          iframe.style.width         = '64px';
-          iframe.style.height        = '64px';
-          iframe.style.borderRadius  = '999px';
-          iframe.contentWindow.postMessage({type:'zapien-close'},'*');
+          isOpen = false;
+          iframe.style.display = 'none';
         }
       });
     })();
