@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Demo Widget — Imfluid</title>
+  <style>
+    body { margin: 0; font-family: sans-serif; background: #f5f5f5; display: flex; align-items: center; justify-content: center; height: 100vh; }
+    .card { background: white; padding: 48px; border-radius: 16px; box-shadow: 0 4px 24px rgba(0,0,0,0.08); text-align: center; max-width: 420px; }
+    h1 { margin: 0 0 12px; font-size: 24px; color: #FF6B00; }
+    p { color: #666; line-height: 1.6; }
+    .arrow { position: fixed; bottom: 90px; right: 24px; font-size: 14px; color: #FF6B00; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>🔧 Imfluid</h1>
+    <p>Página de demo del widget burbuja.<br>El botón naranja aparece abajo a la derecha →</p>
+  </div>
+  <div class="arrow">↘ Haz clic aquí</div>
+
+  <!-- Bezpian · Widget burbuja -->
+  <script>
+    (function() {
+      var chatbotId = '6a2607ecabefeda939011775';
+      var embedKey  = '56af96f363403b0726dbeb66e20f2e34';
+      var apiUrl    = 'https://bezpian-backend.onrender.com';
+      var baseUrl   = 'https://bezpian.onrender.com';
+      var color     = '#FF6B00';
+      var avatar    = '🔧';
+      var name      = 'Imfluid';
+
+      var iframe = document.createElement('iframe');
+      iframe.src = baseUrl + '/embed.html?botId=' + chatbotId + '&embedKey=' + embedKey
+                 + '&color=' + encodeURIComponent(color)
+                 + '&avatar=' + encodeURIComponent(avatar)
+                 + '&name='  + encodeURIComponent(name);
+      iframe.style.cssText = 'position:fixed;bottom:20px;right:20px;width:64px;height:64px;border:none;border-radius:999px;overflow:hidden;box-shadow:0 6px 18px rgba(0,0,0,0.16);z-index:99999;transition:width 240ms ease,height 240ms ease,border-radius 240ms ease;';
+      iframe.id = 'zapien-iframe';
+      document.body.appendChild(iframe);
+
+      window.addEventListener('message', function(e) {
+        if (e.data.type === 'zapien-chat-ready') {
+          iframe.contentWindow.postMessage({ type:'zapien-init', chatbotId:chatbotId, embedKey:embedKey, apiUrl:apiUrl, color:color, avatar:avatar, chatbotName:name }, '*');
+        }
+        if (e.data.type === 'zapien-open-request')  { iframe.style.cssText += 'width:400px!important;height:500px!important;border-radius:12px!important;'; }
+        if (e.data.type === 'zapien-close-request') { iframe.style.cssText += 'width:64px!important;height:64px!important;border-radius:999px!important;'; iframe.contentWindow.postMessage({type:'zapien-close'},'*'); }
+      });
+    })();
+  </script>
+</body>
+</html>
