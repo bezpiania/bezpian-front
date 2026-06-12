@@ -21,7 +21,8 @@
                  + '&color=' + encodeURIComponent(color)
                  + '&avatar=' + encodeURIComponent(avatar)
                  + '&name='  + encodeURIComponent(name);
-      iframe.style.cssText = 'position:fixed;bottom:20px;right:20px;width:64px;height:64px;border:none;border-radius:999px;overflow:hidden;box-shadow:0 6px 18px rgba(0,0,0,0.16);z-index:99999;transition:width 240ms ease,height 240ms ease,border-radius 240ms ease;';
+      iframe.style.cssText = 'position:fixed;bottom:20px;right:20px;width:64px;height:64px;border:none;border-radius:999px;overflow:hidden;box-shadow:0 6px 18px rgba(0,0,0,0.16);z-index:99999;transition:width 240ms ease,height 240ms ease,border-radius 240ms ease;background:transparent;';
+      iframe.setAttribute('allowtransparency', 'true');
       iframe.id = 'zapien-iframe';
       document.body.appendChild(iframe);
 
