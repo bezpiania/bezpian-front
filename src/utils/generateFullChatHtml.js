@@ -202,15 +202,15 @@ export function generateFullChatHtml({ embedKey, apiUrl, color = '#0d0d0d', avat
     function renderMarkdown(text){
       let h=text
         .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-        .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
-        .replace(/\*(.*?)\*/g,'<em>$1</em>')
+        .replace(/\\*\\*(.*?)\\*\\*/g,'<strong>$1</strong>')
+        .replace(/\\*(.*?)\\*/g,'<em>$1</em>')
         .replace(/\`([^\`]+)\`/g,'<code>$1</code>');
-      const lines=h.split('\n');
+      const lines=h.split('\\n');
       const out=[];let inList=false;
       for(const ln of lines){
-        const li=ln.match(/^[-*•]\s+(.*)/);
+        const li=ln.match(/^[-*•]\\s+(.*)/);
         if(li){if(!inList){out.push('<ul>');inList=true}out.push('<li>'+li[1]+'</li>')}
-        else{if(inList){out.push('</ul>');inList=false}out.push('<p>'+ln+'</p>')}
+        else{if(inList){out.push('</ul>');inList=false}if(ln.trim())out.push('<p>'+ln+'</p>')}
       }
       if(inList)out.push('</ul>');
       return out.join('');
