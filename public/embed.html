@@ -489,10 +489,12 @@
         }, '*');
 
         // Listen for parent commands to close (collapse) the widget
+        // NOTE: do NOT call closeChat() here — that would postMessage back to parent causing an infinite loop
         window.addEventListener('message', function(event) {
             if (!event.data) return;
             if (event.data.type === 'zapien-close') {
-                closeChat();
+                document.getElementById('chatWidgetRoot').style.display = 'none';
+                document.getElementById('minimizedButton').style.display = 'flex';
             }
         });
 
