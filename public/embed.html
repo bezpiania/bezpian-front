@@ -292,8 +292,8 @@
         </div>
     </div>
 
-    <!-- Minimized floating button (for iframe internal toggle) -->
-    <button id="minimizedButton" aria-label="Toggle chat" style="position:fixed;bottom:0;right:0;width:64px;height:64px;border-radius:50%;border:none;background:var(--primary-color,#667eea);color:var(--text-color,white);display:flex;align-items:center;justify-content:center;font-size:28px;box-shadow:0 6px 18px rgba(0,0,0,0.16);z-index:2000;line-height:0.8;padding:0;cursor:pointer;text-align:center;font-weight:normal;">💬</button>
+    <!-- Minimized floating button (solo visible en modo standalone, NO en iframe embebido) -->
+    <button id="minimizedButton" aria-label="Toggle chat" style="position:fixed;bottom:0;right:0;width:64px;height:64px;border-radius:50%;border:none;background:var(--primary-color,#667eea);color:var(--text-color,white);display:none;align-items:center;justify-content:center;font-size:28px;box-shadow:0 6px 18px rgba(0,0,0,0.16);z-index:2000;line-height:0.8;padding:0;cursor:pointer;text-align:center;font-weight:normal;">💬</button>
 
     <script>
         // Función para calcular contraste de color
@@ -367,11 +367,16 @@
         // Apply theme on load
         applyTheme();
 
-        // Detect standalone BEFORE hiding
-        const isStandalone = window.self === window.top;
-        // Always start with widget hidden and button visible
+        // Detect standalone mode
+        let isStandalone = false;
+        try { isStandalone = window.self === window.top; } catch(e) { isStandalone = false; }
+
+        // Chat always starts hidden. Button only shows in standalone mode.
         document.getElementById('chatWidgetRoot').style.display = 'none';
-        document.getElementById('minimizedButton').style.display = 'flex';
+        if (isStandalone) {
+            document.getElementById('minimizedButton').style.display = 'flex';
+        }
+        // In iframe mode the button stays display:none — the parent page handles the toggle.
 
         if (isStandalone && botId && embedKey) {
             // Standalone: apply popup style and preload bot config
