@@ -1209,7 +1209,10 @@ const BotDetail = () => {
               <div className="section-head">
                 <div>
                   <div className="section-num">Widgets · HTML listo para usar</div>
-                  <div className="section-title">Copia, pega y <em>funciona.</em></div>
+                  <div className="section-title">Instala tu <em>Bezpian.</em></div>
+                  <div style={{ fontFamily: 'var(--font-body)', fontSize: 14, opacity: 0.7, lineHeight: 1.6, marginTop: 8, maxWidth: 620 }}>
+                    Elige cómo quieres mostrar tu asistente. Copia el código y pégalo en tu sitio — no necesitas saber programar.
+                  </div>
                 </div>
               </div>
 
@@ -1222,11 +1225,15 @@ const BotDetail = () => {
                       {avatar}
                     </div>
                     <div>
-                      <div className="section-num" style={{ marginBottom: 2 }}>Bubble widget</div>
+                      <div className="section-num" style={{ marginBottom: 2 }}>Widget de burbuja</div>
                       <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, opacity: 0.55 }}>
-                        Botón flotante · chat se abre encima
+                        El botón flotante de siempre
                       </div>
                     </div>
+                  </div>
+
+                  <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, lineHeight: 1.65, opacity: 0.8, marginBottom: 16 }}>
+                    Aparece como un botón en la esquina de tu sitio. Al hacer clic, se abre el chat encima de tu contenido sin interrumpir la navegación. Ideal para dar soporte, responder dudas y captar clientes en tu página actual.
                   </div>
 
                   <div style={codeBlockStyle}>
@@ -1238,7 +1245,7 @@ const BotDetail = () => {
                   </button>
 
                   <div style={hintStyle}>
-                    Guarda el contenido en un archivo <code>.html</code> y ábrelo en el navegador — funciona igual que el demo de Imfluid.
+                    <strong>Cómo instalarlo:</strong> copia el código y pégalo antes de <code>&lt;/body&gt;</code>. El botón aparece solo, con el color y la posición que configuraste.
                   </div>
                 </div>
 
@@ -1249,11 +1256,17 @@ const BotDetail = () => {
                       {avatar}
                     </div>
                     <div>
-                      <div className="section-num" style={{ marginBottom: 2 }}>Chat pantalla completa</div>
+                      <div className="section-num" style={{ marginBottom: 2 }}>Widget de pantalla completa</div>
                       <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, opacity: 0.55 }}>
-                        Página dedicada · estilo ChatGPT
+                        Tu propio ChatGPT
                       </div>
                     </div>
+                  </div>
+
+                  <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, lineHeight: 1.65, opacity: 0.8, marginBottom: 16 }}>
+                    Una interfaz de chat completa, igual que ChatGPT — pero entrenada con la información de tu negocio. Responde sobre tus productos, precios, horarios y todo lo que cargaste, con la inteligencia de GPT y el contexto de tu empresa.
+                    <br /><br />
+                    Úsala como página independiente, compártela con un enlace directo, o ponla en tu intranet como asistente interno para tu equipo. No es solo un chat de soporte: es un asistente conversacional con tu marca.
                   </div>
 
                   <div style={codeBlockStyle}>
@@ -1265,7 +1278,7 @@ const BotDetail = () => {
                   </button>
 
                   <div style={hintStyle}>
-                    Guarda el contenido en un archivo <code>.html</code> y ábrelo en el navegador — funciona igual que el chat de Imfluid.
+                    <strong>Cómo instalarlo:</strong> pégalo en una página vacía o dentro de un <code>&lt;iframe&gt;</code>. Ocupa todo el espacio disponible y funciona como una app de chat dedicada.
                   </div>
                 </div>
 
