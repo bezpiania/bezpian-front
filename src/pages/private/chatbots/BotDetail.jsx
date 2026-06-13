@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { generateFullChatHtml } from '../../../utils/generateFullChatHtml.js';
 import { generateBubbleWidgetHtml } from '../../../utils/generateBubbleWidgetHtml.js';
+import { generateVoiceWidgetHtml } from '../../../utils/generateVoiceWidgetHtml.js';
 import { Link, useParams } from 'react-router-dom';
 import { Spin, message } from 'antd';
 import { useQueryClient } from '@tanstack/react-query';
@@ -1183,6 +1184,12 @@ const BotDetail = () => {
           const fullChatHtml = generateFullChatHtml({
             embedKey: bot.embedKey, apiUrl, color, avatar, name, pattern, patternOpacity,
           });
+          const voiceColor = bot.voiceSettings?.color || color;
+          const voiceHtml = generateVoiceWidgetHtml({
+            botId: id, embedKey: bot.embedKey,
+            color: voiceColor, avatar, name, apiUrl, appUrl,
+          });
+          const voiceNeedsKey = !openaiForm.hasApiKey;
 
           const copy = (code, label) => {
             navigator.clipboard.writeText(code);
@@ -1216,7 +1223,7 @@ const BotDetail = () => {
                 </div>
               </div>
 
-              <div className="grid-2-eq" style={{ gap: 20 }}>
+              <div className="grid-3" style={{ gap: 20 }}>
 
                 {/* ── Bubble widget ── */}
                 <div className="card">
@@ -1279,6 +1286,43 @@ const BotDetail = () => {
 
                   <div style={hintStyle}>
                     <strong>Cómo instalarlo:</strong> pégalo en una página vacía o dentro de un <code>&lt;iframe&gt;</code>. Ocupa todo el espacio disponible y funciona como una app de chat dedicada.
+                  </div>
+                </div>
+
+                {/* ── Voice widget ── */}
+                <div className="card">
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+                    <div style={{ width: 40, height: 40, borderRadius: 50, background: voiceColor, display: 'grid', placeItems: 'center', fontSize: 20, flexShrink: 0, color: '#fff' }}>
+                      🎙️
+                    </div>
+                    <div>
+                      <div className="section-num" style={{ marginBottom: 2 }}>Widget de voz</div>
+                      <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, opacity: 0.55 }}>
+                        Conversación en tiempo real
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, lineHeight: 1.65, opacity: 0.8, marginBottom: 16 }}>
+                    Un botón de micrófono flotante: tus clientes hablan y el bot responde con voz al instante, con todo el conocimiento de tu negocio. Una barra muestra la última frase en vivo y, al tocarla, se abre el historial completo de la conversación.
+                  </div>
+
+                  {voiceNeedsKey && (
+                    <div style={{ marginBottom: 14, padding: '10px 12px', background: 'var(--bone-2)', borderRadius: 8, fontFamily: 'var(--font-body)', fontSize: 12.5, lineHeight: 1.55, border: '1px solid rgba(0,0,0,0.06)' }}>
+                      ⚠️ El widget de voz requiere una <strong>API key de OpenAI</strong> configurada. Agrégala en la pestaña <em>OpenAI</em> para activarlo.
+                    </div>
+                  )}
+
+                  <div style={codeBlockStyle}>
+                    <pre style={preStyle}>{voiceHtml}</pre>
+                  </div>
+
+                  <button className="btn btn-primary btn-sm" onClick={() => copy(voiceHtml, 'HTML del widget de voz')}>
+                    <svg><use href="#i-copy" /></svg>Copiar HTML completo
+                  </button>
+
+                  <div style={hintStyle}>
+                    <strong>Cómo instalarlo:</strong> copia el código y pégalo antes de <code>&lt;/body&gt;</code>. Aparece un botón de micrófono flotante. Requiere HTTPS para que el navegador permita el micrófono.
                   </div>
                 </div>
 
