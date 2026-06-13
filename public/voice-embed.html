@@ -224,24 +224,39 @@
         setStatus('thinking', 'Conectando…');
         setBar('Conectando…');
 
+        var step = 'inicio';
         try {
           // 1) token efímero desde nuestro backend
-          var tokenResp = await fetch(apiUrl + '/api/embed/realtime-token', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ embedKey: embedKey })
-          });
-          var tokenData = await tokenResp.json();
-          if (!tokenData.success || !tokenData.data || !tokenData.data.token) {
-            throw new Error(tokenData.message || 'No se pudo obtener el token de voz');
+          step = 'token';
+          console.log('[voz] pidiendo token a', apiUrl + '/api/embed/realtime-token');
+          var tokenResp;
+          try {
+            tokenResp = await fetch(apiUrl + '/api/embed/realtime-token', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ embedKey: embedKey })
+            });
+          } catch (netErr) {
+            throw new Error('No se pudo contactar el backend (' + apiUrl + '). ¿URL correcta / CORS?');
+          }
+          var tokenData = await tokenResp.json().catch(function () { return {}; });
+          console.log('[voz] respuesta token:', tokenResp.status, tokenData);
+          if (!tokenResp.ok || !tokenData.success || !tokenData.data || !tokenData.data.token) {
+            throw new Error(tokenData.message || ('Backend respondió ' + tokenResp.status));
           }
           var EPHEMERAL = tokenData.data.token;
           var MODEL = tokenData.data.model || 'gpt-4o-realtime-preview';
 
           // 2) micrófono (gesto del usuario => permiso OK)
-          localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          step = 'microfono';
+          try {
+            localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          } catch (micErr) {
+            throw new Error('Permiso de micrófono denegado o no disponible (requiere HTTPS)');
+          }
 
           // 3) RTCPeerConnection
+          step = 'webrtc';
           pc = new RTCPeerConnection();
           pc.ontrack = function (e) { remoteAudio.srcObject = e.streams[0]; };
           localStream.getTracks().forEach(function (t) { pc.addTrack(t, localStream); });
@@ -251,6 +266,7 @@
           dc.addEventListener('message', onRealtimeEvent);
 
           // 5) SDP offer -> OpenAI -> answer
+          step = 'openai';
           var offer = await pc.createOffer();
           await pc.setLocalDescription(offer);
 
@@ -259,16 +275,23 @@
             body: offer.sdp,
             headers: { 'Authorization': 'Bearer ' + EPHEMERAL, 'Content-Type': 'application/sdp' }
           });
-          if (!sdpResp.ok) throw new Error('OpenAI rechazó la conexión de voz');
+          if (!sdpResp.ok) {
+            var sdpErr = await sdpResp.text().catch(function () { return ''; });
+            console.error('[voz] OpenAI SDP error', sdpResp.status, sdpErr);
+            throw new Error('OpenAI rechazó la conexión (' + sdpResp.status + ')');
+          }
           var answer = { type: 'answer', sdp: await sdpResp.text() };
           await pc.setRemoteDescription(answer);
 
           setStatus('listening', 'Escuchando…');
           setBar('Escuchando…');
         } catch (err) {
-          showError(err.message || 'No se pudo iniciar la llamada de voz');
+          var detail = (err && err.message) ? err.message : 'Error desconocido';
+          console.error('[voz] fallo en paso "' + step + '":', err);
+          showError('[' + step + '] ' + detail);
           setStatus('thinking', 'Error');
-          setBar('Error al conectar');
+          setBar(detail);
+          expanded = true; showState('modal');   // abrir modal para ver el detalle
           stopCall(true);
         }
       }
