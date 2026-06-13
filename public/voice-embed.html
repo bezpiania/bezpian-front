@@ -270,7 +270,7 @@
           var offer = await pc.createOffer();
           await pc.setLocalDescription(offer);
 
-          var sdpResp = await fetch('https://api.openai.com/v1/realtime?model=' + encodeURIComponent(MODEL), {
+          var sdpResp = await fetch('https://api.openai.com/v1/realtime/calls?model=' + encodeURIComponent(MODEL), {
             method: 'POST',
             body: offer.sdp,
             headers: { 'Authorization': 'Bearer ' + EPHEMERAL, 'Content-Type': 'application/sdp' }
@@ -313,11 +313,13 @@
             curBotTurn = addTurn('bot', '…', true);
             break;
           case 'response.audio_transcript.delta':
+          case 'response.output_audio_transcript.delta':
             setStatus('speaking', 'Hablando…');
             if (!curBotTurn) curBotTurn = addTurn('bot', '', true);
             updateTurn(curBotTurn, (curBotTurn.text === '…' ? '' : curBotTurn.text) + (msg.delta || ''), false);
             break;
           case 'response.audio_transcript.done':
+          case 'response.output_audio_transcript.done':
             if (curBotTurn) { updateTurn(curBotTurn, msg.transcript || curBotTurn.text, true); curBotTurn = null; }
             break;
           case 'response.done':
