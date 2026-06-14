@@ -9,11 +9,11 @@ const workspaceId = localStorage.getItem('workspaceId');
 
 // Build PLANS array from centralized config, adding visual styles
 const PLAN_STYLES = {
-    starter:    { bg: 'var(--bone-2)', border: 'var(--rule)' },
+    basico:     { bg: 'var(--bone-2)', border: 'var(--rule)' },
     pro:        { bg: 'var(--carbon)', border: 'var(--carbon)', labelColor: 'var(--voltage)', textColor: 'var(--bone)' },
     enterprise: { bg: 'var(--voltage)', border: 'var(--carbon)', textColor: 'var(--carbon)' },
 };
-const PLANS = ['starter', 'pro', 'enterprise'].map(key => ({
+const PLANS = ['basico', 'pro', 'enterprise'].map(key => ({
     key,
     ...PLAN_CONFIG[key],
     style: PLAN_STYLES[key] || {},
@@ -46,7 +46,7 @@ const UsageBar = ({ label, used, limit, unlimited }) => {
 
 // ── Confirm plan change modal ────────────────────────────────────────────────
 const ConfirmPlanModal = ({ plan, currentPlan, onConfirm, onClose, loading }) => {
-    const isDowngrade = ['free', 'starter'].includes(plan.key) && ['pro', 'enterprise'].includes(currentPlan);
+    const isDowngrade = ['free', 'basico'].includes(plan.key) && ['pro', 'enterprise'].includes(currentPlan);
     return (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 300 }}>
             <div style={{ background: 'var(--bone)', borderRadius: 16, padding: 32, maxWidth: 420, width: '90%', boxShadow: '0 24px 60px rgba(0,0,0,0.12)' }}>

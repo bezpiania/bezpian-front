@@ -7,40 +7,43 @@ export const PLAN_CONFIG = {
         label:         'Free',
         price:         '$0',
         desc:          'Para probar la plataforma.',
-        conversations: 500,
+        conversations: 50,
         chatbots:      1,
         members:       2,
-        features:      ['1 chatbot', '500 conversaciones/mes', '2 miembros'],
+        features:      ['1 chatbot', '50 conversaciones/mes', '2 miembros', 'Chat por texto y voz'],
         missing:       ['Sin agendamiento'],
     },
-    starter: {
-        label:         'Starter',
-        price:         '$9.990',
-        desc:          'Para empezar sin compromiso.',
-        conversations: 1000,
+    basico: {
+        label:         'Básico',
+        price:         '$50.000',
+        desc:          'Para empezar a vender en serio.',
+        conversations: 200,
         chatbots:      1,
-        members:       2,
-        features:      ['1 chatbot', '1.000 conversaciones/mes', '2 miembros'],
-        missing:       ['Sin agendamiento'],
+        members:       3,
+        features:      ['1 chatbot', '200 conversaciones/mes', '3 miembros', 'Chat por texto y voz'],
+        missing:       ['Sin agendamiento avanzado'],
     },
     pro: {
         label:         'Pro',
-        price:         '$29.990',
+        price:         '$150.000',
         desc:          'Para PyMEs que venden todos los días.',
-        conversations: 5000,
+        conversations: 1000,
         chatbots:      3,
         members:       10,
-        features:      ['3 chatbots', '5.000 conversaciones/mes', '10 miembros', 'Agendamiento + integraciones'],
+        features:      ['3 chatbots', '1.000 conversaciones/mes', '10 miembros', 'Agendamiento + integraciones', 'Chat por texto y voz'],
     },
     enterprise: {
         label:         'Empresa',
-        price:         '$99.000',
+        price:         'A medida',
         desc:          'Cuando ya volaste de la PyME.',
-        conversations: 50000,
+        conversations: -1,
         chatbots:      -1,
         members:       -1,
-        features:      ['Bots ilimitados', '50.000 conversaciones/mes', 'Equipo ilimitado · SSO', 'Soporte dedicado'],
+        features:      ['Bots ilimitados', 'Conversaciones ilimitadas', 'Equipo ilimitado · SSO', 'Soporte dedicado'],
     },
 };
 
-export const getPlanConfig = (planKey) => PLAN_CONFIG[planKey] || PLAN_CONFIG.free;
+// Alias de claves antiguas → nuevas (workspaces existentes)
+const PLAN_ALIASES = { starter: 'basico' };
+
+export const getPlanConfig = (planKey) => PLAN_CONFIG[PLAN_ALIASES[planKey] || planKey] || PLAN_CONFIG.free;
