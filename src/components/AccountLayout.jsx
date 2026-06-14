@@ -22,6 +22,13 @@ const AccountLayout = ({ children }) => {
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bone)' }}>
+      {/* Halo decorativo pegado a la esquina superior derecha de la pantalla */}
+      <div style={{
+        position: 'fixed', top: -140, right: -140, width: 320, height: 320,
+        background: 'var(--voltage)', borderRadius: '50%', opacity: 0.20,
+        filter: 'blur(70px)', pointerEvents: 'none', zIndex: 0,
+      }} />
+
       {/* Top bar */}
       <div style={{ borderBottom: '1px solid var(--rule)', padding: '12px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'var(--bone)' }}>
         <button
