@@ -150,6 +150,8 @@ const BotDetail = () => {
     patternOpacity: bot?.widget?.patternOpacity ?? 0.45,
   });
 
+  const [voiceVoice, setVoiceVoice] = useState('alloy');
+
   const [embedCode, setEmbedCode]       = useState('');
   const [loadingEmbed, setLoadingEmbed] = useState(false);
   const [fullChatCode, setFullChatCode] = useState('');
@@ -185,6 +187,7 @@ const BotDetail = () => {
         pattern: bot.widget?.pattern || 'dots',
         patternOpacity: bot.widget?.patternOpacity ?? 0.45,
       });
+      setVoiceVoice(bot.voiceSettings?.voice || 'alloy');
     }
   }, [bot]);
 
@@ -297,6 +300,17 @@ const BotDetail = () => {
         onError: (error) => {
           message.error(error?.response?.data?.message || 'Error al actualizar');
         }
+      }
+    );
+  };
+
+  const handleSaveVoice = (newVoice) => {
+    setVoiceVoice(newVoice);
+    updateChatbot(
+      { workspaceId, id, data: { 'voiceSettings.voice': newVoice } },
+      {
+        onSuccess: () => message.success('Voz actualizada'),
+        onError: (error) => message.error(error?.response?.data?.message || 'Error al actualizar la voz'),
       }
     );
   };
@@ -1312,6 +1326,30 @@ const BotDetail = () => {
                       ⚠️ El widget de voz requiere una <strong>API key de OpenAI</strong> configurada. Agrégala en la pestaña <em>OpenAI</em> para activarlo.
                     </div>
                   )}
+
+                  <div style={{ marginBottom: 16 }}>
+                    <label style={{ display: 'block', fontFamily: 'var(--font-body)', fontSize: 12.5, fontWeight: 600, marginBottom: 6 }}>
+                      Voz del asistente
+                    </label>
+                    <select
+                      value={voiceVoice}
+                      onChange={(e) => handleSaveVoice(e.target.value)}
+                      disabled={isUpdating}
+                      style={{ width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid var(--bone-2)', fontFamily: 'var(--font-body)', fontSize: 13, background: '#fff', cursor: 'pointer' }}
+                    >
+                      <option value="alloy">Alloy — neutral, versátil</option>
+                      <option value="ash">Ash — cálida, cercana</option>
+                      <option value="ballad">Ballad — suave, expresiva</option>
+                      <option value="coral">Coral — amable, animada</option>
+                      <option value="echo">Echo — clara, profesional</option>
+                      <option value="sage">Sage — serena, madura</option>
+                      <option value="shimmer">Shimmer — brillante, enérgica</option>
+                      <option value="verse">Verse — natural, conversacional</option>
+                    </select>
+                    <div style={{ fontFamily: 'var(--font-body)', fontSize: 11.5, opacity: 0.55, marginTop: 5 }}>
+                      Se guarda al instante y aplica en la próxima llamada — no necesitas volver a copiar el HTML.
+                    </div>
+                  </div>
 
                   <div style={codeBlockStyle}>
                     <pre style={preStyle}>{voiceHtml}</pre>
