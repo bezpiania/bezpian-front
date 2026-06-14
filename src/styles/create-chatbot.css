@@ -22,7 +22,7 @@
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
-body { background: var(--bone); color: var(--carbon); font-family: var(--font-body); font-optical-sizing: auto; font-size: 15px; line-height: 1.55; overflow: hidden; }
+body { background: var(--bone); color: var(--carbon); font-family: var(--font-body); font-optical-sizing: auto; font-size: 15px; line-height: 1.55; }
 
 ::selection { background: var(--voltage); color: var(--carbon); }
 
@@ -31,6 +31,7 @@ body { background: var(--bone); color: var(--carbon); font-family: var(--font-bo
   display: grid;
   grid-template-columns: 1fr 1fr;
   height: 100vh;
+  overflow: hidden;
   background: var(--bone);
 }
 
