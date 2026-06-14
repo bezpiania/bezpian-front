@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useGetChatbots } from '../../../hooks/useChatbot.js';
 import { setActiveBot, clearActiveBot } from '../../../hooks/useActiveBot.js';
 import IconSprite from '../../../components/IconSprite.jsx';
+import CornerHalo from '../../../components/CornerHalo.jsx';
 
 const BIZ_LABELS = {
   restaurant: '🍽️ Restaurante',
@@ -136,6 +137,7 @@ const BotSelector = () => {
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bone)' }}>
+      <CornerHalo />
 
       {/* Top bar */}
       <div style={{ borderBottom: '1px solid var(--rule)', padding: '14px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>

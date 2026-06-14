@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { clearActiveBot } from '../hooks/useActiveBot.js';
+import CornerHalo from './CornerHalo.jsx';
 
 /**
  * AccountLayout — layout para páginas de cuenta (Equipo, Plan, Perfil).
@@ -22,12 +23,7 @@ const AccountLayout = ({ children }) => {
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bone)' }}>
-      {/* Halo decorativo pegado a la esquina superior derecha de la pantalla */}
-      <div style={{
-        position: 'fixed', top: -140, right: -140, width: 320, height: 320,
-        background: 'var(--voltage)', borderRadius: '50%', opacity: 0.20,
-        filter: 'blur(70px)', pointerEvents: 'none', zIndex: 0,
-      }} />
+      <CornerHalo />
 
       {/* Top bar */}
       <div style={{ borderBottom: '1px solid var(--rule)', padding: '12px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'var(--bone)' }}>
