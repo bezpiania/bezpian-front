@@ -164,6 +164,9 @@
       var active = false, expanded = false, muted = false;
       var turns = [];                 // {role, text, el, done}
       var curBotTurn = null, curUserTurn = null;
+      var conversationId = null;
+      var visitorId = 'voice-' + Math.random().toString(36).slice(2, 11);
+      var pendingCalls = {};          // call_id -> function name
 
       // ---- Tamaño del iframe: avisar al padre ----
       function setSize(state) {
@@ -245,7 +248,22 @@
             throw new Error(tokenData.message || ('Backend respondió ' + tokenResp.status));
           }
           var EPHEMERAL = tokenData.data.token;
-          var MODEL = tokenData.data.model || 'gpt-4o-realtime-preview';
+          var MODEL = tokenData.data.model || 'gpt-realtime';
+
+          // 1b) crear conversación (para registrar transcripción y ejecutar acciones)
+          step = 'conversacion';
+          try {
+            var convResp = await fetch(apiUrl + '/api/embed/conversations', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ embedKey: embedKey, visitorId: visitorId })
+            });
+            var convData = await convResp.json().catch(function () { return {}; });
+            conversationId = convData?.data?.conversationId || null;
+            console.log('[voz] conversación:', conversationId);
+          } catch (convErr) {
+            console.warn('[voz] no se pudo crear conversación (sigue sin registro):', convErr);
+          }
 
           // 2) micrófono (gesto del usuario => permiso OK)
           step = 'microfono';
@@ -296,6 +314,44 @@
         }
       }
 
+      // enviar un evento al modelo por el data channel
+      function sendEvent(obj) {
+        try { if (dc && dc.readyState === 'open') dc.send(JSON.stringify(obj)); } catch (e) { console.warn('[voz] sendEvent', e); }
+      }
+
+      // registrar transcripción en el backend (no bloqueante)
+      function logTranscript(role, text) {
+        if (!conversationId || !text) return;
+        fetch(apiUrl + '/api/embed/voice-transcript', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ conversationId: conversationId, role: role, content: text })
+        }).catch(function () {});
+      }
+
+      // ejecutar una function-call en el backend y devolver el resultado al modelo
+      async function handleFunctionCall(callId, fnName, argsStr) {
+        var args = {};
+        try { args = JSON.parse(argsStr || '{}'); } catch (_) {}
+        setStatus('thinking', 'Procesando…');
+        var output = 'No se pudo completar la acción.';
+        try {
+          var r = await fetch(apiUrl + '/api/embed/voice-tool', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ embedKey: embedKey, conversationId: conversationId, name: fnName, args: args })
+          });
+          var data = await r.json().catch(function () { return {}; });
+          output = data.result || data.message || output;
+          console.log('[voz] tool', fnName, '->', output);
+        } catch (err) {
+          console.error('[voz] error tool', fnName, err);
+        }
+        // devolver el resultado al modelo y pedir que continúe hablando
+        sendEvent({ type: 'conversation.item.create', item: {
+          type: 'function_call_output', call_id: callId, output: String(output)
+        }});
+        sendEvent({ type: 'response.create' });
+      }
+
       function onRealtimeEvent(e) {
         var msg;
         try { msg = JSON.parse(e.data); } catch (_) { return; }
@@ -307,10 +363,17 @@
           case 'conversation.item.input_audio_transcription.completed':
             if (curUserTurn) { updateTurn(curUserTurn, msg.transcript || '', true); curUserTurn = null; }
             else if (msg.transcript) { addTurn('user', msg.transcript, false); }
+            logTranscript('user', msg.transcript || '');
             break;
           case 'response.created':
             setStatus('thinking', 'Pensando…');
             curBotTurn = addTurn('bot', '…', true);
+            break;
+          case 'response.output_item.added':
+            // registrar nombre de la función por call_id
+            if (msg.item && msg.item.type === 'function_call') {
+              pendingCalls[msg.item.call_id] = msg.item.name;
+            }
             break;
           case 'response.audio_transcript.delta':
           case 'response.output_audio_transcript.delta':
@@ -320,7 +383,17 @@
             break;
           case 'response.audio_transcript.done':
           case 'response.output_audio_transcript.done':
-            if (curBotTurn) { updateTurn(curBotTurn, msg.transcript || curBotTurn.text, true); curBotTurn = null; }
+            if (curBotTurn) { updateTurn(curBotTurn, msg.transcript || curBotTurn.text, true); }
+            logTranscript('assistant', (curBotTurn && curBotTurn.text) || msg.transcript || '');
+            curBotTurn = null;
+            break;
+          case 'response.function_call_arguments.done':
+            // el modelo pide ejecutar una acción
+            var fnName = msg.name || pendingCalls[msg.call_id];
+            if (fnName && msg.call_id) {
+              handleFunctionCall(msg.call_id, fnName, msg.arguments);
+              delete pendingCalls[msg.call_id];
+            }
             break;
           case 'response.done':
             setStatus('listening', 'Escuchando…');
@@ -336,6 +409,7 @@
         try { if (localStream) localStream.getTracks().forEach(function (t) { t.stop(); }); } catch (_) {}
         pc = null; dc = null; localStream = null;
         curBotTurn = null; curUserTurn = null;
+        pendingCalls = {}; conversationId = null;
         if (!silent) { expanded = false; showState('idle'); }
       }
 
