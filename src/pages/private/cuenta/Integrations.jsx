@@ -11,7 +11,7 @@ const AVAILABLE = [
 
 const Integrations = () => (
   <AppLayout>
-    <div className="page-head with-halo">
+    <div className="page-head">
       <div>
         <div className="page-eyebrow">
           <span>Integraciones</span>

@@ -104,7 +104,7 @@ const Team = () => {
 
   return (
     <AccountLayout>
-      <div className="page-head with-halo">
+      <div className="page-head">
         <div>
           <div className="page-eyebrow">
             <span>Equipo</span>
