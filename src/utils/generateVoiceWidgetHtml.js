@@ -22,9 +22,6 @@ export function generateVoiceWidgetHtml({ botId, embedKey, color = '#534AB7', av
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>${name} — Voz</title>
   <style>
-    /* Tu contenido de página va aquí */
-    body { margin: 0; font-family: sans-serif; background: #f9f9f9; }
-
     #zapien-voice-iframe {
       position: fixed;
       bottom: 20px;
@@ -40,9 +37,6 @@ export function generateVoiceWidgetHtml({ botId, embedKey, color = '#534AB7', av
   </style>
 </head>
 <body>
-
-  <!-- Tu contenido de página aquí -->
-  <h1 style="padding:40px;color:#333;">Mi sitio web</h1>
 
   <!-- Widget de voz Bezpian -->
   <iframe id="zapien-voice-iframe"
