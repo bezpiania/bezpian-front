@@ -7,10 +7,10 @@ export const PLAN_CONFIG = {
         label:         'Free',
         price:         '$0',
         desc:          'Para probar la plataforma.',
-        conversations: 50,
+        conversations: 10,
         chatbots:      1,
         members:       2,
-        features:      ['1 chatbot', '50 conversaciones/mes', '2 miembros', 'Chat por texto y voz'],
+        features:      ['1 chatbot', '10 conversaciones/mes', '2 miembros', 'Chat por texto y voz'],
         missing:       ['Sin agendamiento'],
     },
     basico: {
