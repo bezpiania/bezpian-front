@@ -9,11 +9,12 @@ const workspaceId = localStorage.getItem('workspaceId');
 
 // Build PLANS array from centralized config, adding visual styles
 const PLAN_STYLES = {
+    free:       { bg: 'var(--bone)', border: 'var(--rule)' },
     basico:     { bg: 'var(--bone-2)', border: 'var(--rule)' },
     pro:        { bg: 'var(--carbon)', border: 'var(--carbon)', labelColor: 'var(--voltage)', textColor: 'var(--bone)' },
     enterprise: { bg: 'var(--voltage)', border: 'var(--carbon)', textColor: 'var(--carbon)' },
 };
-const PLANS = ['basico', 'pro', 'enterprise'].map(key => ({
+const PLANS = ['free', 'basico', 'pro', 'enterprise'].map(key => ({
     key,
     ...PLAN_CONFIG[key],
     style: PLAN_STYLES[key] || {},
@@ -192,7 +193,7 @@ const Billing = () => {
                     </div>
                 </div>
 
-                <div className="grid-3" style={{ marginBottom: 32 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 20, marginBottom: 32 }}>
                     {PLANS.map(p => {
                         const isCurrent = p.key === plan;
                         const s = p.style;
