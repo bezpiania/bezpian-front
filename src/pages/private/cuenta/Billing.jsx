@@ -116,7 +116,7 @@ const Billing = () => {
 
     return (
         <AccountLayout>
-            <div className="page-head with-halo">
+            <div className="page-head">
                 <div>
                     <div className="page-eyebrow">
                         <span>Plan y facturación</span>
