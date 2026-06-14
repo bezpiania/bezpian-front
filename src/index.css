@@ -216,8 +216,8 @@ input, textarea, select { font-family: inherit; color: inherit; }
 .page-head.with-halo::before {
   content: '';
   position: absolute;
-  right: -60px; top: -60px;
-  width: 200px; height: 200px;
+  right: -120px; top: -120px;
+  width: 240px; height: 240px;
   background: var(--voltage);
   border-radius: 50%;
   opacity: 0.22;
