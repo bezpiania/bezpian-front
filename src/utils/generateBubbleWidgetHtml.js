@@ -65,7 +65,7 @@ export function generateBubbleWidgetHtml({ botId, embedKey, color = '#667eea', a
   <!-- Tu contenido de página aquí -->
   <h1 style="padding:40px;color:#333;">Mi sitio web</h1>
 
-  <!-- Widget Bezpian -->
+  <!-- Widget Pielo -->
   <iframe id="zapien-iframe"
     src="${appUrl}/embed.html?botId=${botId}&embedKey=${embedKey}&color=${colorEncoded}&avatar=${avatarEncoded}&name=${nameEncoded}"
     allowtransparency="true">

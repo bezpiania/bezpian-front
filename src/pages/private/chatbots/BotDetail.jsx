@@ -1230,7 +1230,7 @@ const BotDetail = () => {
               <div className="section-head">
                 <div>
                   <div className="section-num">Widgets · HTML listo para usar</div>
-                  <div className="section-title">Instala tu <em>Bezpian.</em></div>
+                  <div className="section-title">Instala tu <em>Pielo.</em></div>
                   <div style={{ fontFamily: 'var(--font-body)', fontSize: 14, opacity: 0.7, lineHeight: 1.6, marginTop: 8, maxWidth: 620 }}>
                     Elige cómo quieres mostrar tu asistente. Copia el código y pégalo en tu sitio — no necesitas saber programar.
                   </div>

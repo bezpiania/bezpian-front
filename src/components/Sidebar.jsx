@@ -56,7 +56,7 @@ const Sidebar = () => {
       {/* Brand */}
       <div className="app-brand">
         <div className="app-brand-mark">Z</div>
-        <div className="app-brand-name">Bezpian</div>
+        <div className="app-brand-name">Pielo</div>
         <div className="pill-pro">PRO</div>
       </div>
 

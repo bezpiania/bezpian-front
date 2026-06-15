@@ -179,7 +179,7 @@ const QuoteDetail = () => {
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
                     <div style={{ width: 36, height: 36, background: 'var(--voltage)', borderRadius: 9, display: 'grid', placeItems: 'center', fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 18 }}>Z</div>
-                    <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, letterSpacing: '-0.02em' }}>Bezpian</div>
+                    <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, letterSpacing: '-0.02em' }}>Pielo</div>
                   </div>
                   <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, opacity: 0.7, lineHeight: 1.5 }}>
                     Santiago, Chile<br />
@@ -245,7 +245,7 @@ const QuoteDetail = () => {
               </div>
 
               <div style={{ marginTop: 32, paddingTop: 18, borderTop: '1px solid var(--rule)', fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 12.5, opacity: 0.65, lineHeight: 1.5 }}>
-                Esta cotización es válida hasta el {formatDate(quote.expiresAt)}. Generada automáticamente por Bezpian.{' '}
+                Esta cotización es válida hasta el {formatDate(quote.expiresAt)}. Generada automáticamente por Pielo.{' '}
                 <strong style={{ fontStyle: 'normal', fontFamily: 'var(--font-display)', fontWeight: 600 }}>Cualquier duda escríbenos a info@zapien.cl</strong>.
               </div>
             </div>
@@ -311,7 +311,7 @@ const QuoteDetail = () => {
             <div className="card">
               <div className="section-num" style={{ marginBottom: 8 }}>Origen</div>
               <div style={{ fontFamily: 'var(--font-body)', fontSize: 13, lineHeight: 1.5 }}>
-                Generada por <strong style={{ fontFamily: 'var(--font-display)', fontWeight: 600 }}>🤖 Bezpian</strong> {quote.conversationId ? (
+                Generada por <strong style={{ fontFamily: 'var(--font-display)', fontWeight: 600 }}>🤖 Pielo</strong> {quote.conversationId ? (
                   <>
                     desde la conversación{' '}
                     <Link to={`/conversaciones/${quote.conversationId}`} style={{ cursor: 'pointer', borderBottom: '1px solid var(--voltage)', fontFamily: 'var(--font-mono)', fontSize: 12 }}>

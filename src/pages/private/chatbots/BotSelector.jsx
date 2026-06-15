@@ -142,7 +142,7 @@ const BotSelector = () => {
       {/* Top bar */}
       <div style={{ borderBottom: '1px solid var(--rule)', padding: '14px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 20, letterSpacing: '-0.02em' }}>
-          Bezpian <span className="pill-pro" style={{ fontSize: 9, verticalAlign: 'middle' }}>PRO</span>
+          Pielo <span className="pill-pro" style={{ fontSize: 9, verticalAlign: 'middle' }}>PRO</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           {isAdmin && <>

@@ -76,7 +76,7 @@ export default function CreateChatbot() {
             message.error('Error: No se obtuvo ID del chatbot');
             return;
           }
-          message.success('¡Bezpian creado! Ahora configúralo a tu gusto.');
+          message.success('¡Pielo creado! Ahora configúralo a tu gusto.');
           navigate(`/chatbots/${chatbotId}`);
         },
         onError: (error) => {
@@ -96,7 +96,7 @@ export default function CreateChatbot() {
         <div className="topbar">
           <div className="brand">
             <div className="brand-mark">Z</div>
-            <div className="brand-name">Bezpian</div>
+            <div className="brand-name">Pielo</div>
           </div>
           <button className="topbar-exit" onClick={() => navigate(-1)}>
             <X size={14} />
@@ -125,7 +125,7 @@ export default function CreateChatbot() {
               </div>
               <h2 className="step-title">
                 Ponle <span className="hl">nombre</span>
-                <br />a tu Bezpian.
+                <br />a tu Pielo.
               </h2>
               <p className="step-sub">
                 Así lo van a ver tus clientes. Puedes cambiarlo después.
@@ -321,7 +321,7 @@ export default function CreateChatbot() {
                 con <span className="hl">GPT.</span>
               </h2>
               <p className="step-sub">
-                Este paso es <strong>completamente opcional por ahora</strong>. Si no tienes tu API key de OpenAI a mano, créa tu Bezpian igual y agrégala después desde la configuración del bot.
+                Este paso es <strong>completamente opcional por ahora</strong>. Si no tienes tu API key de OpenAI a mano, créa tu Pielo igual y agrégala después desde la configuración del bot.
               </p>
 
               <div className="field">
@@ -376,7 +376,7 @@ export default function CreateChatbot() {
                 Saltar por ahora
               </button>
               <button className="btn btn-primary voltage" onClick={handleSave} disabled={isPending}>
-                {isPending ? 'Creando...' : 'Crear Bezpian'}
+                {isPending ? 'Creando...' : 'Crear Pielo'}
               </button>
             </div>
           ) : (

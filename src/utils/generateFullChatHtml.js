@@ -143,7 +143,7 @@ export function generateFullChatHtml({ embedKey, apiUrl, color = '#0d0d0d', avat
     const API_URL   = '${apiUrl}';
     const visitorId = Math.random().toString(36).substring(2,10);
     let convId=null,botId=null,accentColor='${color}',isLoading=false,chatStarted=false;
-    const visitorContext=window.BezpianUser||{};
+    const visitorContext=window.PieloUser||{};
 
     applyContrast('${color}');
 

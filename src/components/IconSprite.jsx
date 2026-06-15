@@ -1,6 +1,6 @@
 import React from 'react';
 
-// Sprite global con todos los iconos del sistema Bezpian.
+// Sprite global con todos los iconos del sistema Pielo.
 // Se monta una vez en el árbol y los componentes lo referencian con:
 //   <svg><use href="#i-home" /></svg>
 const IconSprite = () => (

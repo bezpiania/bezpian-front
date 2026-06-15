@@ -38,7 +38,7 @@ export function generateVoiceWidgetHtml({ botId, embedKey, color = '#534AB7', av
 </head>
 <body>
 
-  <!-- Widget de voz Bezpian -->
+  <!-- Widget de voz Pielo -->
   <iframe id="zapien-voice-iframe"
     src="${appUrl}/voice-embed.html?botId=${botId}&embedKey=${embedKey}&color=${colorEncoded}&avatar=${avatarEncoded}&name=${nameEncoded}&apiUrl=${apiUrlEncoded}"
     allow="microphone; autoplay"
