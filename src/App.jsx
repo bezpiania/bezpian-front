@@ -8,6 +8,7 @@ import RequireActiveBot from './components/RequireActiveBot.jsx';
 // Públicas
 import Login from './pages/public/Login.jsx';
 import Signup from './pages/public/Signup.jsx';
+import Legal from './pages/public/Legal.jsx';
 import VerifyEmail from './pages/public/VerifyEmail.jsx';
 import ForgotPassword from './pages/public/ForgotPassword.jsx';
 import Widget from './pages/public/Widget.jsx';
@@ -49,6 +50,8 @@ function App() {
           <Route path="/verificar-email" element={<VerifyEmail />} />
           <Route path="/invitar"         element={<AcceptInvite />} />
           <Route path="/recuperar"       element={<ForgotPassword />} />
+          <Route path="/terminos"        element={<Legal doc="terms" />} />
+          <Route path="/privacidad"      element={<Legal doc="privacy" />} />
           <Route path="/mesa/:tableToken" element={<TableOrder />} />
           <Route path="/chat/:embedKey"   element={<FullChat />} />
           <Route path="/widget"          element={<Widget />} />

@@ -156,9 +156,9 @@ const Login = () => {
             <Link to="/signup">Crear mi Pielo gratis</Link>
           </div>
           <div>
-            <span>Términos</span>
+            <Link to="/terminos">Términos</Link>
             <span className="auth-sep"></span>
-            <span>Privacidad</span>
+            <Link to="/privacidad">Privacidad</Link>
             <span className="auth-sep"></span>
             <span>© 2026</span>
           </div>
