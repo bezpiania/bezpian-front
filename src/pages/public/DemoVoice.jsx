@@ -36,7 +36,7 @@ const DemoVoice = () => {
   const color = bot?.widget?.color || '#534AB7';
 
   return (
-    <div style={{ height: '100vh', position: 'relative', background: 'var(--bone, #F4F0E8)', overflow: 'hidden' }}>
+    <div style={{ height: '100dvh', position: 'relative', background: 'var(--bone, #F4F0E8)', overflow: 'hidden' }}>
       {/* Fondo con instrucción (no captura toques) */}
       <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', gap: 14, padding: 24, pointerEvents: 'none' }}>
         <div style={{ width: 84, height: 84, borderRadius: 24, background: color, display: 'grid', placeItems: 'center', fontSize: 40 }}>🎙️</div>

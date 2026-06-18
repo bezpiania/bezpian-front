@@ -36,7 +36,7 @@ const DemoChat = () => {
   }, [embedKey]);
 
   return (
-    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', background: '#fff' }}>
+    <div style={{ height: '100dvh', display: 'flex', flexDirection: 'column', background: '#fff' }}>
       <div style={{ padding: '8px 14px', borderBottom: '1px solid #eee', fontFamily: 'sans-serif' }}>
         <button onClick={() => navigate(`/demo/${embedKey}`)} style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: 22 }}>‹</button>
       </div>

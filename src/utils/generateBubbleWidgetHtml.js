@@ -22,8 +22,8 @@ export function generateBubbleWidgetHtml({ botId, embedKey, color = '#667eea', a
       position: fixed;
       bottom: 100px;
       right: 20px;
-      width: 400px;
-      height: 520px;
+      width: min(400px, calc(100vw - 40px));
+      height: min(520px, calc(100dvh - 130px));
       border: none;
       border-radius: 16px;
       box-shadow: 0 8px 32px rgba(0,0,0,0.18);

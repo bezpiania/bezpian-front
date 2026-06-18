@@ -37,7 +37,7 @@ const DemoSite = () => {
   }, [embedKey]);
 
   return (
-    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', background: '#fff' }}>
+    <div style={{ height: '100dvh', display: 'flex', flexDirection: 'column', background: '#fff' }}>
       <div style={{ padding: '10px 16px', borderBottom: '1px solid #eee', display: 'flex', alignItems: 'center', gap: 12, fontFamily: 'sans-serif' }}>
         <button onClick={() => navigate(`/demo/${embedKey}`)} style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: 22 }}>‹</button>
         <span style={{ fontSize: 13, color: '#666' }}>Vista de ejemplo · toca la burbuja abajo a la derecha</span>
