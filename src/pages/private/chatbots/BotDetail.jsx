@@ -1237,6 +1237,27 @@ const BotDetail = () => {
                 </div>
               </div>
 
+              {(() => {
+                const demoUrl = `${window.location.origin}/demo/${bot.embedKey}`;
+                return (
+                  <div style={{ background: 'var(--carbon)', borderRadius: 14, padding: 20, marginBottom: 24, display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
+                    <div style={{ flex: 1, minWidth: 240 }}>
+                      <div className="section-num" style={{ color: 'var(--voltage)', marginBottom: 4 }}>🔗 Link de demo</div>
+                      <div style={{ fontFamily: 'var(--font-body)', fontSize: 13.5, color: 'var(--bone)', opacity: 0.8, lineHeight: 1.5 }}>
+                        Compártelo con tu cliente: prueba los 3 modos (texto, voz y widget) en un solo enlace.
+                      </div>
+                      <div style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--bone)', opacity: 0.6, marginTop: 8, wordBreak: 'break-all' }}>{demoUrl}</div>
+                    </div>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <button className="btn btn-primary btn-sm" onClick={() => copy(demoUrl, 'Link de demo')}>
+                        <svg><use href="#i-copy" /></svg>Copiar link
+                      </button>
+                      <a className="btn btn-ghost btn-sm" href={demoUrl} target="_blank" rel="noreferrer" style={{ color: 'var(--bone)', borderColor: 'var(--bone)' }}>Abrir ↗</a>
+                    </div>
+                  </div>
+                );
+              })()}
+
               <div className="grid-3" style={{ gap: 20 }}>
 
                 {/* ── Bubble widget ── */}

@@ -22,6 +22,16 @@ const BotCard = ({ bot, onOpen, onConfig }) => {
   const status = STATUS_DOT[bot.status] || STATUS_DOT.draft;
   const color  = bot.widget?.color  || '#667eea';
   const avatar = bot.widget?.avatar || '🤖';
+  const [copied, setCopied] = React.useState(false);
+
+  const shareDemo = () => {
+    if (!bot.embedKey) return;
+    const url = `${window.location.origin}/demo/${bot.embedKey}`;
+    navigator.clipboard?.writeText(url).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1800);
+    }).catch(() => {});
+  };
 
   return (
     <div style={{
@@ -86,6 +96,13 @@ const BotCard = ({ bot, onOpen, onConfig }) => {
           <svg style={{ width: 16, height: 16 }}><use href="#i-settings" /></svg>
         </button>
       </div>
+
+      <button
+        onClick={shareDemo}
+        style={{ marginTop: 8, width: '100%', padding: '9px 14px', background: copied ? 'var(--voltage)' : 'var(--bone-2)', border: '1px solid var(--rule)', borderRadius: 10, fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, cursor: 'pointer', transition: 'background .15s' }}
+      >
+        {copied ? '✓ Link copiado' : '🔗 Compartir demo'}
+      </button>
     </div>
   );
 };
