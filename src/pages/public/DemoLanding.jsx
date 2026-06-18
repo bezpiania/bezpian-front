@@ -30,10 +30,6 @@ const DemoLanding = () => {
   const avatar = bot?.widget?.avatar || BIZ_ICON[bot?.businessType] || '🤖';
   const origin = typeof window !== 'undefined' ? window.location.origin : '';
 
-  const openVoice = () => {
-    const q = new URLSearchParams({ embedKey, apiUrl, color, name, avatar });
-    window.location.href = `${origin}/voice-embed.html?${q.toString()}`;
-  };
 
   // Esperar a tener la info del bot para no mostrar colores genéricos en el primer render
   if (loading) {
@@ -81,7 +77,7 @@ const DemoLanding = () => {
         </p>
 
         <Btn icon="💬" title="Chatear por texto" sub="Pregúntale lo que quieras, como ChatGPT" onClick={() => navigate(`/demo-chat/${embedKey}`)} primary />
-        <Btn icon="🎙️" title="Hablar por voz" sub="Conversa en voz alta con el asistente" onClick={openVoice} />
+        <Btn icon="🎙️" title="Hablar por voz" sub="Conversa en voz alta con el asistente" onClick={() => navigate(`/demo-voz/${embedKey}`)} />
         <Btn icon="🔗" title="Verlo en un sitio web" sub="Cómo se vería integrado en tu página" onClick={() => navigate(`/demo-sitio/${embedKey}`)} />
 
         <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, opacity: 0.45, textAlign: 'center', marginTop: 32 }}>
