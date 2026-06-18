@@ -11,6 +11,7 @@ import Signup from './pages/public/Signup.jsx';
 import Legal from './pages/public/Legal.jsx';
 import DemoLanding from './pages/public/DemoLanding.jsx';
 import DemoSite from './pages/public/DemoSite.jsx';
+import DemoChat from './pages/public/DemoChat.jsx';
 import VerifyEmail from './pages/public/VerifyEmail.jsx';
 import ForgotPassword from './pages/public/ForgotPassword.jsx';
 import Widget from './pages/public/Widget.jsx';
@@ -55,6 +56,7 @@ function App() {
           <Route path="/terminos"        element={<Legal doc="terms" />} />
           <Route path="/privacidad"      element={<Legal doc="privacy" />} />
           <Route path="/demo/:embedKey"       element={<DemoLanding />} />
+          <Route path="/demo-chat/:embedKey"  element={<DemoChat />} />
           <Route path="/demo-sitio/:embedKey" element={<DemoSite />} />
           <Route path="/mesa/:tableToken" element={<TableOrder />} />
           <Route path="/chat/:embedKey"   element={<FullChat />} />
