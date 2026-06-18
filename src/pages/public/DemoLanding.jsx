@@ -35,6 +35,16 @@ const DemoLanding = () => {
     window.location.href = `${origin}/voice-embed.html?${q.toString()}`;
   };
 
+  // Esperar a tener la info del bot para no mostrar colores genéricos en el primer render
+  if (loading) {
+    return (
+      <div style={{ minHeight: '100vh', background: 'var(--bone)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ width: 28, height: 28, borderRadius: '50%', border: '3px solid rgba(0,0,0,0.12)', borderTopColor: 'var(--carbon)', animation: 'demospin 0.8s linear infinite' }} />
+        <style>{`@keyframes demospin { to { transform: rotate(360deg); } }`}</style>
+      </div>
+    );
+  }
+
   const Btn = ({ icon, title, sub, onClick, primary }) => (
     <button onClick={onClick} style={{
       display: 'flex', alignItems: 'center', gap: 14, width: '100%', textAlign: 'left',
