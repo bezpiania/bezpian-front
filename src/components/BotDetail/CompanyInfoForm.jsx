@@ -25,8 +25,9 @@ const normalizeDisplay = (display = []) =>
 const CompanyInfoForm = ({ workspaceId, botId }) => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
   const [form, setForm] = useState({
-    company: { name: '', address: '', city: '', country: '', phone: '', email: '', website: '' },
+    company: { name: '', address: '', city: '', country: '', phone: '', email: '', website: '', logo: '' },
     operationHours: dayNames.map(day => ({ day, open: '09:00', close: '18:00', isClosed: ['saturday', 'sunday'].includes(day) })),
     operationHoursDisplay: dayNames,
     dispatches: { available: true, specialCases: '' },
@@ -72,6 +73,34 @@ const CompanyInfoForm = ({ workspaceId, botId }) => {
       console.error('Error fetching config:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleLogoChange = async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = ''; // permite re-subir el mismo archivo
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      message.error('El logo debe ser una imagen (PNG, JPG, WEBP o SVG)');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      message.error('La imagen no debe superar 5 MB');
+      return;
+    }
+    try {
+      setUploadingLogo(true);
+      const res = await Chatbot.uploadLogo(botId, file);
+      if (res?.success && res.data?.url) {
+        setForm(prev => ({ ...prev, company: { ...prev.company, logo: res.data.url } }));
+        message.success('Logo subido. No olvides guardar.');
+      } else {
+        message.error(res?.message || 'No se pudo subir el logo');
+      }
+    } catch (error) {
+      message.error('Error al subir el logo: ' + (error?.message || ''));
+    } finally {
+      setUploadingLogo(false);
     }
   };
 
@@ -144,6 +173,40 @@ const CompanyInfoForm = ({ workspaceId, botId }) => {
         <div>
           <div className="section-num">Información de Empresa</div>
           <div className="section-title">Datos y configuración de tu <em>negocio</em></div>
+        </div>
+      </div>
+
+      {/* LOGO */}
+      <div className="card">
+        <div className="form-card-title">Logo del Asistente</div>
+        <p style={{ fontSize: 12, opacity: 0.6, marginBottom: 16 }}>
+          Imagen cuadrada (se ajustará automáticamente a 500×500 px). PNG, JPG, WEBP o SVG, máx. 5 MB.
+        </p>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+          <div style={{
+            width: 96, height: 96, borderRadius: 16, border: '1px solid #e0e0e0',
+            background: '#f7f7f7', display: 'grid', placeItems: 'center', overflow: 'hidden', flexShrink: 0
+          }}>
+            {form.company.logo
+              ? <img src={form.company.logo} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              : <span style={{ fontSize: 30, opacity: 0.35 }}>🖼️</span>}
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <label className="btn btn-ghost" style={{ cursor: uploadingLogo ? 'wait' : 'pointer', margin: 0 }}>
+              {uploadingLogo ? 'Subiendo…' : (form.company.logo ? 'Cambiar logo' : 'Subir logo')}
+              <input type="file" accept="image/*" onChange={handleLogoChange} disabled={uploadingLogo} style={{ display: 'none' }} />
+            </label>
+            {form.company.logo && (
+              <button
+                type="button"
+                onClick={() => setForm(prev => ({ ...prev, company: { ...prev.company, logo: '' } }))}
+                className="btn btn-ghost"
+                style={{ color: '#ff4444', padding: '4px 8px', fontSize: 12 }}
+              >
+                Quitar
+              </button>
+            )}
+          </div>
         </div>
       </div>
 

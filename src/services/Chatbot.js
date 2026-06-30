@@ -40,6 +40,15 @@ class ChatbotService {
   saveConfig = (workspaceId, chatbotId, configData) =>
     instance.post(`/api/workspaces/${workspaceId}/chatbots/${chatbotId}/config`, configData);
 
+  uploadLogo = (chatbotId, file) => {
+    const formData = new FormData();
+    formData.append('logo', file);
+    formData.append('chatbotId', chatbotId);
+    return instance.post(`/api/uploads/logo`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  };
+
   uploadDocument = (workspaceId, chatbotId, file) => {
     const formData = new FormData();
     formData.append('file', file);
