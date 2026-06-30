@@ -159,6 +159,18 @@
       mAvatar.textContent = avatar;
       mTitle.textContent = name;
 
+      // Logo opcional: si el bot tiene logo, reemplaza el emoji del avatar
+      if (embedKey) {
+        fetch(apiUrl + '/api/embed/bot-info?embedKey=' + embedKey)
+          .then(function (r) { return r.json(); })
+          .then(function (res) {
+            if (res && res.success && res.data && res.data.logo) {
+              mAvatar.innerHTML = '<img src="' + res.data.logo + '" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:inherit">';
+            }
+          })
+          .catch(function () {});
+      }
+
       // ---- Estado ----
       var pc = null, dc = null, localStream = null;
       var active = false, expanded = false, muted = false;

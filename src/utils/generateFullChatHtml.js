@@ -190,6 +190,7 @@ export function generateFullChatHtml({ embedKey, apiUrl, color = '#0d0d0d', avat
       document.getElementById('header-avatar').textContent=av;
       document.getElementById('header-avatar').style.background=accentColor+'33';
       document.getElementById('header-name').textContent=nm;
+      if(data.logo){var _img='<img src="'+data.logo+'" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:inherit">';document.getElementById('welcome-avatar').innerHTML=_img;document.getElementById('header-avatar').innerHTML=_img;}
       if(data.suggestions)buildSuggestions(data.suggestions);
     }
 

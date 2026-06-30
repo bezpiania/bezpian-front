@@ -326,6 +326,7 @@
         let primaryColor = urlColor || '#667eea';
         let textColor = getContrastColor(primaryColor);
         let avatar = urlAvatar || '🤖';
+        let logo = null; // URL del logo (opcional); si existe, reemplaza al emoji
         let chatbotName = urlName || 'Bezpian Chat';
         let additionalInfo = []; // Almacenar información adicional del usuario
         let visitorContext = {}; // Contexto del usuario (isLoggedIn, role, etc.)
@@ -350,8 +351,10 @@
                 statusSpan.style.color = textColor;
             }
 
-            // Set avatar emoji
-            document.getElementById('avatarContainer').textContent = avatar;
+            // Set avatar — logo si existe, si no el emoji
+            const _ac = document.getElementById('avatarContainer');
+            if (logo) { _ac.innerHTML = '<img src="' + logo + '" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:inherit">'; }
+            else { _ac.textContent = avatar; }
 
             // Set bot name
             document.getElementById('headerName').textContent = chatbotName;
@@ -378,20 +381,27 @@
         }
         // In iframe mode the button stays display:none — the parent page handles the toggle.
 
-        if (isStandalone && botId && embedKey) {
-            // Standalone: apply popup style and preload bot config
-            document.body.classList.add('standalone-mode');
+        if (isStandalone) document.body.classList.add('standalone-mode');
+        if (botId && embedKey) {
+            // Preload bot config. En standalone aplica color/avatar/nombre;
+            // en iframe (burbuja) solo el logo (color/avatar/nombre llegan por postMessage).
             fetch(apiUrl + '/api/embed/bot-info?botId=' + botId + '&embedKey=' + embedKey)
                 .then(r => r.json())
                 .then(res => {
                     if (res.success && res.data) {
                         const info = res.data;
-                        if (info.widget?.color) { primaryColor = info.widget.color; textColor = getContrastColor(primaryColor); }
-                        if (info.widget?.avatar) { avatar = info.widget.avatar; }
-                        if (info.name)           { chatbotName = info.name; }
+                        if (info.logo) logo = info.logo;
+                        if (isStandalone) {
+                            if (info.widget?.color) { primaryColor = info.widget.color; textColor = getContrastColor(primaryColor); }
+                            if (info.widget?.avatar) { avatar = info.widget.avatar; }
+                            if (info.name)           { chatbotName = info.name; }
+                        }
                         applyTheme();
-                        // Update button emoji with bot avatar
-                        document.getElementById('minimizedButton').textContent = info.widget?.avatar || '💬';
+                        if (isStandalone) {
+                            const btn = document.getElementById('minimizedButton');
+                            if (info.logo) { btn.innerHTML = '<img src="' + info.logo + '" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%">'; }
+                            else { btn.textContent = info.widget?.avatar || '💬'; }
+                        }
                     }
                 })
                 .catch(() => {});
