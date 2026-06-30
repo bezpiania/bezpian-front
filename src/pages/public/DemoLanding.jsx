@@ -28,6 +28,7 @@ const DemoLanding = () => {
   const name   = bot?.name || 'Asistente';
   const color  = bot?.widget?.color || '#DCFF1E';
   const avatar = bot?.widget?.avatar || BIZ_ICON[bot?.businessType] || '🤖';
+  const logo   = bot?.logo || null;
   const origin = typeof window !== 'undefined' ? window.location.origin : '';
 
 
@@ -68,7 +69,11 @@ const DemoLanding = () => {
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 8 }}>
-          <div style={{ width: 56, height: 56, borderRadius: 16, background: color, display: 'grid', placeItems: 'center', fontSize: 28 }}>{avatar}</div>
+          <div style={{ width: 56, height: 56, borderRadius: 16, background: logo ? '#fff' : color, display: 'grid', placeItems: 'center', fontSize: 28, overflow: 'hidden', border: logo ? '1px solid var(--rule)' : 'none' }}>
+            {logo
+              ? <img src={logo} alt={name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              : avatar}
+          </div>
           <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 30, letterSpacing: '-0.03em', margin: 0 }}>{name}</h1>
         </div>
 
