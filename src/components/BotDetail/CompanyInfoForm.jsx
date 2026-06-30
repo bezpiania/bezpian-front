@@ -92,8 +92,17 @@ const CompanyInfoForm = ({ workspaceId, botId }) => {
       setUploadingLogo(true);
       const res = await Chatbot.uploadLogo(botId, file);
       if (res?.success && res.data?.url) {
-        setForm(prev => ({ ...prev, company: { ...prev.company, logo: res.data.url } }));
-        message.success('Logo subido. No olvides guardar.');
+        // Actualizar estado y guardar automáticamente (sin depender del botón)
+        const updated = { ...form, company: { ...form.company, logo: res.data.url } };
+        setForm(updated);
+        try {
+          await Chatbot.saveConfig(workspaceId, botId, {
+            company: { ...updated, additionalInfo: updated.additionalInfo.filter(i => i.question && i.answer) }
+          });
+          message.success('Logo subido y guardado');
+        } catch {
+          message.warning('Logo subido, pero no se pudo guardar automáticamente. Pulsa "Guardar Información".');
+        }
       } else {
         message.error(res?.message || 'No se pudo subir el logo');
       }
@@ -199,7 +208,18 @@ const CompanyInfoForm = ({ workspaceId, botId }) => {
             {form.company.logo && (
               <button
                 type="button"
-                onClick={() => setForm(prev => ({ ...prev, company: { ...prev.company, logo: '' } }))}
+                onClick={async () => {
+                  const updated = { ...form, company: { ...form.company, logo: '' } };
+                  setForm(updated);
+                  try {
+                    await Chatbot.saveConfig(workspaceId, botId, {
+                      company: { ...updated, additionalInfo: updated.additionalInfo.filter(i => i.question && i.answer) }
+                    });
+                    message.success('Logo quitado');
+                  } catch {
+                    message.warning('No se pudo guardar. Pulsa "Guardar Información".');
+                  }
+                }}
                 className="btn btn-ghost"
                 style={{ color: '#ff4444', padding: '4px 8px', fontSize: 12 }}
               >
