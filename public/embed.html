@@ -382,30 +382,35 @@
         // In iframe mode the button stays display:none — the parent page handles the toggle.
 
         if (isStandalone) document.body.classList.add('standalone-mode');
-        if (botId && embedKey) {
-            // Preload bot config. En standalone aplica color/avatar/nombre;
-            // en iframe (burbuja) solo el logo (color/avatar/nombre llegan por postMessage).
-            fetch(apiUrl + '/api/embed/bot-info?botId=' + botId + '&embedKey=' + embedKey)
+
+        // Carga la info del bot (incluye logo). En standalone aplica color/avatar/nombre;
+        // en iframe (burbuja) solo el logo (lo demás llega por postMessage). Basta embedKey.
+        let botInfoLoaded = false;
+        function preloadBotInfo() {
+            if (!embedKey || botInfoLoaded) return;
+            fetch(apiUrl + '/api/embed/bot-info?embedKey=' + embedKey + (botId ? '&botId=' + botId : ''))
                 .then(r => r.json())
                 .then(res => {
-                    if (res.success && res.data) {
-                        const info = res.data;
-                        if (info.logo) logo = info.logo;
-                        if (isStandalone) {
-                            if (info.widget?.color) { primaryColor = info.widget.color; textColor = getContrastColor(primaryColor); }
-                            if (info.widget?.avatar) { avatar = info.widget.avatar; }
-                            if (info.name)           { chatbotName = info.name; }
-                        }
-                        applyTheme();
-                        if (isStandalone) {
-                            const btn = document.getElementById('minimizedButton');
-                            if (info.logo) { btn.innerHTML = '<img src="' + info.logo + '" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%">'; }
-                            else { btn.textContent = info.widget?.avatar || '💬'; }
-                        }
+                    if (!res.success || !res.data) return;
+                    botInfoLoaded = true;
+                    const info = res.data;
+                    if (info.logo) logo = info.logo;
+                    if (isStandalone) {
+                        if (info.widget?.color) { primaryColor = info.widget.color; textColor = getContrastColor(primaryColor); }
+                        if (info.widget?.avatar) { avatar = info.widget.avatar; }
+                        if (info.name)           { chatbotName = info.name; }
+                    }
+                    applyTheme();
+                    if (isStandalone) {
+                        const btn = document.getElementById('minimizedButton');
+                        if (info.logo) { btn.innerHTML = '<img src="' + info.logo + '" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%">'; }
+                        else { btn.textContent = info.widget?.avatar || '💬'; }
                     }
                 })
                 .catch(() => {});
         }
+        // Standalone: cargar ya. Iframe: se dispara al recibir apiUrl en zapien-init.
+        if (isStandalone) preloadBotInfo();
 
         // Toggle chat open/closed — button always stays visible
         let conversationStarted = false;
@@ -465,6 +470,7 @@
             if (!event.data) return;
             if (event.data.type === 'zapien-init') {
                 apiUrl = event.data.apiUrl || apiUrl;
+                preloadBotInfo(); // ahora con apiUrl correcto (modo iframe) → carga el logo
 
                 // Update theme from parent if provided
                 if (event.data.color) {
