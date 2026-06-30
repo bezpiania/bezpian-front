@@ -22,6 +22,7 @@ const BotCard = ({ bot, onOpen, onConfig }) => {
   const status = STATUS_DOT[bot.status] || STATUS_DOT.draft;
   const color  = bot.widget?.color  || '#667eea';
   const avatar = bot.widget?.avatar || '🤖';
+  const logo   = bot.logo || null;
   const [copied, setCopied] = React.useState(false);
 
   const shareDemo = () => {
@@ -46,8 +47,10 @@ const BotCard = ({ bot, onOpen, onConfig }) => {
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div style={{ width: 48, height: 48, borderRadius: 13, background: color, display: 'grid', placeItems: 'center', fontSize: 24, flexShrink: 0, boxShadow: `0 3px 10px ${color}44` }}>
-            {avatar}
+          <div style={{ width: 48, height: 48, borderRadius: 13, background: logo ? '#fff' : color, display: 'grid', placeItems: 'center', fontSize: 24, flexShrink: 0, overflow: 'hidden', boxShadow: `0 3px 10px ${color}44` }}>
+            {logo
+              ? <img src={logo} alt={bot.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              : avatar}
           </div>
           <div>
             <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 17 }}>{bot.name}</div>
