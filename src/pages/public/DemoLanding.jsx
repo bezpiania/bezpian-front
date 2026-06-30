@@ -41,12 +41,12 @@ const DemoLanding = () => {
     );
   }
 
-  const Btn = ({ icon, title, sub, onClick, primary }) => (
+  const Btn = ({ icon, title, sub, onClick }) => (
     <button onClick={onClick} style={{
       display: 'flex', alignItems: 'center', gap: 14, width: '100%', textAlign: 'left',
       padding: '18px 20px', borderRadius: 16, cursor: 'pointer',
-      background: primary ? color : 'var(--bone)',
-      border: `1.5px solid ${primary ? color : 'var(--rule)'}`,
+      background: 'var(--bone)',
+      border: '1.5px solid var(--rule)',
       marginBottom: 14,
     }}>
       <span style={{ fontSize: 26 }}>{icon}</span>
@@ -76,13 +76,10 @@ const DemoLanding = () => {
           {loading ? 'Cargando…' : 'Pruébalo como quieras: escríbele, háblale por voz, o míralo como se vería en un sitio web. Atiende, vende y responde por ti, 24/7.'}
         </p>
 
-        <Btn icon="💬" title="Chatear por texto" sub="Pregúntale lo que quieras, como ChatGPT" onClick={() => navigate(`/demo-chat/${embedKey}`)} primary />
+        <Btn icon="💬" title="Chatear por texto" sub="Pregúntale lo que quieras, como ChatGPT" onClick={() => navigate(`/demo-chat/${embedKey}`)} />
         <Btn icon="🎙️" title="Hablar por voz" sub="Conversa en voz alta con el asistente" onClick={() => navigate(`/demo-voz/${embedKey}`)} />
         <Btn icon="🔗" title="Verlo en un sitio web" sub="Cómo se vería integrado en tu página" onClick={() => navigate(`/demo-sitio/${embedKey}`)} />
 
-        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, opacity: 0.45, textAlign: 'center', marginTop: 32 }}>
-          Con tecnología de Lianx
-        </div>
       </div>
     </div>
   );
