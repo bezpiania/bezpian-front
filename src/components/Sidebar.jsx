@@ -56,7 +56,7 @@ const Sidebar = () => {
       {/* Brand */}
       <div className="app-brand">
         <div className="app-brand-mark">Z</div>
-        <div className="app-brand-name">Pielo</div>
+        <div className="app-brand-name">Øpia</div>
         <div className="pill-pro">PRO</div>
       </div>
 
@@ -102,6 +102,12 @@ const Sidebar = () => {
           <svg><use href="#i-chat" /></svg>Conversaciones
           <Badge count={conversations} />
         </NavLink>
+        {features.leadCapture && (
+          <NavLink to="/leads" className={navClass}>
+            <svg><use href="#i-lead" /></svg>Leads
+            <Badge count={leads} />
+          </NavLink>
+        )}
         {features.quotes && (
           <NavLink to="/cotizaciones" className={navClass}>
             <svg><use href="#i-quote" /></svg>Cotizaciones
