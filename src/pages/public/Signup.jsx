@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { message } from 'antd';
 import useSignup from '../../hooks/useSignup.js';
 import BrainSVG from '../../components/BrainSVG.jsx';
@@ -14,6 +14,9 @@ const Signup = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [agreeTerms, setAgreeTerms] = useState(false);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  // Plan elegido en la página de precios (?plan=basico|pro|enterprise). Por defecto básico.
+  const plan = ['basico', 'pro', 'enterprise'].includes(searchParams.get('plan')) ? searchParams.get('plan') : 'basico';
   const { mutate: signup, isPending } = useSignup();
 
   const handleChange = (e) => {
@@ -40,7 +43,7 @@ const Signup = () => {
     }
 
     signup(
-      { email: formData.email, password: formData.password, name: formData.name },
+      { email: formData.email, password: formData.password, name: formData.name, plan },
       {
         onSuccess: (response) => {
           if (response?.success) {
@@ -70,7 +73,7 @@ const Signup = () => {
         <div className="auth-form-top">
           <a href="/" className="auth-brand">
             <BrainSVG />
-            <span>Pielo</span>
+            <span>Øpia</span>
           </a>
           <button className="auth-back-link" onClick={() => navigate('/')}>
             Volver al sitio
@@ -85,7 +88,7 @@ const Signup = () => {
 
           <h1 className="auth-headline">
             Crea tu<br />
-            <em>Pielo.</em>
+            <em>Øpia.</em>
           </h1>
 
           <p className="auth-subheading">
@@ -169,7 +172,7 @@ const Signup = () => {
               className="auth-btn-submit"
               disabled={!agreeTerms || isPending}
             >
-              {isPending ? 'Creando cuenta…' : 'Crear mi Pielo'}
+              {isPending ? 'Creando cuenta…' : 'Crear mi Øpia'}
             </button>
 
             <div className="auth-divider">
@@ -206,7 +209,7 @@ const Signup = () => {
       {/* Visual Panel */}
       <div className="auth-visual-panel">
         <div className="auth-visual-top">
-          <span className="auth-section-num">Tu Pielo · Anoche</span>
+          <span className="auth-section-num">Tu Øpia · Anoche</span>
           <div className="auth-live">
             <span className="auth-dot-live"></span>
             EN VIVO
@@ -240,7 +243,7 @@ const Signup = () => {
 
         <div className="auth-visual-footer">
           <span>Santiago · CL</span>
-          <span className="auth-mark">Pielo</span>
+          <span className="auth-mark">Øpia</span>
         </div>
       </div>
     </div>

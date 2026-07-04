@@ -1,5 +1,6 @@
 import React from 'react';
 import Sidebar from './Sidebar.jsx';
+import TrialBanner from './TrialBanner.jsx';
 import { getActiveBot } from '../hooks/useActiveBot.js';
 
 /**
@@ -18,7 +19,10 @@ const AppLayout = ({ children }) => {
   return (
     <div className="app" style={style}>
       <Sidebar />
-      <main className="app-main">{children}</main>
+      <main className="app-main">
+        <TrialBanner />
+        {children}
+      </main>
     </div>
   );
 };

@@ -1,8 +1,8 @@
 import instance from '../apis/app.js';
 
 class AuthService {
-  signup = (email, password, name) =>
-    instance.post('/api/auth/signup', { email, password, name });
+  signup = (email, password, name, plan) =>
+    instance.post('/api/auth/signup', { email, password, name, plan });
 
   login = (email, password) =>
     instance.post('/api/auth/login', { email, password });
