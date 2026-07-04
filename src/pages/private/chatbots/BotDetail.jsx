@@ -20,7 +20,9 @@ import AddProductModal from '../../../components/BotDetail/AddProductModal.jsx';
 import ImportCSVModal from '../../../components/BotDetail/ImportCSVModal.jsx';
 import CompanyInfoForm from '../../../components/BotDetail/CompanyInfoForm.jsx';
 import ChatbotInstructionsForm from '../../../components/BotDetail/ChatbotInstructionsForm.jsx';
+import DashboardBrandPanel from '../../../components/BotDetail/DashboardBrandPanel.jsx';
 import { getBusinessType } from '../../../config/businessTypes.js';
+import { getPlanConfig } from '../../../config/plans.js';
 
 /**
  * Detalle de bot · 05
@@ -1068,6 +1070,9 @@ const BotDetail = () => {
 
         {tab === 'appearance' && (
           <>
+            {getPlanConfig(localStorage.getItem('workspacePlan') || 'free').manager && (
+              <DashboardBrandPanel workspaceId={workspaceId} botId={id} />
+            )}
             <div className="section-head">
               <div>
                 <div className="section-num">Personalizacion visual</div>
@@ -1230,7 +1235,7 @@ const BotDetail = () => {
               <div className="section-head">
                 <div>
                   <div className="section-num">Widgets · HTML listo para usar</div>
-                  <div className="section-title">Instala tu <em>Pielo.</em></div>
+                  <div className="section-title">Instala tu <em>Øpia.</em></div>
                   <div style={{ fontFamily: 'var(--font-body)', fontSize: 14, opacity: 0.7, lineHeight: 1.6, marginTop: 8, maxWidth: 620 }}>
                     Elige cómo quieres mostrar tu asistente. Copia el código y pégalo en tu sitio — no necesitas saber programar.
                   </div>
