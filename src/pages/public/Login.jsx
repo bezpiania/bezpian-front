@@ -31,6 +31,11 @@ const Login = () => {
             localStorage.setItem('workspaceId', response.data.user.defaultWorkspaceId);
             localStorage.setItem('workspaceRole', response.data.user.workspaceRole || 'member');
             localStorage.setItem('workspacePlan', response.data.user.workspacePlan || 'free');
+            if (response.data.user.scopedChatbotId) {
+              localStorage.setItem('scopedChatbotId', response.data.user.scopedChatbotId);
+            } else {
+              localStorage.removeItem('scopedChatbotId');
+            }
             navigate('/bots');
           } else {
             message.warning(response?.message || 'No se pudo iniciar sesión');

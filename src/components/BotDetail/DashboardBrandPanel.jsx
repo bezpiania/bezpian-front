@@ -13,6 +13,8 @@ const DashboardBrandPanel = ({ workspaceId, botId }) => {
   const [saving, setSaving]   = useState(false);
   const [uploading, setUploading] = useState(false);
   const [brand, setBrand] = useState({ enabled: false, name: '', color: '#534AB7', logo: '' });
+  const [client, setClient] = useState({ email: '', password: '' });
+  const [creatingClient, setCreatingClient] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -49,6 +51,28 @@ const DashboardBrandPanel = ({ workspaceId, botId }) => {
       message.success('Marca del panel guardada');
     } catch (err) { message.error('Error al guardar'); }
     finally { setSaving(false); }
+  };
+
+  const handleCreateClient = async () => {
+    if (!client.email.trim() || !client.password.trim()) { message.error('Email y contraseña son requeridos'); return; }
+    if (client.password.length < 6) { message.error('La contraseña debe tener al menos 6 caracteres'); return; }
+    try {
+      setCreatingClient(true);
+      const res = await Chatbot.post(`/api/workspaces/${workspaceId}/members`, {
+        email: client.email.trim(),
+        password: client.password,
+        role: 'client',
+        scopedChatbotId: botId,
+      });
+      if (res?.success) {
+        message.success('Acceso del cliente creado');
+        setClient({ email: '', password: '' });
+      } else {
+        message.error(res?.message || 'No se pudo crear el acceso');
+      }
+    } catch (err) {
+      message.error(err?.response?.data?.message || 'Error al crear el acceso');
+    } finally { setCreatingClient(false); }
   };
 
   if (loading) return <Spin />;
@@ -99,6 +123,27 @@ const DashboardBrandPanel = ({ workspaceId, botId }) => {
       <button onClick={handleSave} disabled={saving} className="btn btn-primary" style={{ marginTop: 16 }}>
         {saving ? 'Guardando…' : 'Guardar marca del panel'}
       </button>
+
+      {/* Acceso del cliente final */}
+      <div style={{ marginTop: 24, paddingTop: 20, borderTop: '1px solid var(--rule)' }}>
+        <div className="form-card-title" style={{ margin: '0 0 4px' }}>Acceso del cliente</div>
+        <p style={{ fontSize: 12, opacity: 0.6, marginBottom: 14 }}>
+          Crea un acceso para que tu cliente entre y vea solo este chatbot, con su marca. Comparte estas credenciales con él.
+        </p>
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'flex-end' }}>
+          <div className="form-group" style={{ flex: 1, minWidth: 200 }}>
+            <label className="form-label">Email del cliente</label>
+            <input type="email" className="input" value={client.email} placeholder="cliente@empresa.com" onChange={(e) => setClient(c => ({ ...c, email: e.target.value }))} />
+          </div>
+          <div className="form-group" style={{ flex: 1, minWidth: 160 }}>
+            <label className="form-label">Contraseña</label>
+            <input type="text" className="input" value={client.password} placeholder="mínimo 6 caracteres" onChange={(e) => setClient(c => ({ ...c, password: e.target.value }))} />
+          </div>
+          <button onClick={handleCreateClient} disabled={creatingClient} className="btn btn-ghost" style={{ marginBottom: 2 }}>
+            {creatingClient ? 'Creando…' : 'Crear acceso'}
+          </button>
+        </div>
+      </div>
     </div>
   );
 };

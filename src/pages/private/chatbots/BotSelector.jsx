@@ -132,17 +132,25 @@ const BotSelector = () => {
   const { data, isLoading } = useGetChatbots(workspaceId);
   const bots = data?.data || [];
 
-  // Acceso simple (Básico/Pro): entra directo a su único bot, sin ver la lista.
-  // Solo el plan "manager" (Empresa) ve el listado.
+  // Cliente final (rol 'client'): entra SIEMPRE directo a su bot scopeado, nunca ve la lista.
+  const role       = localStorage.getItem('workspaceRole') || 'member';
+  const isClient   = role === 'client';
+  const scopedId   = localStorage.getItem('scopedChatbotId');
+  // Acceso simple (Básico/Pro): entra directo a su único bot. Solo "manager" (Empresa) ve la lista.
   const plan      = localStorage.getItem('workspacePlan') || 'free';
   const isManager = getPlanConfig(plan).manager === true;
   React.useEffect(() => {
-    if (isLoading || isManager) return;
-    if (bots.length === 1) {
+    if (isLoading) return;
+    if (isClient) {
+      const mine = bots.find(b => b._id === scopedId) || bots[0];
+      if (mine) { setActiveBot(mine); navigate('/dashboard', { replace: true }); }
+      return;
+    }
+    if (!isManager && bots.length === 1) {
       setActiveBot(bots[0]);
       navigate('/dashboard', { replace: true });
     }
-  }, [isLoading, isManager, bots, navigate]);
+  }, [isLoading, isManager, isClient, scopedId, bots, navigate]);
 
   let user = null;
   try { user = JSON.parse(localStorage.getItem('user') || 'null'); } catch {}

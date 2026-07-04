@@ -45,6 +45,9 @@ const Sidebar = () => {
     navigate('/bots');
   };
 
+  // Cliente final (rol 'client'): no cambia de bot ni accede a la config del bot.
+  const isClient = (localStorage.getItem('workspaceRole') || 'member') === 'client';
+
   const navClass = ({ isActive }) => 'app-nav-item' + (isActive ? ' active' : '');
   const Badge = ({ count }) => {
     if (count === null || count === undefined) return null;
@@ -60,11 +63,12 @@ const Sidebar = () => {
         <div className="pill-pro">PRO</div>
       </div>
 
-      {/* Active bot — click to change */}
+      {/* Active bot — click to change (el cliente final no puede cambiar de bot) */}
       <button
-        onClick={handleChangeBot}
-        title="Cambiar de chatbot"
+        onClick={isClient ? undefined : handleChangeBot}
+        title={isClient ? '' : 'Cambiar de chatbot'}
         style={{
+          pointerEvents: isClient ? 'none' : 'auto',
           display: 'flex', alignItems: 'center', gap: 10,
           background: 'var(--bone-2)', border: '1px solid var(--rule)',
           borderRadius: 10, padding: '10px 12px', cursor: 'pointer',
@@ -85,11 +89,13 @@ const Sidebar = () => {
           <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 13, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {bot.name || 'Sin bot activo'}
           </div>
-          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, opacity: 0.5, letterSpacing: '0.06em', marginTop: 1 }}>
-            Cambiar chatbot
-          </div>
+          {!isClient && (
+            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, opacity: 0.5, letterSpacing: '0.06em', marginTop: 1 }}>
+              Cambiar chatbot
+            </div>
+          )}
         </div>
-        <svg style={{ width: 12, height: 12, opacity: 0.4, flexShrink: 0 }}><use href="#i-chevron-down" /></svg>
+        {!isClient && <svg style={{ width: 12, height: 12, opacity: 0.4, flexShrink: 0 }}><use href="#i-chevron-down" /></svg>}
       </button>
 
       {/* Nav — Operación */}
@@ -127,15 +133,17 @@ const Sidebar = () => {
         )}
       </div>
 
-      {/* Nav — Bot */}
-      <div className="app-nav-section">
-        <div className="app-nav-label">Chatbot</div>
-        {bot.id && (
-          <NavLink to={`/chatbots/${bot.id}`} className={navClass}>
-            <svg><use href="#i-settings" /></svg>Configuración
-          </NavLink>
-        )}
-      </div>
+      {/* Nav — Bot (el cliente final no accede a la config del bot) */}
+      {!isClient && (
+        <div className="app-nav-section">
+          <div className="app-nav-label">Chatbot</div>
+          {bot.id && (
+            <NavLink to={`/chatbots/${bot.id}`} className={navClass}>
+              <svg><use href="#i-settings" /></svg>Configuración
+            </NavLink>
+          )}
+        </div>
+      )}
 
       {/* User */}
       <div className="app-user">
