@@ -3,43 +3,53 @@
  * Debe mantenerse sincronizado con zapien-backend/config/plans.js
  */
 export const PLAN_CONFIG = {
+    // 'free' se mantiene SOLO como fallback interno. No se ofrece (offered:false).
     free: {
         label:         'Free',
         price:         '$0',
-        desc:          'Para probar la plataforma.',
+        desc:          'Fallback interno.',
         conversations: 10,
         chatbots:      1,
         members:       2,
-        features:      ['1 chatbot', '10 conversaciones/mes', '2 miembros', 'Chat por texto y voz'],
-        missing:       ['Sin agendamiento'],
+        offered:       false,
+        manager:       false,
+        features:      ['1 chatbot', '10 conversaciones/mes'],
     },
     basico: {
         label:         'Básico',
         price:         '$50.000',
-        desc:          'Para empezar a vender en serio.',
-        conversations: 200,
+        desc:          'Un asistente para tu negocio.',
+        conversations: 100,
         chatbots:      1,
         members:       3,
-        features:      ['1 chatbot', '200 conversaciones/mes', '3 miembros', 'Chat por texto y voz'],
-        missing:       ['Sin agendamiento avanzado'],
+        offered:       true,
+        manager:       false,   // acceso simple: entra directo a su único bot
+        features:      ['1 chatbot', '100 conversaciones/mes', 'Leads y widgets', 'Chat por texto y voz'],
     },
     pro: {
         label:         'Pro',
-        price:         '$150.000',
-        desc:          'Para PyMEs que venden todos los días.',
-        conversations: 1000,
-        chatbots:      3,
-        members:       10,
-        features:      ['3 chatbots', '1.000 conversaciones/mes', '10 miembros', 'Agendamiento + integraciones', 'Chat por texto y voz'],
+        price:         '$85.000',
+        desc:          'Más volumen para tu asistente.',
+        conversations: 500,
+        chatbots:      1,
+        members:       5,
+        offered:       true,
+        manager:       false,
+        features:      ['1 chatbot', '500 conversaciones/mes', 'Soporte prioritario', 'Chat por texto y voz'],
     },
     enterprise: {
         label:         'Empresa',
-        price:         'A medida',
-        desc:          'Cuando ya volaste de la PyME.',
-        conversations: -1,
-        chatbots:      -1,
+        price:         '$30.000 / bot',
+        desc:          'Varios bots y panel con la marca de cada cliente.',
+        conversations: 1000,             // pool de referencia (200 × 5)
+        conversationsPerBot: 200,
+        chatbots:      5,
+        minChatbots:   2,
         members:       -1,
-        features:      ['Bots ilimitados', 'Conversaciones ilimitadas', 'Equipo ilimitado · SSO', 'Soporte dedicado'],
+        pricePerBot:   30000,
+        offered:       true,
+        manager:       true,             // ve la lista y marca el panel de cada cliente
+        features:      ['De 2 a 5 chatbots', '200 conversaciones por bot', 'Panel multi-cliente', 'Marca blanca del dashboard por cliente'],
     },
 };
 

@@ -14,11 +14,10 @@ const PLAN_STYLES = {
     pro:        { bg: 'var(--carbon)', border: 'var(--carbon)', labelColor: 'var(--voltage)', textColor: 'var(--bone)' },
     enterprise: { bg: 'var(--voltage)', border: 'var(--carbon)', textColor: 'var(--carbon)' },
 };
-const PLANS = ['free', 'basico', 'pro', 'enterprise'].map(key => ({
-    key,
-    ...PLAN_CONFIG[key],
-    style: PLAN_STYLES[key] || {},
-}));
+// Solo planes ofrecidos (excluye 'free', que es fallback interno)
+const PLANS = Object.entries(PLAN_CONFIG)
+    .filter(([, v]) => v.offered !== false)
+    .map(([key, v]) => ({ key, ...v, style: PLAN_STYLES[key] || {} }));
 
 const PLAN_LABELS = Object.fromEntries(Object.entries(PLAN_CONFIG).map(([k, v]) => [k, v.label]));
 

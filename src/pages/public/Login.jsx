@@ -30,6 +30,7 @@ const Login = () => {
             localStorage.setItem('refreshToken', response.data.refreshToken);
             localStorage.setItem('workspaceId', response.data.user.defaultWorkspaceId);
             localStorage.setItem('workspaceRole', response.data.user.workspaceRole || 'member');
+            localStorage.setItem('workspacePlan', response.data.user.workspacePlan || 'free');
             navigate('/bots');
           } else {
             message.warning(response?.message || 'No se pudo iniciar sesión');
@@ -61,7 +62,7 @@ const Login = () => {
         <div className="auth-form-top">
           <a href="/" className="auth-brand">
             <BrainSVG />
-            <span>Pielo</span>
+            <span>Øpia</span>
           </a>
           <button className="auth-back-link" onClick={() => navigate('/')}>
             Volver al sitio
@@ -76,7 +77,7 @@ const Login = () => {
 
           <h1 className="auth-headline">
             Vuelve a tu<br />
-            <em>Pielo.</em>
+            <em>Øpia.</em>
           </h1>
 
           <p className="auth-subheading">
@@ -131,7 +132,7 @@ const Login = () => {
               className="auth-btn-submit"
               disabled={isPending}
             >
-              {isPending ? 'Conectando…' : 'Entrar a mi Pielo'}
+              {isPending ? 'Conectando…' : 'Entrar a mi Øpia'}
             </button>
 
             <div className="auth-divider">
@@ -153,7 +154,7 @@ const Login = () => {
         <div className="auth-form-nav">
           <div>
             <em>¿Aún no tienes cuenta?</em>
-            <Link to="/signup">Crear mi Pielo gratis</Link>
+            <Link to="/signup">Crear mi Øpia gratis</Link>
           </div>
           <div>
             <Link to="/terminos">Términos</Link>
@@ -168,7 +169,7 @@ const Login = () => {
       {/* Visual Panel */}
       <div className="auth-visual-panel">
         <div className="auth-visual-top">
-          <span className="auth-section-num">Tu Pielo · Anoche</span>
+          <span className="auth-section-num">Tu Øpia · Anoche</span>
           <div className="auth-live">
             <span className="auth-dot-live"></span>
             EN VIVO
@@ -202,7 +203,7 @@ const Login = () => {
 
         <div className="auth-visual-footer">
           <span>Santiago · CL</span>
-          <span className="auth-mark">Pielo</span>
+          <span className="auth-mark">Øpia</span>
         </div>
       </div>
     </div>

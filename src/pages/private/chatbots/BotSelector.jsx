@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useGetChatbots } from '../../../hooks/useChatbot.js';
 import { setActiveBot, clearActiveBot } from '../../../hooks/useActiveBot.js';
+import { getPlanConfig } from '../../../config/plans.js';
 import IconSprite from '../../../components/IconSprite.jsx';
 import CornerHalo from '../../../components/CornerHalo.jsx';
 
@@ -131,6 +132,18 @@ const BotSelector = () => {
   const { data, isLoading } = useGetChatbots(workspaceId);
   const bots = data?.data || [];
 
+  // Acceso simple (Básico/Pro): entra directo a su único bot, sin ver la lista.
+  // Solo el plan "manager" (Empresa) ve el listado.
+  const plan      = localStorage.getItem('workspacePlan') || 'free';
+  const isManager = getPlanConfig(plan).manager === true;
+  React.useEffect(() => {
+    if (isLoading || isManager) return;
+    if (bots.length === 1) {
+      setActiveBot(bots[0]);
+      navigate('/dashboard', { replace: true });
+    }
+  }, [isLoading, isManager, bots, navigate]);
+
   let user = null;
   try { user = JSON.parse(localStorage.getItem('user') || 'null'); } catch {}
   const userName    = user?.name  || 'Usuario';
@@ -162,7 +175,7 @@ const BotSelector = () => {
       {/* Top bar */}
       <div style={{ borderBottom: '1px solid var(--rule)', padding: '14px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 20, letterSpacing: '-0.02em' }}>
-          Pielo <span className="pill-pro" style={{ fontSize: 9, verticalAlign: 'middle' }}>PRO</span>
+          Øpia <span className="pill-pro" style={{ fontSize: 9, verticalAlign: 'middle' }}>PRO</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           {isAdmin && <>
