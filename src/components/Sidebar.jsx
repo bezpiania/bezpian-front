@@ -56,12 +56,21 @@ const Sidebar = () => {
 
   return (
     <aside className="app-sidebar">
-      {/* Brand */}
-      <div className="app-brand">
-        <div className="app-brand-mark">Z</div>
-        <div className="app-brand-name">Øpia</div>
-        <div className="pill-pro">PRO</div>
-      </div>
+      {/* Brand — marca del cliente si aplica (cliente final con marca activa); si no, Øpia */}
+      {isClient && bot.brand?.enabled ? (
+        <div className="app-brand">
+          {bot.brand.logo
+            ? <img src={bot.brand.logo} alt={bot.brand.name || 'Marca'} style={{ width: 28, height: 28, borderRadius: 8, objectFit: 'cover' }} />
+            : <div className="app-brand-mark">{(bot.brand.name || 'C')[0].toUpperCase()}</div>}
+          <div className="app-brand-name">{bot.brand.name || bot.name}</div>
+        </div>
+      ) : (
+        <div className="app-brand">
+          <div className="app-brand-mark">Z</div>
+          <div className="app-brand-name">Øpia</div>
+          <div className="pill-pro">PRO</div>
+        </div>
+      )}
 
       {/* Active bot — click to change (el cliente final no puede cambiar de bot) */}
       <button

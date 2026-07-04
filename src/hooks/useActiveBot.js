@@ -22,6 +22,11 @@ export const getActiveBot = () => {
     avatar:   localStorage.getItem('activeBotAvatar')|| '🤖',
     type:     localStorage.getItem('activeBotType')  || 'generic',
     features,
+    brand:    (() => {
+      let brand = { enabled: false, name: '', color: '', logo: '' };
+      try { const b = localStorage.getItem('activeBotBrand'); if (b) brand = { ...brand, ...JSON.parse(b) }; } catch {}
+      return brand;
+    })(),
   };
 };
 
@@ -32,10 +37,11 @@ export const setActiveBot = (bot) => {
   localStorage.setItem('activeBotAvatar',   bot.widget?.avatar || '🤖');
   localStorage.setItem('activeBotType',     bot.businessType || 'generic');
   localStorage.setItem('activeBotFeatures', JSON.stringify(bot.features || {}));
+  localStorage.setItem('activeBotBrand',    JSON.stringify(bot.dashboardBrand || {}));
 };
 
 export const clearActiveBot = () => {
-  ['activeBotId','activeBotName','activeBotColor','activeBotAvatar','activeBotType','activeBotFeatures']
+  ['activeBotId','activeBotName','activeBotColor','activeBotAvatar','activeBotType','activeBotFeatures','activeBotBrand']
     .forEach(k => localStorage.removeItem(k));
 };
 
