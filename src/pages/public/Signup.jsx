@@ -23,7 +23,7 @@ const Signup = () => {
   const PLAN_OPTIONS = [
     { key: 'basico',     label: 'Básico',  price: '$50.000',      desc: '1 chatbot · 100 conv.' },
     { key: 'pro',        label: 'Pro',     price: '$85.000',      desc: '1 chatbot · 500 conv.' },
-    { key: 'enterprise', label: 'Empresa', price: '$60.000',  desc: 'hasta 4 bots · marca blanca' },
+    { key: 'enterprise', label: 'Empresa', price: '$60.000',  desc: 'hasta 4 bots · +$15.000 bot extra · marca blanca' },
   ];
 
   const handleChange = (e) => {

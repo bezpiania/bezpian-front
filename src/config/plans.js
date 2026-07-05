@@ -44,10 +44,11 @@ export const PLAN_CONFIG = {
         conversations: 800,              // pool de referencia (200 × 4)
         conversationsPerBot: 200,
         chatbots:      4,
+        extraBotPrice: 15000,            // bot adicional del 5º en adelante
         members:       -1,
         offered:       true,
         manager:       true,             // ve la lista y marca el panel de cada cliente
-        features:      ['Hasta 4 chatbots', '200 conversaciones por bot', 'Panel multi-cliente', 'Marca blanca del dashboard por cliente'],
+        features:      ['Hasta 4 chatbots', 'Bot adicional: $15.000/mes', '200 conversaciones por bot', 'Panel multi-cliente', 'Marca blanca del dashboard'],
     },
 };
 
