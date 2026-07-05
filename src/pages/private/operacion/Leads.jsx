@@ -137,8 +137,12 @@ const Leads = () => {
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
-          <button className="filter-chip">Todos los estados <svg><use href="#i-chevron-down" /></svg></button>
-          <button className="filter-chip"><svg><use href="#i-bot" /></svg>Todos los bots<svg><use href="#i-chevron-down" /></svg></button>
+          <select className="filter-chip" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+            <option value="">Todos los estados</option>
+            {Object.entries(STATUS_CONFIG).map(([key, cfg]) => (
+              <option key={key} value={key}>{cfg.label}</option>
+            ))}
+          </select>
         </div>
 
         <table className="data-table">

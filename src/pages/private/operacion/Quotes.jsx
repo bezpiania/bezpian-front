@@ -38,6 +38,7 @@ const Quotes = () => {
   const workspaceId = localStorage.getItem('workspaceId');
   const activeBotId = localStorage.getItem('activeBotId') || '';
   const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
   const [quotes, setQuotes] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -61,13 +62,15 @@ const Quotes = () => {
   }, [workspaceId, activeBotId]);
 
   const filteredQuotes = useMemo(() => {
-    if (!search) return quotes;
-    return quotes.filter(q =>
+    let result = quotes;
+    if (statusFilter) result = result.filter(q => q.status === statusFilter);
+    if (search) result = result.filter(q =>
       q.quoteNumber?.toString().includes(search) ||
       q.clientName?.toLowerCase().includes(search.toLowerCase()) ||
       q.clientEmail?.toLowerCase().includes(search.toLowerCase())
     );
-  }, [quotes, search]);
+    return result;
+  }, [quotes, search, statusFilter]);
 
   const kpis = useMemo(() => {
     const stats = {
@@ -143,8 +146,12 @@ const Quotes = () => {
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
-          <button className="filter-chip">Estado <svg><use href="#i-chevron-down" /></svg></button>
-          <button className="filter-chip"><svg><use href="#i-bot" /></svg>Todos los bots<svg><use href="#i-chevron-down" /></svg></button>
+          <select className="filter-chip" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+            <option value="">Todos los estados</option>
+            {Object.entries(STATUS_CONFIG).map(([key, cfg]) => (
+              <option key={key} value={key}>{cfg.label}</option>
+            ))}
+          </select>
         </div>
 
         <table className="data-table">
