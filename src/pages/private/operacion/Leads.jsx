@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
+import { message } from 'antd';
 import AppLayout from '../../../components/AppLayout.jsx';
 import { useGetLeads } from '../../../hooks/useLead.js';
 
@@ -49,6 +50,18 @@ const Leads = () => {
   const { data: leadsResponse, isLoading } = useGetLeads(workspaceId, activeBotId);
   const leads = leadsResponse?.data || [];
 
+  const handleExportCSV = () => {
+    if (!leads.length) { message.info('No hay leads para exportar'); return; }
+    const headers = ['Nombre', 'Empresa', 'Email', 'Teléfono', 'Estado', 'Fecha'];
+    const esc = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+    const rows = leads.map(l => [l.name, l.company, l.email, l.phone, l.status, l.createdAt ? new Date(l.createdAt).toLocaleString('es-CL') : ''].map(esc).join(','));
+    const csv = '﻿' + [headers.map(esc).join(','), ...rows].join('\n');
+    const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }));
+    const a = document.createElement('a');
+    a.href = url; a.download = `leads-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click(); URL.revokeObjectURL(url);
+  };
+
   const filteredLeads = useMemo(() => {
     let result = leads;
     if (search) {
@@ -94,7 +107,7 @@ const Leads = () => {
           </p>
         </div>
         <div className="page-actions">
-          <button className="btn btn-ghost btn-sm">
+          <button className="btn btn-ghost btn-sm" onClick={handleExportCSV}>
             <svg><use href="#i-download" /></svg>Exportar CSV
           </button>
         </div>

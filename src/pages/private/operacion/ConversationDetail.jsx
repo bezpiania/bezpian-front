@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useNavigate } from 'react-router-dom';
+import { message, Modal } from 'antd';
 import AppLayout from '../../../components/AppLayout.jsx';
 import Conversations from '../../../services/Conversations.js';
 
@@ -28,10 +29,39 @@ const TimeDivider = ({ children }) => (
 
 const ConversationDetail = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [conversation, setConversation] = useState(null);
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  const handleClose = () => {
+    Modal.confirm({
+      title: '¿Cerrar esta conversación?', okText: 'Cerrar', cancelText: 'Cancelar',
+      onOk: async () => {
+        const r = await Conversations.close(id);
+        if (r?.success) { message.success('Conversación cerrada'); loadConversation(); }
+        else message.error(r?.message || 'No se pudo cerrar');
+      },
+    });
+  };
+
+  const handleSpam = () => {
+    Modal.confirm({
+      title: '¿Marcar como spam?', okText: 'Marcar spam', okType: 'danger', cancelText: 'Cancelar',
+      onOk: async () => {
+        const r = await Conversations.markSpam(id);
+        if (r?.success) { message.success('Marcada como spam'); navigate('/conversaciones'); }
+        else message.error(r?.message || 'No se pudo marcar');
+      },
+    });
+  };
+
+  const handleEmail = () => {
+    const em = conversation?.customerEmail || conversation?.lead?.email || conversation?.visitorEmail;
+    if (!em) { message.info('Esta conversación no tiene email del cliente'); return; }
+    window.location.href = `mailto:${em}`;
+  };
 
   useEffect(() => {
     loadConversation();
@@ -155,9 +185,9 @@ const ConversationDetail = () => {
         </div>
       </div>
       <div className="page-actions">
-        <button className="btn btn-ghost btn-sm"><svg><use href="#i-mail" /></svg>Email cliente</button>
-        <button className="btn btn-ghost btn-sm">Marcar spam</button>
-        <button className="btn btn-primary btn-sm">Cerrar chat</button>
+        <button className="btn btn-ghost btn-sm" onClick={handleEmail}><svg><use href="#i-mail" /></svg>Email cliente</button>
+        <button className="btn btn-ghost btn-sm" onClick={handleSpam}>Marcar spam</button>
+        <button className="btn btn-primary btn-sm" onClick={handleClose}>Cerrar chat</button>
       </div>
     </div>
 
