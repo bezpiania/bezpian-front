@@ -127,7 +127,7 @@ const ConversationDetail = () => {
 
   const formatDate = (date) => {
     if (!date) return '';
-    return new Date(date).toLocaleDateString('es-ES', {
+    return new Date(date).toLocaleDateString('es-CL', {
       weekday: 'long',
       day: 'numeric',
       month: 'long',
@@ -137,7 +137,7 @@ const ConversationDetail = () => {
 
   const formatTime = (date) => {
     if (!date) return '';
-    return new Date(date).toLocaleTimeString('es-ES', {
+    return new Date(date).toLocaleTimeString('es-CL', {
       hour: '2-digit',
       minute: '2-digit'
     });

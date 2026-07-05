@@ -166,7 +166,7 @@ const Orders = () => {
                       {order.orderType === 'dine_in' ? (order.tableName || '—') : order.deliveryAddress}
                     </div>
                     <div style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: 14 }}>
-                      Bs. {order.total?.toLocaleString()}
+                      $ {order.total?.toLocaleString()}
                     </div>
                     <StatusPill status={order.status} statusConfig={STATUS_CONFIG} />
                     <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, opacity: 0.45 }}>{fmt(order.createdAt)}</div>
@@ -185,7 +185,7 @@ const Orders = () => {
                                   <strong>{item.quantity}×</strong> {item.name}
                                   {item.variant && <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, opacity: 0.6 }}> ({item.variant})</span>}
                                 </span>
-                                <span style={{ fontFamily: 'var(--font-mono)' }}>Bs. {item.totalPrice?.toLocaleString()}</span>
+                                <span style={{ fontFamily: 'var(--font-mono)' }}>$ {item.totalPrice?.toLocaleString()}</span>
                               </div>
                               {item.notes && features.itemNotes && (
                                 <div style={{ fontSize: 11, opacity: 0.55, fontStyle: 'italic', paddingLeft: 20 }}>📝 {item.notes}</div>
@@ -195,17 +195,17 @@ const Orders = () => {
                           <div style={{ borderTop: '1px solid var(--rule)', marginTop: 6, paddingTop: 6, display: 'flex', flexDirection: 'column', gap: 4 }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, opacity: 0.6 }}>
                               <span>Subtotal</span>
-                              <span style={{ fontFamily: 'var(--font-mono)' }}>Bs. {order.subtotal?.toLocaleString()}</span>
+                              <span style={{ fontFamily: 'var(--font-mono)' }}>$ {order.subtotal?.toLocaleString()}</span>
                             </div>
                             {order.deliveryCost > 0 && (
                               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, opacity: 0.6 }}>
                                 <span>Delivery</span>
-                                <span style={{ fontFamily: 'var(--font-mono)' }}>Bs. {order.deliveryCost?.toLocaleString()}</span>
+                                <span style={{ fontFamily: 'var(--font-mono)' }}>$ {order.deliveryCost?.toLocaleString()}</span>
                               </div>
                             )}
                             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14, fontWeight: 700 }}>
                               <span>Total</span>
-                              <span style={{ fontFamily: 'var(--font-mono)' }}>Bs. {order.total?.toLocaleString()}</span>
+                              <span style={{ fontFamily: 'var(--font-mono)' }}>$ {order.total?.toLocaleString()}</span>
                             </div>
                           </div>
                         </div>
