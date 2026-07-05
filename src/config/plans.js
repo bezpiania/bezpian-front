@@ -39,17 +39,15 @@ export const PLAN_CONFIG = {
     },
     enterprise: {
         label:         'Empresa',
-        price:         '$30.000 / bot',
-        desc:          'Varios bots y panel con la marca de cada cliente.',
-        conversations: 1000,             // pool de referencia (200 × 5)
+        price:         '$60.000',
+        desc:          'Hasta 4 bots y panel con la marca de cada cliente.',
+        conversations: 800,              // pool de referencia (200 × 4)
         conversationsPerBot: 200,
-        chatbots:      5,
-        minChatbots:   2,
+        chatbots:      4,
         members:       -1,
-        pricePerBot:   30000,
         offered:       true,
         manager:       true,             // ve la lista y marca el panel de cada cliente
-        features:      ['De 2 a 5 chatbots', '200 conversaciones por bot', 'Panel multi-cliente', 'Marca blanca del dashboard por cliente'],
+        features:      ['Hasta 4 chatbots', '200 conversaciones por bot', 'Panel multi-cliente', 'Marca blanca del dashboard por cliente'],
     },
 };
 
