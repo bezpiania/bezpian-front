@@ -970,14 +970,6 @@ const BotDetail = () => {
                     ? 'Crea o importa productos para que el bot pueda recomendarlos.'
                     : 'Sincroniza tu catálogo para que el bot pueda recomendar productos.'}
                 </div>
-                <button
-                  className="btn btn-voltage"
-                  onClick={handleSyncProducts}
-                  disabled={isSyncing}
-                >
-                  <svg><use href="#i-refresh" /></svg>
-                  {isSyncing ? 'Sincronizando...' : 'Sincronizar catálogo'}
-                </button>
               </div>
             ) : (
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 16 }}>

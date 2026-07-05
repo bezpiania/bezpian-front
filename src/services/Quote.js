@@ -29,10 +29,10 @@ class QuoteService {
     instance.get(`/api/quotes/${quoteId}/pdf`);
 
   getShareLink = (workspaceId, chatbotId, quoteId) =>
-    instance.get(`/api/workspaces/${workspaceId}/chatbots/${chatbotId}/quotes/${quoteId}/share`);
+    instance.get(`/api/quotes/${quoteId}/share-link`);
 
   resend = (workspaceId, chatbotId, quoteId) =>
-    instance.post(`/api/workspaces/${workspaceId}/chatbots/${chatbotId}/quotes/${quoteId}/resend`);
+    instance.post(`/api/quotes/${quoteId}/resend`);
 
   accept = (quoteId) =>
     instance.post(`/api/quotes/${quoteId}/accept`);
