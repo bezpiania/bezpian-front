@@ -2,11 +2,11 @@ import React, { useState, useRef, useEffect } from 'react';
 import { generateFullChatHtml } from '../../../utils/generateFullChatHtml.js';
 import { generateBubbleWidgetHtml } from '../../../utils/generateBubbleWidgetHtml.js';
 import { generateVoiceWidgetHtml } from '../../../utils/generateVoiceWidgetHtml.js';
-import { Link, useParams } from 'react-router-dom';
-import { Spin, message } from 'antd';
+import { Link, useParams, useNavigate } from 'react-router-dom';
+import { Spin, message, Modal } from 'antd';
 import { useQueryClient } from '@tanstack/react-query';
 import AppLayout from '../../../components/AppLayout.jsx';
-import { useGetChatbot, useUpdateChatbot } from '../../../hooks/useChatbot.js';
+import { useGetChatbot, useUpdateChatbot, useActivateChatbot, usePauseChatbot, useDeleteChatbot } from '../../../hooks/useChatbot.js';
 import { useGetDocuments, useUploadDocument, useDeleteDocument } from '../../../hooks/useDocument.js';
 import { useGetProducts, useSyncProducts } from '../../../hooks/useProduct.js';
 import Chatbot from '../../../services/Chatbot.js';
@@ -134,6 +134,35 @@ const BotDetail = () => {
   const { mutate: syncProducts, isPending: isSyncing } = useSyncProducts(workspaceId, id);
 
   const { mutate: updateChatbot, isPending: isUpdating } = useUpdateChatbot();
+  const navigate = useNavigate();
+  const { mutate: activateBot } = useActivateChatbot();
+  const { mutate: pauseBot } = usePauseChatbot();
+  const { mutate: deleteBot, isPending: isDeleting } = useDeleteChatbot();
+
+  const handleTogglePause = () => {
+    const active = bot?.status === 'active';
+    const fn = active ? pauseBot : activateBot;
+    fn({ workspaceId, id }, {
+      onSuccess: () => message.success(active ? 'Chatbot pausado' : 'Chatbot reactivado'),
+      onError: (e) => message.error(e?.response?.data?.message || 'No se pudo cambiar el estado'),
+    });
+  };
+
+  const handleDelete = () => {
+    Modal.confirm({
+      title: `¿Eliminar "${bot?.name}"?`,
+      content: 'Se borrarán todas sus conversaciones, leads y cotizaciones. Esta acción no se puede deshacer.',
+      okText: 'Eliminar',
+      okType: 'danger',
+      cancelText: 'Cancelar',
+      onOk: () => new Promise((resolve, reject) => {
+        deleteBot({ workspaceId, id }, {
+          onSuccess: () => { message.success('Chatbot eliminado'); navigate('/bots'); resolve(); },
+          onError: (e) => { message.error(e?.response?.data?.message || 'No se pudo eliminar'); reject(); },
+        });
+      }),
+    });
+  };
 
   const [configForm, setConfigForm] = useState({
     name: bot?.name || '',
@@ -461,7 +490,7 @@ const BotDetail = () => {
           </div>
         </div>
         <div className="page-actions">
-          <button className="btn btn-ghost btn-sm">
+          <button className="btn btn-ghost btn-sm" onClick={handleTogglePause}>
             <svg><use href={bot.status === 'active' ? '#i-pause' : '#i-play'} /></svg>
             {bot.status === 'active' ? 'Pausar' : 'Reactivar'}
           </button>
@@ -588,8 +617,8 @@ const BotDetail = () => {
                   Esta acción borra todas las conversaciones, leads y cotizaciones de {bot.name}. <em>No hay marcha atrás.</em>
                 </div>
               </div>
-              <button className="btn btn-ghost btn-sm" style={{ color: 'var(--magma)', borderColor: 'rgba(255, 77, 31, 0.3)' }}>
-                <svg><use href="#i-trash" /></svg>Eliminar
+              <button className="btn btn-ghost btn-sm" style={{ color: 'var(--magma)', borderColor: 'rgba(255, 77, 31, 0.3)' }} onClick={handleDelete} disabled={isDeleting}>
+                <svg><use href="#i-trash" /></svg>{isDeleting ? 'Eliminando…' : 'Eliminar'}
               </button>
             </div>
           </>
