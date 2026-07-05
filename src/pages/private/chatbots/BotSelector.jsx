@@ -146,9 +146,15 @@ const BotSelector = () => {
       if (mine) { setActiveBot(mine); navigate('/dashboard', { replace: true }); }
       return;
     }
-    if (!isManager && bots.length === 1) {
-      setActiveBot(bots[0]);
-      navigate('/dashboard', { replace: true });
+    // Básico/Pro (no-manager): nunca ven la lista.
+    if (!isManager) {
+      if (bots.length >= 1) {
+        setActiveBot(bots[0]);
+        navigate('/dashboard', { replace: true });
+      } else {
+        // 0 bots → onboarding: directo a crear su primer chatbot.
+        navigate('/chatbots/nuevo', { replace: true });
+      }
     }
   }, [isLoading, isManager, isClient, scopedId, bots, navigate]);
 
