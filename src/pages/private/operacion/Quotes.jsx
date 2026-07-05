@@ -194,9 +194,6 @@ const Quotes = () => {
                     <td><span className={'pill ' + statusConfig.tone}>{statusConfig.label}</span></td>
                     <td className="td-mono">{formatDate(q.createdAt)}</td>
                     <td>
-                      <button style={{ background: 'transparent', border: 'none', cursor: 'pointer', opacity: 0.5, padding: 4 }}>
-                        <svg style={{ width: 16, height: 16 }}><use href="#i-dots" /></svg>
-                      </button>
                     </td>
                   </tr>
                 );

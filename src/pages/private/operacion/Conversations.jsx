@@ -165,11 +165,6 @@ const ConversationsPage = () => {
               onChange={handleSearch}
             />
           </div>
-          <button className="filter-chip">
-            <svg><use href="#i-cal" /></svg>
-            Últimos 7 días
-            <svg><use href="#i-chevron-down" /></svg>
-          </button>
           <button
             className="filter-chip"
             onClick={() => handleOutcomeFilter(filters.outcome ? '' : 'lead')}
@@ -230,9 +225,6 @@ const ConversationsPage = () => {
                     <td><StatusPill status={conv.status} /></td>
                     <td className="td-mono">{getTimeAgo(conv.lastMessageAt || conv.createdAt)}</td>
                     <td>
-                      <button style={{ background: 'transparent', border: 'none', cursor: 'pointer', opacity: 0.5, padding: 4 }}>
-                        <svg style={{ width: 16, height: 16 }}><use href="#i-dots" /></svg>
-                      </button>
                     </td>
                   </tr>
                 ))}

@@ -102,7 +102,7 @@ const Integrations = () => (
           <div style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 12.5, opacity: 0.7, lineHeight: 1.4, maxWidth: '24ch' }}>
             Dinos qué herramienta usas y la consideramos para el próximo sprint.
           </div>
-          <button className="btn btn-ghost btn-sm">Sugerir integración</button>
+          <button className="btn btn-ghost btn-sm" onClick={() => { window.location.href = 'mailto:soporte@opia.app?subject=Sugerencia%20de%20integración'; }}>Sugerir integración</button>
         </div>
       </div>
     </div>

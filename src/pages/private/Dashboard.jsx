@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import AppLayout from '../../components/AppLayout.jsx';
 import useStatus from '../../hooks/useStatus.js';
 
@@ -9,6 +9,7 @@ import useStatus from '../../hooks/useStatus.js';
  * (no bloquea el render: si falla, igual renderiza el dashboard con sus datos demo).
  */
 const Dashboard = () => {
+  const [showTip, setShowTip] = useState(true);
   // Se llama el hook por convención de arquitectura. No bloquea el render.
   useStatus();
 
@@ -27,15 +28,6 @@ const Dashboard = () => {
           <p className="page-sub">
             Tus bots tuvieron <strong>32% más conversaciones</strong> que la semana pasada. Mientras dormías atendieron 8 clientes y cerraron 2 cotizaciones.
           </p>
-        </div>
-        <div className="page-actions">
-          <button className="filter-chip">
-            <svg><use href="#i-cal" /></svg>Últimos 7 días<svg><use href="#i-chevron-down" /></svg>
-          </button>
-          <button className="btn btn-ghost btn-sm" style={{ position: 'relative' }}>
-            <svg><use href="#i-bell" /></svg>
-            <span style={{ position: 'absolute', top: -3, right: -3, width: 8, height: 8, background: 'var(--magma)', borderRadius: '50%', border: '2px solid var(--bone)' }}></span>
-          </button>
         </div>
       </div>
 
@@ -90,9 +82,6 @@ const Dashboard = () => {
                   Conversaciones <em>por día</em>
                 </div>
               </div>
-              <a style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 13, opacity: 0.7, cursor: 'pointer' }}>
-                Ver detalle →
-              </a>
             </div>
             <div style={{ height: 200 }}>
               <svg viewBox="0 0 600 200" style={{ width: '100%', height: '100%' }} preserveAspectRatio="none">
@@ -126,9 +115,6 @@ const Dashboard = () => {
                   Lo que <em>pasó hoy</em>
                 </div>
               </div>
-              <a style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 13, opacity: 0.7, cursor: 'pointer' }}>
-                Ver todo →
-              </a>
             </div>
             <div>
               <div className="activity-row">
@@ -164,16 +150,18 @@ const Dashboard = () => {
         </div>
 
         {/* Tip */}
+        {showTip && (
         <div className="tip-bar">
           <div className="tip-bar-icon"><svg><use href="#i-zap" /></svg></div>
           <div className="tip-bar-text">
             <strong>Tip de la semana</strong>
             <em>Los bots con al menos 20 productos cargados convierten un 40% más. Súbete a tu catálogo completo.</em>
           </div>
-          <button className="tip-bar-close" type="button">
+          <button className="tip-bar-close" type="button" onClick={() => setShowTip(false)}>
             <svg><use href="#i-close" /></svg>
           </button>
         </div>
+        )}
       </div>
     </AppLayout>
   );
