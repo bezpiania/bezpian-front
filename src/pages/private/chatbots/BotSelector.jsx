@@ -157,7 +157,6 @@ const BotSelector = () => {
   const userName    = user?.name  || 'Usuario';
   const userEmail   = user?.email || '';
   const userInitial = (userName[0] || 'U').toUpperCase();
-  const role        = localStorage.getItem('workspaceRole') || 'member';
   const isAdmin     = role === 'admin' || role === 'owner';
 
   const handleOpen = (bot) => {
