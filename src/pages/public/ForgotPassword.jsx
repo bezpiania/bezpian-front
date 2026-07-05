@@ -16,7 +16,7 @@ const ForgotPassword = () => {
       <div style={{ maxWidth: 460, width: '100%' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, marginBottom: 48 }}>
           <div style={{ width: 36, height: 36, background: 'var(--carbon)', color: 'var(--voltage)', display: 'grid', placeItems: 'center', borderRadius: 9, fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 20, letterSpacing: '-0.05em' }}>Z</div>
-          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 22, letterSpacing: '-0.035em' }}>Pielo</div>
+          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 22, letterSpacing: '-0.035em' }}>Øpia</div>
         </div>
 
         <div className="auth-eyebrow" style={{ textAlign: 'center', justifyContent: 'center' }}>¿Olvidaste la clave?</div>

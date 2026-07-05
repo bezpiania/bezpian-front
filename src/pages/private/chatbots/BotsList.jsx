@@ -93,7 +93,7 @@ const DEMO_BOTS = [
           <span>3 activos · 2/3 plan Pro</span>
         </div>
         <h1 className="page-title">
-          Tus <em>Pielos.</em>
+          Tus <em>Øpias.</em>
         </h1>
         <p className="page-sub">
           Crea, pausa o configura tus chatbots. Cada uno vive en un sitio distinto y aprende de su propio catálogo.
@@ -116,7 +116,7 @@ const DEMO_BOTS = [
             </div>
             <div>
               <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, letterSpacing: '-0.02em', marginBottom: 4 }}>
-                Crear tu primer Pielo
+                Crear tu primer Øpia
               </div>
               <div style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 13, opacity: 0.7, lineHeight: 1.4, maxWidth: '24ch' }}>
                 Tu primer chatbot que vende. <em>Sin developers necesarios.</em>
@@ -194,7 +194,7 @@ const DEMO_BOTS = [
           </div>
           <div>
             <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, letterSpacing: '-0.02em', marginBottom: 4 }}>
-              Crear otro Pielo
+              Crear otro Øpia
             </div>
             <div style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 13, opacity: 0.7, lineHeight: 1.4, maxWidth: '24ch' }}>
               Cada bot para un negocio distinto.

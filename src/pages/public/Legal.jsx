@@ -2,14 +2,14 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 
 /**
- * Legal — Términos de Servicio y Política de Privacidad de Pielo.
+ * Legal — Términos de Servicio y Política de Privacidad de Øpia.
  * Renderiza ambos documentos según la prop `doc` ('terms' | 'privacy').
  *
  * NOTA: textos base; deben ser revisados por un abogado antes de operar comercialmente.
  */
 const UPDATED = '16 de junio de 2026';
-const COMPANY = 'Pielo';
-const CONTACT = 'soporte@pielo.app';
+const COMPANY = 'Øpia';
+const CONTACT = 'soporte@øpia.app';
 
 const wrap = { maxWidth: 760, margin: '0 auto', padding: '48px 24px 80px', fontFamily: 'var(--font-body)', color: 'var(--carbon)', lineHeight: 1.7 };
 const h1 = { fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 32, letterSpacing: '-0.03em', marginBottom: 6 };
@@ -21,7 +21,7 @@ const Header = ({ title }) => (
   <>
     <Link to="/login" style={{ fontFamily: 'var(--font-mono)', fontSize: 12, opacity: 0.6 }}>← Volver</Link>
     <h1 style={h1}>{title}</h1>
-    <div style={meta}>Pielo · Última actualización: {UPDATED}</div>
+    <div style={meta}>Øpia · Última actualización: {UPDATED}</div>
   </>
 );
 

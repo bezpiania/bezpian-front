@@ -83,7 +83,7 @@ const EmbedCodePanel = ({ workspaceId, botId, botName, bot }) => {
         <div className="card">
           <div style={{ marginBottom: 16 }}>
             <p style={{ fontSize: 13, opacity: 0.7, margin: 0 }}>
-              Copia el siguiente código HTML y pégalo en tu sitio web para incrustar el chat de Pielo. El chat aparecerá en la esquina inferior derecha.
+              Copia el siguiente código HTML y pégalo en tu sitio web para incrustar el chat de Øpia. El chat aparecerá en la esquina inferior derecha.
             </p>
           </div>
 
@@ -130,7 +130,7 @@ const EmbedCodePanel = ({ workspaceId, botId, botName, bot }) => {
               <li>Abre tu editor HTML o tu sitio web</li>
               <li>Pega el código antes de cerrar la etiqueta &lt;/body&gt;</li>
               <li>Guarda los cambios</li>
-              <li>El chat de Pielo aparecerá automáticamente en tu página</li>
+              <li>El chat de Øpia aparecerá automáticamente en tu página</li>
             </ol>
           </div>
 
@@ -153,7 +153,7 @@ const EmbedCodePanel = ({ workspaceId, botId, botName, bot }) => {
               overflowX: 'auto',
               whiteSpace: 'pre',
             }}>{`<script>
-  window.PieloUser = {
+  window.ØpiaUser = {
     isLoggedIn: false,        // true si el usuario está logueado
     // name:  currentUser.name,  // nombre del usuario
     // email: currentUser.email, // email del usuario

@@ -106,7 +106,7 @@ const PublicQuote = () => {
               </div>
               <div style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 16, opacity: 0.8, lineHeight: 1.45, marginTop: 6, maxWidth: '44ch' }}>
                 Acá está la cotización que te armó{' '}
-                <strong style={{ fontStyle: 'normal', fontFamily: 'var(--font-display)', fontWeight: 600, color: 'var(--voltage)' }}>Pielo</strong>.
+                <strong style={{ fontStyle: 'normal', fontFamily: 'var(--font-display)', fontWeight: 600, color: 'var(--voltage)' }}>Øpia</strong>.
                 Revísala con calma y avísanos cuando quieras avanzar.
               </div>
             </div>
@@ -228,7 +228,7 @@ const PublicQuote = () => {
 
       {/* Powered by */}
       <div style={{ textAlign: 'center', marginTop: 36, fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase', opacity: 0.45 }}>
-        Con tecnología de <strong style={{ fontWeight: 700 }}>Pielo</strong> · vende mientras duermes
+        Con tecnología de <strong style={{ fontWeight: 700 }}>Øpia</strong> · vende mientras duermes
       </div>
     </div>
   </div>
