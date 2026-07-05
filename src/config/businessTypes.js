@@ -169,10 +169,9 @@ export const BUSINESS_TYPES = {
         trackingCode:  true,   // número de guía de envío
         returns:       true,   // devoluciones y cambios
       },
-      statusFlow: ['new', 'processing', 'preparing', 'shipped', 'delivered', 'returned', 'cancelled'],
+      statusFlow: ['new', 'preparing', 'shipped', 'delivered', 'returned', 'cancelled'],
       statusLabels: {
         new:        'Nueva',
-        processing: 'Procesando',
         preparing:  'Preparando',
         shipped:    'Enviada',
         delivered:  'Entregada',

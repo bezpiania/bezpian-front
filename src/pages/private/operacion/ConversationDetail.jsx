@@ -145,11 +145,11 @@ const ConversationDetail = () => {
 
   const getStatusPill = (status) => {
     const statusMap = {
-      open: { label: 'Abierta', className: 'amber' },
+      active: { label: 'Abierta', className: 'amber' },
       closed: { label: 'Cerrada', className: 'bone' },
-      archived: { label: 'Archivada', className: 'bone' }
+      spam:   { label: 'Spam', className: 'red' }
     };
-    const pill = statusMap[status] || statusMap.open;
+    const pill = statusMap[status] || statusMap.active;
     return <span className={`pill ${pill.className}`}>{pill.label}</span>;
   };
 

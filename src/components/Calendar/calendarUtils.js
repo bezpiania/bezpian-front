@@ -16,6 +16,7 @@ export const STATUS_STYLES = {
   completed:  { label: 'Completada',  dot: 'var(--ink)' },
   cancelled:  { label: 'Cancelada',   dot: 'var(--magma)' },
   no_show:    { label: 'No asistió',  dot: '#9CA3AF' },
+  waitlisted: { label: 'En espera',   dot: '#8B5CF6' },
 };
 
 /** Returns the 7 days of the week containing the given date (Mon–Sun) */
