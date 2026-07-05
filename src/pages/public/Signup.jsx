@@ -15,9 +15,16 @@ const Signup = () => {
   const [agreeTerms, setAgreeTerms] = useState(false);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  // Plan elegido en la página de precios (?plan=basico|pro|enterprise). Por defecto básico.
-  const plan = ['basico', 'pro', 'enterprise'].includes(searchParams.get('plan')) ? searchParams.get('plan') : 'basico';
+  // Plan: se puede elegir en el registro (o venir preseleccionado por ?plan=).
+  const initialPlan = ['basico', 'pro', 'enterprise'].includes(searchParams.get('plan')) ? searchParams.get('plan') : 'basico';
+  const [plan, setPlan] = useState(initialPlan);
   const { mutate: signup, isPending } = useSignup();
+
+  const PLAN_OPTIONS = [
+    { key: 'basico',     label: 'Básico',  price: '$50.000',      desc: '1 chatbot · 100 conv.' },
+    { key: 'pro',        label: 'Pro',     price: '$85.000',      desc: '1 chatbot · 500 conv.' },
+    { key: 'enterprise', label: 'Empresa', price: '$30.000/bot',  desc: '2 a 5 chatbots · marca blanca' },
+  ];
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -96,6 +103,33 @@ const Signup = () => {
           </p>
 
           <form className="auth-form" onSubmit={handleSubmit} noValidate>
+            <div className="auth-field">
+              <label className="auth-field-label">Elige tu plan</label>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
+                {PLAN_OPTIONS.map(opt => {
+                  const active = plan === opt.key;
+                  return (
+                    <button
+                      type="button"
+                      key={opt.key}
+                      onClick={() => setPlan(opt.key)}
+                      style={{
+                        textAlign: 'left', cursor: 'pointer', borderRadius: 12, padding: '10px 12px',
+                        border: active ? '2px solid #15140F' : '1px solid #d8d5cc',
+                        background: active ? '#15140F' : 'transparent',
+                        color: active ? '#DCFF1E' : '#15140F', transition: 'all .12s',
+                      }}
+                    >
+                      <div style={{ fontWeight: 700, fontSize: 13 }}>{opt.label}</div>
+                      <div style={{ fontSize: 14, fontWeight: 700, margin: '2px 0' }}>{opt.price}</div>
+                      <div style={{ fontSize: 10, opacity: active ? 0.8 : 0.55, lineHeight: 1.3 }}>{opt.desc}</div>
+                    </button>
+                  );
+                })}
+              </div>
+              <p style={{ fontSize: 11, opacity: 0.55, marginTop: 6 }}>7 días de prueba gratis · sin tarjeta · pagas después</p>
+            </div>
+
             <div className="auth-field">
               <label className="auth-field-label" htmlFor="name">
                 Tu nombre
