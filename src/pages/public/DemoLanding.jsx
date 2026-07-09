@@ -20,7 +20,7 @@ const DemoLanding = () => {
   useEffect(() => {
     if (!embedKey) return;
     Chatbot.get(`/api/embed/bot-info?embedKey=${embedKey}`)
-      .then((res) => setBot(res?.data || null))
+      .then((res) => { const b = res?.data || null; setBot(b); if (b?.name) document.title = b.name; })
       .catch(() => setBot(null))
       .finally(() => setLoading(false));
   }, [embedKey]);

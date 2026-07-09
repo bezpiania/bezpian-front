@@ -21,6 +21,7 @@ const DemoVoice = () => {
     Chatbot.get(`/api/embed/bot-info?embedKey=${embedKey}`)
       .then((res) => {
         const b = res?.data || {};
+        if (b.name) document.title = b.name;
         setBot(b);
         setHtml(generateVoiceWidgetHtml({
           botId: '', embedKey, apiUrl, appUrl,

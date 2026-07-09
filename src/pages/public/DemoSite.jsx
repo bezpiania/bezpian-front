@@ -21,6 +21,7 @@ const DemoSite = () => {
     Chatbot.get(`/api/embed/bot-info?embedKey=${embedKey}`)
       .then((res) => {
         const b = res?.data || {};
+        if (b.name) document.title = b.name;
         setHtml(generateBubbleWidgetHtml({
           botId: '',
           embedKey,
